@@ -21,48 +21,66 @@ import type { SportsbookId } from "./sportsbook";
 export type AmericanOdds = number;
 
 /*
-  MarketCategory: which group of bets a market belongs to. These match the row
-  of links on the matchup page.
+  A note on the lists below (MARKET_CATEGORIES, GAME_PERIODS, ...): each one is a
+  real list the database and the server can check against, so they can reject
+  bad data like side: "sideways". The type right under each list is built from
+  it, so the list and the type can never disagree.
 */
-export type MarketCategory =
-  | "game-lines" // Spread, Total, Winner (moneyline)
-  | "player-props" // One player's stats: passing yards, touchdowns, and so on
-  | "team-props" // One team's stats, like team total points
-  | "halves" // Game lines for the 1st or 2nd half only
-  | "quarters" // Game lines for one quarter only
-  | "dst" // Defense and special teams
-  | "specials"; // Anything else the sportsbook offers for the game
 
 /*
-  GamePeriod: which part of the game a bet covers.
+  MARKET_CATEGORIES / MarketCategory: which group of bets a market belongs to.
+  These match the row of links on the matchup page.
+*/
+export const MARKET_CATEGORIES = [
+  "game-lines", // Spread, Total, Winner (moneyline)
+  "player-props", // One player's stats: passing yards, touchdowns, and so on
+  "team-props", // One team's stats, like team total points
+  "halves", // Game lines for the 1st or 2nd half only
+  "quarters", // Game lines for one quarter only
+  "dst", // Defense and special teams
+  "specials", // Anything else the sportsbook offers for the game
+] as const;
+export type MarketCategory = (typeof MARKET_CATEGORIES)[number];
+
+/*
+  GAME_PERIODS / GamePeriod: which part of the game a bet covers.
   Most bets are "full-game". Halves and quarters bets only count that part.
 */
-export type GamePeriod =
-  | "full-game"
-  | "first-half"
-  | "second-half"
-  | "q1"
-  | "q2"
-  | "q3"
-  | "q4";
+export const GAME_PERIODS = [
+  "full-game",
+  "first-half",
+  "second-half",
+  "q1",
+  "q2",
+  "q3",
+  "q4",
+] as const;
+export type GamePeriod = (typeof GAME_PERIODS)[number];
 
 /*
-  PickSide: which side of a bet a pick is on.
+  PICK_SIDES / PickSide: which side of a bet a pick is on.
   - "home" / "away": a team (spread or winner).
   - "over" / "under": a total (game points, or a player's passing yards).
   - "yes" / "no": something happens or not (like "scores a touchdown").
 */
-export type PickSide = "home" | "away" | "over" | "under" | "yes" | "no";
+export const PICK_SIDES = ["home", "away", "over", "under", "yes", "no"] as const;
+export type PickSide = (typeof PICK_SIDES)[number];
+
+/*
+  PARTICIPANT_KINDS / ParticipantKind: what a bet is about.
+  - "game": the whole game (like the game's total points).
+  - "team": one team (spread, winner, team total).
+  - "player": one player (player props).
+*/
+export const PARTICIPANT_KINDS = ["game", "team", "player"] as const;
+export type ParticipantKind = (typeof PARTICIPANT_KINDS)[number];
 
 /*
   Participant: who or what a bet is about.
-  - kind "game": the whole game (like the game's total points).
-  - kind "team": one team (spread, winner, team total).
-  - kind "player": one player (player props).
 */
 export type Participant = {
   /** Whether the bet is about the whole game, one team, or one player. */
-  kind: "game" | "team" | "player";
+  kind: ParticipantKind;
   /** Our ID for the team or player (from ESPN), or null for the whole game or if we couldn't match the name. */
   id: string | null;
   /** The name to show, like "Kansas City Chiefs", "Patrick Mahomes", or "Game". */
