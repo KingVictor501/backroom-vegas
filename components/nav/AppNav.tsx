@@ -71,7 +71,7 @@ export default function AppNav() {
     >
       {/* The app name, only on the desktop sidebar. On phones each page shows it at the top instead. */}
       <p className="hidden px-6 pb-6 pt-8 font-display text-2xl text-gold lg:block">
-        Backroom Vegas
+        The Vegas Backroom
       </p>
 
       <ul className="flex justify-around lg:flex-col lg:gap-1 lg:px-3">

@@ -14,8 +14,8 @@ import Link from "next/link";
 // The shared "coming soon" box from the components folder.
 import PagePlaceholder from "@/components/PagePlaceholder";
 
-/* The browser tab title. absolute = show just "Backroom Vegas" without the "| Backroom Vegas" ending. */
-export const metadata: Metadata = { title: { absolute: "Backroom Vegas" } };
+/* The browser tab title. absolute = show just "The Vegas Backroom" without the "| The Vegas Backroom" ending. */
+export const metadata: Metadata = { title: { absolute: "The Vegas Backroom" } };
 
 /* FeedPage: the homepage placeholder. */
 export default function FeedPage() {

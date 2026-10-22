@@ -17,7 +17,7 @@
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
-      <p className="mb-8 font-display text-4xl text-gold">Backroom Vegas</p>
+      <p className="mb-8 font-display text-4xl text-gold">The Vegas Backroom</p>
       <div className="w-full max-w-md">{children}</div>
     </main>
   );

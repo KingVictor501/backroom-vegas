@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 // The shared "coming soon" box from the components folder.
 import PagePlaceholder from "@/components/PagePlaceholder";
 
-/* The browser tab title: "Matchup | Backroom Vegas". */
+/* The browser tab title: "Matchup | The Vegas Backroom". */
 export const metadata: Metadata = { title: "Matchup" };
 
 /*

@@ -35,6 +35,8 @@
   --color-muted: #a1a1aa;
   /* Grayed-out items, like leagues that are "coming soon". */
   --color-disabled: #5b5b63;
+  /* Error messages (like "Invalid email or password."): a soft red that's easy to read on dark gray. */
+  --color-danger: #f87171;
 
   /*
     Fonts. The actual font files are loaded in app/layout.tsx, which puts them

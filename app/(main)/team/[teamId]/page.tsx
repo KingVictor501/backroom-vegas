@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 // The shared "coming soon" box from the components folder.
 import PagePlaceholder from "@/components/PagePlaceholder";
 
-/* The browser tab title: "Team | Backroom Vegas". */
+/* The browser tab title: "Team | The Vegas Backroom". */
 export const metadata: Metadata = { title: "Team" };
 
 /* TeamPage: reads the team ID from the address and shows it in the placeholder. */

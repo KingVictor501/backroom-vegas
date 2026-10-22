@@ -36,12 +36,12 @@ const inter = Inter({
 
 /*
   The text that appears in the browser tab and in search results.
-  "%s | Backroom Vegas" means a page titled "Settings" shows "Settings | Backroom Vegas".
+  "%s | The Vegas Backroom" means a page titled "Settings" shows "Settings | The Vegas Backroom".
 */
 export const metadata: Metadata = {
   title: {
-    default: "Backroom Vegas",
-    template: "%s | Backroom Vegas",
+    default: "The Vegas Backroom",
+    template: "%s | The Vegas Backroom",
   },
   description:
     "Compare NFL odds across sportsbooks, read NFL news, and build bet slips. A reference tool only, with no real betting.",

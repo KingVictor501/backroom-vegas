@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 // The shared "coming soon" box from the components folder.
 import PagePlaceholder from "@/components/PagePlaceholder";
 
-/* The browser tab title: "Bet Slip | Backroom Vegas". */
+/* The browser tab title: "Bet Slip | The Vegas Backroom". */
 export const metadata: Metadata = { title: "Bet Slip" };
 
 /* BetSlipDetailPage: reads the slip ID from the address and shows it in the placeholder. */

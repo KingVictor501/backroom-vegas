@@ -19,7 +19,7 @@ import PagePlaceholder from "@/components/PagePlaceholder";
 import { getLeague } from "@/config/leagues";
 
 /*
-  generateMetadata: sets the browser tab title to the league name, like "NFL | Backroom Vegas".
+  generateMetadata: sets the browser tab title to the league name, like "NFL | The Vegas Backroom".
   PageProps<"/league/[league]"> is a type Next.js generates. It knows this page receives a "league" value.
   "params" arrives as a Promise (a value that's ready a moment later), so we "await" it.
 */

@@ -12,7 +12,7 @@ import Link from "next/link";
 // The shared "coming soon" box from the components folder.
 import PagePlaceholder from "@/components/PagePlaceholder";
 
-/* The browser tab title: "Bet Slips | Backroom Vegas". */
+/* The browser tab title: "Bet Slips | The Vegas Backroom". */
 export const metadata: Metadata = { title: "Bet Slips" };
 
 /* BetSlipsPage: the list placeholder, with links so we can test the other two bet slip pages. */
