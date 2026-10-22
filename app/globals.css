@@ -1,0 +1,70 @@
+/*
+  FILE: app/globals.css
+  WHAT IT'S FOR: The app-wide look. It sets the colors and fonts every page
+  shares (dark background, dark gray cards, one gold accent, white/light gray text).
+  WHO USES IT: app/layout.tsx imports it once, so every page gets these styles.
+  WHY THIS NAME: "globals" = styles for the whole app. It ends in .css because
+  it's a stylesheet, not code.
+*/
+
+/* Loads Tailwind, the styling tool that lets us write classes like "bg-card" right on elements. */
+@import "tailwindcss";
+
+/*
+  Our color and font "tokens" (named values). Defining them once here means
+  every page uses the exact same gold, the exact same card gray, and so on.
+  Tailwind turns each one into a class: --color-gold becomes "text-gold",
+  "bg-gold", "border-gold".
+*/
+@theme {
+  /* The page background: near-black. */
+  --color-bg: #0b0b0d;
+  /* Cards and the menu bar: dark gray, a step lighter than the background. */
+  --color-card: #18181c;
+  /* Hovered or raised cards: one more step lighter. */
+  --color-card-raised: #232329;
+  /* Thin lines between things. */
+  --color-line: #2e2e35;
+  /* The one accent color, used for buttons, the current page, and selected odds. */
+  --color-gold: #d4af37;
+  /* A slightly brighter gold for when the mouse is over a gold button. */
+  --color-gold-bright: #e6c65c;
+  /* Main text: soft white (pure white on black is harsh to read). */
+  --color-text: #f4f4f5;
+  /* Secondary text: light gray. It still has high contrast on the dark background (about 7.5 to 1). */
+  --color-muted: #a1a1aa;
+  /* Grayed-out items, like leagues that are "coming soon". */
+  --color-disabled: #5b5b63;
+
+  /*
+    Fonts. The actual font files are loaded in app/layout.tsx, which puts them
+    into the --font-playfair and --font-inter variables used here.
+    "font-display" = the fancy heading font. "font-sans" = the clean font for text, numbers, and odds.
+  */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/* The whole page: dark background, light text, readable font. */
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* All headings use the fancy font automatically. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/*
+  Keyboard users: when someone moves around with the Tab key, whatever is
+  selected gets a clear gold outline so they can always see where they are.
+  "focus-visible" only shows it for keyboard use, not mouse clicks.
+*/
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}

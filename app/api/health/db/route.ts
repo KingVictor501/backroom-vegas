@@ -1,0 +1,39 @@
+/*
+  FILE: app/api/health/db/route.ts
+  WHAT IT'S FOR: A test address, /api/health/db, that tells you whether the app can
+  reach your MongoDB database. Visit it in a browser and you'll see a short JSON answer.
+  "Health check" is the usual name for a route like this.
+  WHO USES IT: You (in the browser or Postman) to check the database locally now and
+  on Vercel in Section 1B. No page in the app uses it.
+  WHY THIS NAME: Every folder under app becomes part of the address, so
+  app/api/health/db becomes /api/health/db. Next.js requires API route files to be
+  named "route", and it ends in .ts (not .tsx) because it sends back data, not a screen.
+*/
+
+// pingDatabase comes from lib/db/mongodb.ts, the one shared place that knows how to connect to MongoDB.
+import { pingDatabase } from "@/lib/db/mongodb";
+
+/*
+  GET: runs when someone visits /api/health/db.
+  - If the database answers: status 200 ("OK") with { "status": "connected", "database": "backroom-vegas" }.
+  - If not: status 503 ("Service Unavailable") with a friendly message.
+  Security note: we never send back the real error or the connection string. Error
+  details can include your cluster address. The full error goes to the server's log
+  (your terminal, or Vercel's logs) where only you can see it.
+*/
+export async function GET() {
+  try {
+    const database = await pingDatabase();
+    return Response.json({ status: "connected", database });
+  } catch (error) {
+    console.error("Database health check failed:", error);
+    return Response.json(
+      {
+        status: "error",
+        message:
+          "Can't reach the database. Check MONGODB_URI and MongoDB Atlas Network Access.",
+      },
+      { status: 503 },
+    );
+  }
+}
