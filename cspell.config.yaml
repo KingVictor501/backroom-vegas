@@ -33,7 +33,8 @@ words:
   - moneylines
   - SGP
   - SGPs
-  # --- Sportsbooks (as The Odds API spells them) ---
+  # --- Sportsbooks (our IDs, plus how The Odds API and Parlay API spell them) ---
+  - hardrock
   - hardrockbet
   - betmgm
   - williamhill
