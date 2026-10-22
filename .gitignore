@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sample API responses saved from Postman (Section 5) so Claude can read real field names.
+# Kept on your computer only: they are large and contain ESPN/odds data we should not redistribute.
+/api-samples/

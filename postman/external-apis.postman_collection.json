@@ -1,0 +1,219 @@
+{
+  "info": {
+    "name": "Vegas Backroom – External APIs",
+    "description": "FILE: postman/external-apis.postman_collection.json\nWHAT IT IS FOR: Every outside-API request used to build The Vegas Backroom (Section 5): The Odds API (B) and ESPN (C).\nHOW TO USE: In Postman, Import this file, then select the \"Vegas Backroom – External APIs\" environment so {{odds_api_key}} is filled in. No real keys are stored in this file.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for exported collections (JSON can not hold comments, so this description is the file header).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "B – Odds API",
+      "description": "Costs are Odds API credits. Every request needs {{odds_api_key}} from your environment. Look at the response Headers tab for x-requests-remaining.",
+      "item": [
+        {
+          "name": "B1 – sports (0 credits)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports?apiKey={{odds_api_key}}",
+            "description": "List of sports. Free."
+          }
+        },
+        {
+          "name": "B2 – NFL events (0 credits)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events?apiKey={{odds_api_key}}",
+            "description": "Upcoming NFL games with Odds API IDs, full team names, kickoff times. Free."
+          }
+        },
+        {
+          "name": "B3 – NFL game lines, all books (3 credits)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=h2h,spreads,totals&oddsFormat=american",
+            "description": "Spread, total, winner for every game from Hard Rock, BetMGM, Caesars (williamhill_us)."
+          }
+        },
+        {
+          "name": "B4 – markets offered for one game (1 credit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/markets?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us",
+            "description": "Which markets each book offers for KC @ SEA (10/25/2026). Replace the event ID for other games."
+          }
+        },
+        {
+          "name": "B5 – player props for one game (up to 3 credits)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=player_anytime_td,player_pass_yds,player_tds_over&oddsFormat=american",
+            "description": "Anytime TD, passing yards, 2+ TDs for KC @ SEA."
+          }
+        },
+        {
+          "name": "B6 – halves and quarters for one game (up to 3 credits)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=spreads_h1,totals_h1,h2h_q1&oddsFormat=american",
+            "description": "1st half spread and total, 1st quarter winner for KC @ SEA."
+          }
+        }
+      ]
+    },
+    {
+      "name": "C – ESPN (free, no key)",
+      "description": "ESPN unofficial public API. No key or headers needed. Can change without notice.",
+      "item": [
+        {
+          "name": "C0 – scoreboard for a date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261018",
+            "description": "Games on one day (YYYYMMDD)."
+          }
+        },
+        {
+          "name": "C1 – all teams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams",
+            "description": "Team IDs, abbreviations, names, logos."
+          }
+        },
+        {
+          "name": "C2 – one team (Chiefs = 12)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12",
+            "description": "Record and division standing."
+          }
+        },
+        {
+          "name": "C3 – team schedule",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12/schedule",
+            "description": "Past results and upcoming games."
+          }
+        },
+        {
+          "name": "C4 – team roster",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12/roster",
+            "description": "Players, positions, jerseys, photos."
+          }
+        },
+        {
+          "name": "C5 – league injuries (very large, ~17 MB)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries",
+            "description": "Injury report for every team."
+          }
+        },
+        {
+          "name": "C6 – league news",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/news",
+            "description": "Latest NFL stories. Add &team=12 for one team."
+          }
+        },
+        {
+          "name": "C7 – standings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/v2/sports/football/nfl/standings",
+            "description": "Division standings (note /apis/v2, no site)."
+          }
+        },
+        {
+          "name": "C8 – game summary (finished game)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873006",
+            "description": "Box score for LAC @ KC, 10/18/2026."
+          }
+        },
+        {
+          "name": "C9 – player overview (Mahomes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/overview",
+            "description": "Next game, news."
+          }
+        },
+        {
+          "name": "C10 – player game log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/gamelog",
+            "description": "Game-by-game stats."
+          }
+        },
+        {
+          "name": "C11 – player season stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/stats",
+            "description": "Season totals by category."
+          }
+        },
+        {
+          "name": "C12 – scoreboard (upcoming date)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261025",
+            "description": "Games on 10/25/2026."
+          }
+        },
+        {
+          "name": "C13 – team season stats (Core API)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/types/2/teams/12/statistics",
+            "description": "Yards, turnovers, and more for the season."
+          }
+        },
+        {
+          "name": "C14 – game summary (upcoming game)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873022",
+            "description": "KC @ SEA: includes the Matchup Predictor (win chance)."
+          }
+        },
+        {
+          "name": "C15 – player basic info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477",
+            "description": "Name, jersey, position, team, photo."
+          }
+        }
+      ]
+    }
+  ]
+}
