@@ -1,0 +1,64 @@
+# FILE: cspell.config.yaml
+# WHAT IT'S FOR: Teaches VS Code's spell checker (cSpell) the sports, betting, and
+# coding words this project uses, so they stop showing up as "Unknown word".
+# These words aren't typos, just words the dictionary doesn't have.
+# WHO USES IT: The Code Spell Checker extension in VS Code reads it automatically.
+# No app code uses it.
+# WHY THIS NAME: cSpell looks for a file with exactly this name in the project's
+# main folder. It's a .yaml file (a simple settings format) instead of .json
+# because YAML allows comments like these.
+# HOW TO ADD A WORD: put it on a new line under "words", starting with "- ".
+# Capital letters don't matter.
+
+version: "0.2"
+language: en
+
+# Folders the spell checker should skip: installed packages and build files we didn't write.
+ignorePaths:
+  - node_modules
+  - .next
+  - package-lock.json
+  - next-env.d.ts
+
+words:
+  # --- The app ---
+  - backroom
+  - betslip
+  - betslips
+  - sportsbook
+  - sportsbooks
+  - parlay
+  - parlays
+  - moneyline
+  - moneylines
+  - SGP
+  - SGPs
+  # --- Sportsbooks (as The Odds API spells them) ---
+  - hardrockbet
+  - betmgm
+  - williamhill
+  # --- Leagues and stats ---
+  - NCAAF
+  - NCAAB
+  - NCAABB
+  - WNBA
+  - DST
+  - ESPN
+  - linescores
+  - boxscore
+  - gamesummary
+  - scoringplays
+  - winprobability
+  - ondays
+  # --- Players used in examples ---
+  - Mahomes
+  - Kelce
+  # --- Tools and services ---
+  - rapidapi
+  - mongodb
+  - mongoose
+  - Vercel
+  - typegen
+  - gitkeep
+  - Playfair
+  - Turbopack
