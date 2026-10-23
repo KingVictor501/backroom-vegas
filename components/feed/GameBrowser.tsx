@@ -138,6 +138,17 @@ export default function GameBrowser({
         </p>
       )}
 
+      {/* The chosen book has no odds on ANY game (Caesars did this in Section 5), so say so instead of showing only dashes. */}
+      {!oddsUnavailable && games.length > 0 && games.every((game) => game.lines === null) && (
+        <p role="status" className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
+          {sportsbookName} hasn&apos;t posted odds for these games yet.{" "}
+          <Link href="/settings" className="font-semibold text-gold underline-offset-4 hover:underline">
+            Try another sportsbook in Settings
+          </Link>
+          .
+        </p>
+      )}
+
       {oddsUnavailable && (
         <p role="status" className="rounded-xl border border-danger/50 bg-card px-4 py-3 text-sm text-danger">
           Odds aren&apos;t available right now, so prices show as dashes. Please try again in a few minutes.
