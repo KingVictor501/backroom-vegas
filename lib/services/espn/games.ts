@@ -1,7 +1,7 @@
 /*
   FILE: lib/services/espn/games.ts
-  WHAT IT'S FOR: Gets games from ESPN: this week's games for the Feed and league
-  page, and one game's details (records, venue, win chance, box score) for the
+  WHAT IT'S FOR: Gets games from ESPN: this week's (and next week's) games for
+  the Feed and league page, and one game's details (records, venue, win chance, box score) for the
   matchup page.
   WHO USES IT: lib/services/games.ts (which adds odds). Later: the matchup page
   (Section 10) and team page (Section 11).
@@ -9,6 +9,7 @@
 */
 
 import "server-only";
+import type { z } from "zod";
 // CACHE_SECONDS and cached() from lib/services/cache.ts: save results so ESPN isn't asked on every page view.
 import { cached, CACHE_SECONDS } from "@/lib/services/cache";
 // The ESPN helpers and the shapes we expect from ESPN.
@@ -33,6 +34,48 @@ export const getWeekGames = cached(
       .map((event) => toGame(event, league.slug))
       .filter((game): game is Game => game !== null)
       .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  },
+);
+
+/*
+  UpcomingGames: this week's games and next week's games, each soonest first.
+*/
+export type UpcomingGames = { thisWeek: Game[]; nextWeek: Game[] };
+
+/*
+  getUpcomingGames: this week's games PLUS next week's, for the Feed and league
+  page ("every upcoming matchup"). It reads the week number from this week's
+  scoreboard and asks ESPN for week + 1.
+  If next week can't be loaded (for example, after the last regular-season week,
+  when the playoffs start), you still get this week's games.
+  Saved for 5 minutes, like the scoreboard.
+*/
+export const getUpcomingGames = cached(
+  "espn-upcoming-games",
+  CACHE_SECONDS.espnScoreboard,
+  async (leagueSlug: LeagueSlug): Promise<UpcomingGames> => {
+    const league = requireLeague(leagueSlug);
+    const toGames = (events: z.infer<typeof scoreboardSchema>["events"]) =>
+      events
+        .map((event) => toGame(event, league.slug))
+        .filter((game): game is Game => game !== null)
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+    const current = await espnGet(espnUrl("site", league, "scoreboard"), scoreboardSchema, "scoreboard");
+    const thisWeek = toGames(current.events);
+
+    let nextWeek: Game[] = [];
+    if (current.week && current.season) {
+      const query = `scoreboard?week=${current.week.number + 1}&seasontype=${current.season.type}`;
+      try {
+        const next = await espnGet(espnUrl("site", league, query), scoreboardSchema, "scoreboard-next-week");
+        const thisWeekIds = new Set(thisWeek.map((game) => game.id));
+        nextWeek = toGames(next.events).filter((game) => !thisWeekIds.has(game.id));
+      } catch (error) {
+        console.error("Next week's games unavailable:", error);
+      }
+    }
+    return { thisWeek, nextWeek };
   },
 );
 

@@ -87,8 +87,16 @@ export const espnEventSchema = z.object({
 });
 export type EspnEvent = z.infer<typeof espnEventSchema>;
 
-/* C12: the scoreboard (this week's games). */
-export const scoreboardSchema = z.object({ events: z.array(espnEventSchema) });
+/*
+  C12: the scoreboard (this week's games). week and season say WHICH week it
+  is (like week 7 of the regular season, type 2), so we can ask for the next one.
+  ESPN also sends betting odds inside each game. We never read them (no odds from ESPN).
+*/
+export const scoreboardSchema = z.object({
+  events: z.array(espnEventSchema),
+  week: z.object({ number: z.number() }).optional(),
+  season: z.object({ type: z.number() }).optional(),
+});
 
 /* C1: every team in the league. */
 export const teamsSchema = z.object({

@@ -3,6 +3,7 @@
   WHAT IT'S FOR: Small helpers for picks and prices:
   - makePickId(): the ID that tells two picks apart
   - formatOdds(): shows odds the American way, like -110 or +150
+  - formatLine(): shows a spread line, like -3, +3, or PK
   - pickCount(): "1 pick" or "3 picks"
   - SLIP_TYPE_LABELS: the words shown for each slip type
   WHO USES IT: components/betslip (odds buttons, slip bar, slip panel). Later:
@@ -35,6 +36,15 @@ export function makePickId(
 export function formatOdds(odds: AmericanOdds | null): string {
   if (odds === null) return "–";
   return odds > 0 ? `+${odds}` : String(odds);
+}
+
+/*
+  formatLine: a spread line as text. +3 → "+3", -3.5 → "-3.5", 0 → "PK"
+  ("pick'em", the sportsbook word for no points given either way).
+*/
+export function formatLine(line: number): string {
+  if (line === 0) return "PK";
+  return line > 0 ? `+${line}` : String(line);
 }
 
 /* SLIP_TYPE_LABELS: how each slip type is written on screen. */

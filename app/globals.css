@@ -70,3 +70,21 @@ h3 {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
+
+/*
+  .scroll-row: a row that scrolls sideways (left and right) instead of wrapping,
+  used for the league tabs and the bet-type buttons on the Feed.
+  - overflow-x: auto turns on sideways scrolling only when the row doesn't fit.
+  - overscroll-behavior-x: contain stops a swipe from also swiping the browser back a page.
+  - scrollbar-width: none hides the scroll bar (you swipe on phones, or use a trackpad
+    or Shift + mouse wheel on a computer). The ::-webkit-scrollbar line does the same in older Safari.
+*/
+.scroll-row {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}

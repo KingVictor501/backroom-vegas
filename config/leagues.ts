@@ -118,6 +118,30 @@ export const LEAGUES = [
     espn: { sport: "basketball", league: "wnba" },
     betTypes: ["Game Lines"],
   },
+  /*
+    UFC and Boxing: "coming soon" tabs for now. Their names in The Odds API and
+    ESPN are our best guess and must be checked in Postman before turning them on.
+  */
+  {
+    slug: "ufc",
+    label: "UFC",
+    fullName: "Ultimate Fighting Championship",
+    enabled: false,
+    icon: "🥋",
+    oddsApiSportKey: "mma_mixed_martial_arts",
+    espn: { sport: "mma", league: "ufc" },
+    betTypes: ["Fight Lines"],
+  },
+  {
+    slug: "boxing",
+    label: "Boxing",
+    fullName: "Boxing",
+    enabled: false,
+    icon: "🥊",
+    oddsApiSportKey: "boxing_boxing",
+    espn: { sport: "boxing", league: "boxing" },
+    betTypes: ["Fight Lines"],
+  },
 ] as const satisfies readonly LeagueConfig[];
 
 /** The league the app opens on. */

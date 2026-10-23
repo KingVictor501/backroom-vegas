@@ -1,10 +1,11 @@
 /*
   FILE: app/(main)/league/[league]/page.tsx
-  WHAT IT'S FOR: A league's page, e.g. /league/nfl. For now it's a placeholder; the
-  real list of matchups comes in Section 9. It already shows "not found" for a league
-  that doesn't exist (like /league/xyz) and a "coming soon" note for leagues that
-  are turned off (like /league/nba).
-  WHO USES IT: Next.js shows it for any address that starts with /league/. The Feed links to /league/nfl.
+  WHAT IT'S FOR: A league's page, e.g. /league/nfl: every upcoming matchup,
+  soonest first, each with the day and time and a Spread / Total / Winner odds
+  table. It shows "not found" for a league that doesn't exist (like /league/xyz)
+  and a "coming soon" note for leagues that are turned off (like /league/nba).
+  WHO USES IT: Next.js shows it for any address that starts with /league/. The
+  NFL league tab links here.
   WHY THIS NAME: The square brackets in "[league]" make it a "dynamic" folder:
   whatever is typed in that part of the address (nfl, nba, ...) gets handed to the
   page as "league". It ends in .tsx because it shows something on screen.
@@ -17,6 +18,10 @@ import { notFound } from "next/navigation";
 import PagePlaceholder from "@/components/PagePlaceholder";
 // The league list from config/leagues.ts, the one place that knows which leagues exist and which are on.
 import { getLeague } from "@/config/leagues";
+// The server part that loads and shows the games, from components/feed.
+import LeagueGames from "@/components/feed/LeagueGames";
+// requireUser from lib/auth/dal.ts: the logged-in user (for their sportsbook).
+import { requireUser } from "@/lib/auth/dal";
 
 /*
   generateMetadata: sets the browser tab title to the league name, like "NFL | The Vegas Backroom".
@@ -30,10 +35,11 @@ export async function generateMetadata(
   return { title: getLeague(slug)?.label ?? "League not found" };
 }
 
-/* LeaguePage: checks the league in the address, then shows the right placeholder. */
+/* LeaguePage: runs on the server. Checks the league in the address, then shows its games. */
 export default async function LeaguePage(props: PageProps<"/league/[league]">) {
   const { league: slug } = await props.params;
   const league = getLeague(slug);
+  const user = await requireUser();
 
   // No league has this slug (someone typed /league/xyz), so show the "not found" page instead of crashing.
   if (!league) notFound();
@@ -50,10 +56,9 @@ export default async function LeaguePage(props: PageProps<"/league/[league]">) {
   }
 
   return (
-    <PagePlaceholder
-      title={league.label}
-      description={`Every upcoming ${league.label} matchup, soonest first, with Spread, Total, and Winner odds.`}
-      section="Section 9"
-    />
+    <div className="mx-auto max-w-5xl space-y-4">
+      <h1 className="text-2xl text-gold">{league.label} games</h1>
+      <LeagueGames league={league} user={user} />
+    </div>
   );
 }
