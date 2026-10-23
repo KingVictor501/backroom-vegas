@@ -103,3 +103,14 @@ body {
 .scroll-row::-webkit-scrollbar {
   display: none;
 }
+
+/*
+  Safari draws search boxes (input type="search") with its own built-in look,
+  including a rectangle when you click in. This turns that off everywhere, so
+  our own rounded pill shape is the only one you see. The small clear (x)
+  button inside the box still works.
+*/
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+}

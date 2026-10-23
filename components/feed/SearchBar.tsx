@@ -149,7 +149,9 @@ export default function SearchBar({ value, onChange }: { value: string; onChange
           autoComplete="off"
           maxLength={50}
           // The rounded box around it turns gold when you're typing, so the box itself doesn't need its own (square) outline.
-          className="min-h-12 w-full bg-transparent text-base text-text placeholder:text-muted focus:outline-none focus-visible:outline-none"
+          // appearance-none turns off Safari's built-in search box look, which draws its own rectangle when you click in.
+          // The shadow-none and ring-0 parts make sure no browser adds a focus glow of its own.
+          className="min-h-12 w-full appearance-none rounded-none border-0 bg-transparent text-base text-text shadow-none ring-0 placeholder:text-muted focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none"
         />
       </div>
 
