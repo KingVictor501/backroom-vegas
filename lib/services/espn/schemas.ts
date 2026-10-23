@@ -127,6 +127,20 @@ export const teamDetailSchema = z.object({
 /* C3: one team's season schedule (finished and upcoming games). */
 export const teamScheduleSchema = z.object({ events: z.array(espnEventSchema) });
 
+/*
+  C17 (Core API): a team's stat leaders this season, like "Passing Yards" →
+  [Mahomes 1,309]. Each leader only has a link to the player ($ref), whose
+  address ends in the player's ID, like ".../athletes/3139477?lang=en".
+*/
+export const teamLeadersSchema = z.object({
+  categories: z.array(
+    z.object({
+      name: z.string(),
+      leaders: z.array(z.object({ value: z.number().optional(), athlete: z.object({ $ref: z.string() }) })).default([]),
+    }),
+  ),
+});
+
 /* C13 (Core API): one team's season stats, grouped into categories like "passing". */
 export const teamSeasonStatsSchema = z.object({
   splits: z.object({

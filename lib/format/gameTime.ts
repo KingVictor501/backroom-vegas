@@ -1,13 +1,13 @@
 /*
   FILE: lib/format/gameTime.ts
-  WHAT IT'S FOR: Turns a game's start time into words for game cards:
+  WHAT IT'S FOR: Turns a game's start time into words for game cards and tables:
   "Today", "Tomorrow", "Sunday", or "Sun, Nov 2", plus "4:25 PM ET".
   WHY EASTERN TIME: The server builds the page, and it doesn't know what time
   zone your phone is in. NFL schedules are listed in Eastern time, so we always
   use it and say "ET", so the time is never wrong or confusing. The same rule
   decides what "Today" means for the Today filter.
-  WHO USES IT: components/feed (game cards and the Today filter). Later: the
-  matchup page (Section 10) and bet slip pages (Section 12).
+  WHO USES IT: components/feed (game cards and the Today filter), the matchup
+  page header, and the team page tables. Later: bet slip pages (Section 12).
   WHY THIS NAME: It formats game times, in lib/format. It ends in .ts because
   it shows nothing on screen. It's safe to use in the browser.
 */
@@ -52,4 +52,9 @@ export function gameTimeLabel(startsAt: string): string {
 /* isToday: true if the game starts today (Eastern time). Used by the Today filter. */
 export function isToday(startsAt: string, now: Date = new Date()): boolean {
   return easternDate(new Date(startsAt)) === easternDate(now);
+}
+
+/* shortDate: a game's date, like "Oct 18" (Eastern time). Used in past-game tables. */
+export function shortDate(startsAt: string): string {
+  return new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric" }).format(new Date(startsAt));
 }

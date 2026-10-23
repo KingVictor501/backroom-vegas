@@ -11,7 +11,7 @@
 import "server-only";
 import { cached, CACHE_SECONDS } from "@/lib/services/cache";
 import { currentSeasonYear, espnGet, espnUrl, isNotFound, requireLeague } from "./client";
-import { rosterSchema, teamDetailSchema, teamScheduleSchema, teamSeasonStatsSchema, teamsSchema } from "./schemas";
+import { rosterSchema, teamDetailSchema, teamLeadersSchema, teamScheduleSchema, teamSeasonStatsSchema, teamsSchema } from "./schemas";
 import { competitorScore, toGameStatus, toIsoTime, toTeamSummary } from "./mappers";
 import type {
   LeagueSlug,
@@ -218,5 +218,39 @@ export const getTeamRoster = cached(
           group: group.position,
         })),
       );
+  },
+);
+
+/*
+  getTeamLeaders: the team's top players this season for passing, rushing, and
+  receiving YARDS, as lists of player IDs, best first. Used to pick the "key
+  players" on the team page. Returns empty lists if ESPN has none yet (week 1).
+*/
+export const getTeamLeaders = cached(
+  "espn-team-leaders",
+  CACHE_SECONDS.espnTeam,
+  async (
+    leagueSlug: LeagueSlug,
+    teamId: string,
+  ): Promise<{ passing: string[]; rushing: string[]; receiving: string[] }> => {
+    const league = requireLeague(leagueSlug);
+    const empty = { passing: [], rushing: [], receiving: [] };
+    let data;
+    try {
+      data = await espnGet(
+        espnUrl("core", league, `seasons/${currentSeasonYear()}/types/2/teams/${encodeURIComponent(teamId)}/leaders`),
+        teamLeadersSchema,
+        "team leaders",
+      );
+    } catch (error) {
+      if (isNotFound(error)) return empty;
+      throw error;
+    }
+    // The player ID is the number after "/athletes/" in each leader's link.
+    const ids = (name: string) =>
+      (data.categories.find((c) => c.name === name)?.leaders ?? [])
+        .map((leader) => /\/athletes\/(\d+)/.exec(leader.athlete.$ref)?.[1])
+        .filter((id): id is string => id !== undefined);
+    return { passing: ids("passingYards"), rushing: ids("rushingYards"), receiving: ids("receivingYards") };
   },
 );

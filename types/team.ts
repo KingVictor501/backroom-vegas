@@ -11,7 +11,7 @@
 
 // Injuries and news use their own shared definitions, so the team page and the
 // player page show them the same way.
-import type { Injury } from "./player";
+import type { Injury, PlayerGameLog, PlayerStats, PlayerSummary, PositionGroup } from "./player";
 import type { NewsArticle } from "./news";
 
 /*
@@ -109,4 +109,19 @@ export type TeamDetails = {
   injuries: Injury[];
   /** Latest team news. */
   news: NewsArticle[];
+};
+
+/*
+  TeamKeyPlayer: one key player on the team page (the starting QB, a top
+  running back, or a top receiver) with their last 5 games and the average.
+*/
+export type TeamKeyPlayer = {
+  /** The player (their name links to the player page), with photo and jersey number. */
+  player: PlayerSummary & { jersey: string | null; photoUrl: string | null };
+  /** Which stats to show: QB = passing, RB = rushing, WR-TE = receiving. */
+  role: Exclude<PositionGroup, "OTHER">;
+  /** Their last 5 games, newest first (fewer early in the season). */
+  games: PlayerGameLog[];
+  /** The average of those games, for the bottom row. */
+  average: PlayerStats;
 };

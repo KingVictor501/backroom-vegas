@@ -150,7 +150,7 @@ export default function GameBrowser({
       </p>
 
       {shown.length > 0 ? (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {shown.map((game) => (
             <li key={game.id}>
               <GameCard game={game} sportsbook={sportsbook} propsLink={propsLink} />
