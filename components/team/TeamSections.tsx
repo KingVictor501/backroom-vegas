@@ -25,6 +25,8 @@ import { getTeamInjuries } from "@/lib/services/espn/injuries";
 import { getNews } from "@/lib/services/espn/news";
 // The last 5 games with stats and the key players, from lib/services/teamPage.ts.
 import { GAME_STATS, getTeamKeyPlayers, getTeamRecentGames } from "@/lib/services/teamPage";
+// The shared injury report from components/InjuryList.tsx.
+import InjuryList from "@/components/InjuryList";
 // The shared news list from components/NewsList.tsx.
 import NewsList from "@/components/NewsList";
 // The shared stat table pieces from components/stats/StatTable.tsx.
@@ -213,26 +215,8 @@ export async function InjuriesAndNews({ league, teamId }: TeamSectionProps) {
       <Card id="injuries" title="Injury report">
         {injuries === null ? (
           <Unavailable what="Injuries" />
-        ) : injuries.length === 0 ? (
-          <p className="text-sm text-muted">No injuries reported.</p>
         ) : (
-          <ul className="divide-y divide-line">
-            {injuries.map((injury) => (
-              <li key={injury.player.id} className="flex items-start justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <Link href={`/player/${injury.player.id}`} className="block truncate text-sm font-medium text-text hover:text-gold">
-                    {injury.player.name}
-                  </Link>
-                  <p className="text-xs text-muted">
-                    {[injury.player.position, injury.detail].filter(Boolean).join(" · ")}
-                  </p>
-                </div>
-                <span className="shrink-0 rounded-full border border-danger/50 px-2.5 py-0.5 text-xs font-medium text-danger">
-                  {injury.status}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <InjuryList injuries={injuries} />
         )}
       </Card>
 

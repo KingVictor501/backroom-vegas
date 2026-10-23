@@ -208,6 +208,21 @@ export const espnArticleSchema = z.object({
     .array(z.object({ url: z.string(), alt: z.string().optional(), caption: z.string().optional() }))
     .optional(),
   links: z.object({ web: z.object({ href: z.string() }).optional() }).optional(),
+  /*
+    What ESPN tagged the story with: teams (teamId), a game (eventId), or a
+    topic (description, like "news – sports betting"). Used to find stories
+    about one matchup. Only the parts we use are listed.
+  */
+  categories: z
+    .array(
+      z.object({
+        type: z.string().optional(),
+        teamId: z.union([z.number(), z.string()]).optional(),
+        eventId: z.union([z.number(), z.string()]).optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 export type EspnArticle = z.infer<typeof espnArticleSchema>;
 

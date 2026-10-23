@@ -9,7 +9,9 @@
     Player Props / Team Props / Halves / Quarters / D/ST / Game Specials as
     collapsible sections (the first one open)
   If your sportsbook doesn't offer a market, it says so and suggests trying
-  another book in Settings. A fake game ID shows "not found".
+  another book in Settings. Both teams' injury reports sit under "Chance of
+  winning" on Game Lines (near the bottom on other tabs), and news about this
+  matchup is at the bottom. A fake game ID shows "not found".
   WHO USES IT: Next.js shows it for any address that starts with /matchup/.
   Game cards on the Feed and league page link here.
   WHY THIS NAME: "[gameId]" in square brackets is a dynamic folder: the ID in the
@@ -19,10 +21,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 // The odds table from the Feed (components/feed), reused here so both look the same.
 import GameLinesTable from "@/components/feed/GameLinesTable";
 // The matchup page pieces, from components/matchup.
 import MarketSections from "@/components/matchup/MarketSections";
+import { MatchupInjuries, MatchupStories, SectionSkeleton } from "@/components/matchup/MatchupNews";
 import MatchupHeader from "@/components/matchup/MatchupHeader";
 import MatchupTabs from "@/components/matchup/MatchupTabs";
 import WinProbability from "@/components/matchup/WinProbability";
@@ -90,6 +94,13 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
   const { game } = data;
   const view = parseView(search);
   const bookName = SPORTSBOOKS[user.preferredSportsbook].name;
+
+  // Both teams' injury reports. It loads in after the odds (inside <Suspense>), wherever it's placed below.
+  const injuries = (
+    <Suspense fallback={<SectionSkeleton title="Injury report" />}>
+      <MatchupInjuries game={game} />
+    </Suspense>
+  );
   const label = gameLabel(game);
 
   // Load the chosen tab's markets (Game Lines are already loaded). An Odds API
@@ -132,6 +143,8 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
             <NoOdds bookName={bookName} what="game lines" />
           )}
           <WinProbability game={game} />
+          {/* On Game Lines, the injury report sits right under "Chance of winning". */}
+          {injuries}
         </>
       ) : sections.length > 0 ? (
         <MarketSections
@@ -142,6 +155,14 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
       ) : (
         <NoOdds bookName={bookName} what={viewName(view)} />
       )}
+
+      {/* On the other tabs (no "Chance of winning" there), the injury report goes near the bottom. */}
+      {view.kind !== "game-lines" && injuries}
+
+      {/* News about this matchup, on every tab. It loads in after the odds. */}
+      <Suspense fallback={<SectionSkeleton title="Matchup news" />}>
+        <MatchupStories game={game} />
+      </Suspense>
     </div>
   );
 }
