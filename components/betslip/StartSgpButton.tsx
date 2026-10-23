@@ -37,7 +37,8 @@ export default function StartSgpButton({
         type="button"
         onClick={() => startSgp({ gameId, gameLabel })}
         aria-label={building ? `Building an SGP for ${gameLabel}` : `Build your own SGP for ${gameLabel}`}
-        className="min-h-11 px-2 text-xs font-semibold text-gold underline-offset-4 hover:underline"
+        // Money green, like "More bets" on the same card, so the two links stand apart from the gold odds.
+        className="min-h-11 px-2 text-xs font-semibold text-money underline-offset-4 hover:underline"
       >
         {building ? "Building SGP" : "SGP"}
       </button>

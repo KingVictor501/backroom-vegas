@@ -52,7 +52,7 @@ export default function GameCard({
     <article aria-labelledby={headingId} className="rounded-2xl border border-line bg-card p-4">
       <header className="flex items-center justify-between gap-2">
         {/* The day label depends on today's date, which can differ by a second between server and browser, so React is told not to worry about it. */}
-        <h3 id={headingId} className="font-sans text-xs font-medium text-muted" suppressHydrationWarning>
+        <h3 id={headingId} className="font-sans text-xs font-medium text-gold" suppressHydrationWarning>
           <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
           {game.status === "in-progress" && <span className="font-semibold text-danger">● Live</span>}
           {game.status === "postponed" && <span className="font-semibold text-danger">Postponed</span>}
@@ -76,7 +76,7 @@ export default function GameCard({
             <span className="sr-only"> for {label}</span>
           </Link>
         ) : (
-          <Link href={`/matchup/${game.id}`} className="inline-flex min-h-11 items-center text-muted hover:text-gold">
+          <Link href={`/matchup/${game.id}`} className="inline-flex min-h-11 items-center text-money underline-offset-4 hover:underline">
             More bets ›<span className="sr-only"> for {label}</span>
           </Link>
         )}

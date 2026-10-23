@@ -33,6 +33,12 @@
   --color-text: #f4f4f5;
   /* Secondary text: light gray. It still has high contrast on the dark background (about 7.5 to 1). */
   --color-muted: #a1a1aa;
+  /*
+    Money green: the classic US-dollar green, for labels and small details on
+    game cards (day and time, column labels, records, the line above each price).
+    About 8 to 1 contrast on the dark cards, so it's easy to read.
+  */
+  --color-money: #85bb65;
   /* Grayed-out items, like leagues that are "coming soon". */
   --color-disabled: #5b5b63;
   /* Error messages (like "Invalid email or password."): a soft red that's easy to read on dark gray. */

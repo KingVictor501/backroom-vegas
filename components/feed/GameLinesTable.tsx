@@ -44,7 +44,7 @@ function OddsCell({
   let lineText: string | undefined;
   if (kind === "spread" && outcome.line !== null) lineText = formatLine(outcome.line);
   if (kind === "total" && outcome.line !== null) lineText = `${outcome.side === "over" ? "O" : "U"} ${outcome.line}`;
-  return <OddsButton pick={gameLinePick(game, kind, outcome, sportsbook)} lineText={lineText} />;
+  return <OddsButton pick={gameLinePick(game, kind, outcome, sportsbook)} lineText={lineText} lineTone="gold" />;
 }
 
 /*
@@ -63,7 +63,7 @@ function TeamCell({ team, score, href }: { team: TeamSummary; score: number | nu
         <Link href={href} className="block truncate text-sm font-semibold text-text hover:text-gold">
           {team.name}
         </Link>
-        <p className="text-xs tabular-nums text-muted">{score !== null ? `Score ${score}` : (team.record ?? "")}</p>
+        <p className="text-xs tabular-nums text-gold">{score !== null ? `Score ${score}` : (team.record ?? "")}</p>
       </div>
     </div>
   );
@@ -89,7 +89,7 @@ export default function GameLinesTable({
     <div className="grid grid-cols-[minmax(0,1fr)_repeat(3,3.75rem)] items-center gap-x-1.5 gap-y-2 sm:grid-cols-[minmax(0,1fr)_repeat(3,4.5rem)]">
       <span aria-hidden />
       {["Spread", "Total", "Winner"].map((heading) => (
-        <span key={heading} aria-hidden className="text-center text-[11px] font-medium uppercase tracking-wide text-muted">
+        <span key={heading} aria-hidden className="text-center text-[11px] font-medium uppercase tracking-wide text-gold">
           {heading}
         </span>
       ))}

@@ -22,11 +22,20 @@ import { useBetSlip } from "./BetSlipProvider";
   OddsButton
   - pick: the full pick this button adds (built by the page from the odds data)
   - lineText: optional small text above the price, like "-3" or "O 47.5"
+  - lineTone: the small text's color: "muted" (gray, the default) or "gold" (used on game cards)
   aria-pressed tells screen readers whether the pick is on your slip ("selected").
   The button is at least 48px tall, so it's easy to tap on a phone. It fills
   the width it's given, so game cards can line buttons up in neat columns.
 */
-export default function OddsButton({ pick, lineText }: { pick: NewBetPick; lineText?: string }) {
+export default function OddsButton({
+  pick,
+  lineText,
+  lineTone = "muted",
+}: {
+  pick: NewBetPick;
+  lineText?: string;
+  lineTone?: "muted" | "gold";
+}) {
   const { isOnSlip, togglePick } = useBetSlip();
   const selected = isOnSlip(pick.id);
 
@@ -42,7 +51,12 @@ export default function OddsButton({ pick, lineText }: { pick: NewBetPick; lineT
           : "border-line bg-card-raised text-text hover:border-gold/60"
       }`}
     >
-      {lineText && <span className={`text-xs font-medium ${selected ? "text-bg/80" : "text-muted"}`}>{lineText}</span>}
+      {/* On a gold (selected) button the small text turns dark, so it stays readable. */}
+      {lineText && (
+        <span className={`text-xs font-medium ${selected ? "text-bg/80" : lineTone === "gold" ? "text-gold" : "text-muted"}`}>
+          {lineText}
+        </span>
+      )}
       <span>{formatOdds(pick.odds)}</span>
     </button>
   );
