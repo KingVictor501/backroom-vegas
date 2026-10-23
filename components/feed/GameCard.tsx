@@ -4,83 +4,31 @@
   sportsbook: the day and time (or "Live" with the score), both teams with
   their logos and records, and a three-column odds table (Spread, Total,
   Winner) where each price is a tappable odds button. A missing price shows a
-  dash instead of crashing. The small "SGP" link starts Build your own SGP.
+  dash instead of crashing (the table is components/feed/GameLinesTable.tsx).
+  The small "SGP" link starts Build your own SGP.
   When a bet type like Passing is chosen, the card adds a "See Passing props"
   link to the game's page (props aren't loaded on the Feed, to save Odds API requests).
   WHO USES IT: components/feed/GameBrowser.tsx.
   WHY THIS NAME: It's a card for one game. It ends in .tsx because it shows something on screen.
 */
 
-import Image from "next/image";
 import Link from "next/link";
-// The odds button and SGP link from Section 8 (components/betslip).
-import OddsButton from "@/components/betslip/OddsButton";
+// The SGP link from Section 8 (components/betslip).
 import StartSgpButton from "@/components/betslip/StartSgpButton";
-// gameLinePick from lib/betting/gameLinePicks.ts turns a price into a full bet slip pick.
-import { gameLabel, gameLinePick, type GameLineKind } from "@/lib/betting/gameLinePicks";
-// formatLine from lib/betting/picks.ts: "-3", "+3", or "PK".
-import { formatLine } from "@/lib/betting/picks";
+// gameLabel from lib/betting/gameLinePicks.ts: "KC @ SEA".
+import { gameLabel } from "@/lib/betting/gameLinePicks";
 // The "Today · 4:25 PM ET" words, from lib/format/gameTime.ts.
 import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
-// The shared types for a game with odds, one price, a team, and a sportsbook.
-import type { GameWithLines, MarketOutcome, SportsbookId, TeamSummary } from "@/types";
+// The shared types for a game with odds and a sportsbook.
+import type { GameWithLines, SportsbookId } from "@/types";
+// The Spread / Total / Winner table, from the file next to this one.
+import GameLinesTable from "./GameLinesTable";
 
 /*
   PropsLink: when a bet type other than Game Lines is picked, which one.
   label is the button's words ("Passing"), slug is the address part ("passing").
 */
 export type PropsLink = { label: string; slug: string };
-
-/*
-  OddsCell: one price in the table. A real price becomes an odds button.
-  No price (null, missing on purpose) becomes a dash, with "No odds" for screen readers.
-*/
-function OddsCell({
-  game,
-  kind,
-  outcome,
-  sportsbook,
-}: {
-  game: GameWithLines;
-  kind: GameLineKind;
-  outcome: MarketOutcome | null;
-  sportsbook: SportsbookId;
-}) {
-  if (!outcome) {
-    return (
-      <div className="flex min-h-12 items-center justify-center rounded-xl border border-line/60 text-muted">
-        <span aria-hidden>–</span>
-        <span className="sr-only">No odds</span>
-      </div>
-    );
-  }
-  let lineText: string | undefined;
-  if (kind === "spread" && outcome.line !== null) lineText = formatLine(outcome.line);
-  if (kind === "total" && outcome.line !== null) lineText = `${outcome.side === "over" ? "O" : "U"} ${outcome.line}`;
-  return <OddsButton pick={gameLinePick(game, kind, outcome, sportsbook)} lineText={lineText} />;
-}
-
-/*
-  TeamCell: a team's logo, nickname, and record (or score once the game starts).
-  The name links to the matchup page.
-*/
-function TeamCell({ game, team, score }: { game: GameWithLines; team: TeamSummary; score: number | null }) {
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      {team.logoUrl ? (
-        <Image src={team.logoUrl} alt="" width={28} height={28} className="size-7 shrink-0" />
-      ) : (
-        <span aria-hidden className="size-7 shrink-0 rounded-full bg-card-raised" />
-      )}
-      <div className="min-w-0">
-        <Link href={`/matchup/${game.id}`} className="block truncate text-sm font-semibold text-text hover:text-gold">
-          {team.name}
-        </Link>
-        <p className="text-xs tabular-nums text-muted">{score !== null ? `Score ${score}` : (team.record ?? "")}</p>
-      </div>
-    </div>
-  );
-}
 
 /*
   GameCard
@@ -97,7 +45,6 @@ export default function GameCard({
   sportsbook: SportsbookId;
   propsLink: PropsLink | null;
 }) {
-  const lines = game.lines;
   const label = gameLabel(game);
   const headingId = `game-${game.id}`;
 
@@ -114,24 +61,9 @@ export default function GameCard({
         <StartSgpButton gameId={game.id} gameLabel={label} look="link" />
       </header>
 
-      {/* The odds table: a column for the teams, then Spread, Total, Winner. */}
-      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_repeat(3,3.75rem)] items-center gap-x-1.5 gap-y-2 sm:grid-cols-[minmax(0,1fr)_repeat(3,4.5rem)]">
-        <span aria-hidden />
-        {["Spread", "Total", "Winner"].map((heading) => (
-          <span key={heading} aria-hidden className="text-center text-[11px] font-medium uppercase tracking-wide text-muted">
-            {heading}
-          </span>
-        ))}
-
-        <TeamCell game={game} team={game.awayTeam} score={game.awayScore} />
-        <OddsCell game={game} kind="spread" outcome={lines?.spread.away ?? null} sportsbook={sportsbook} />
-        <OddsCell game={game} kind="total" outcome={lines?.total.over ?? null} sportsbook={sportsbook} />
-        <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.away ?? null} sportsbook={sportsbook} />
-
-        <TeamCell game={game} team={game.homeTeam} score={game.homeScore} />
-        <OddsCell game={game} kind="spread" outcome={lines?.spread.home ?? null} sportsbook={sportsbook} />
-        <OddsCell game={game} kind="total" outcome={lines?.total.under ?? null} sportsbook={sportsbook} />
-        <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.home ?? null} sportsbook={sportsbook} />
+      {/* The odds table. On the Feed, team names open the matchup page. */}
+      <div className="mt-2">
+        <GameLinesTable game={game} sportsbook={sportsbook} teamHref={() => `/matchup/${game.id}`} />
       </div>
 
       <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -148,7 +80,7 @@ export default function GameCard({
             More bets ›<span className="sr-only"> for {label}</span>
           </Link>
         )}
-        {!lines && <p className="text-xs text-muted">No odds from this book yet</p>}
+        {!game.lines && <p className="text-xs text-muted">No odds from this book yet</p>}
       </footer>
     </article>
   );

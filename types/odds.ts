@@ -145,3 +145,33 @@ export type GameLines = {
   /** Winner (moneyline): who wins outright, with no line. */
   moneyline: { away: MarketOutcome | null; home: MarketOutcome | null };
 };
+
+/*
+  MarketSectionRow: one row inside a collapsible section on the matchup page.
+  The name is on the left and the odds buttons on the right, like
+  "Patrick Mahomes   [O 274.5 -115] [U 274.5 -105]" or "Chiefs   [-1.5 -110]".
+*/
+export type MarketSectionRow = {
+  /** A unique key for the row (the team or player ID, or their name). */
+  key: string;
+  /** The words on the left: a team nickname, a player name, or "Game". */
+  label: string;
+  /** Where the name links to (a player or team page), or null when there's no page (missing on purpose). */
+  href: string | null;
+  /** The odds buttons for this row. */
+  outcomes: MarketOutcome[];
+};
+
+/*
+  MarketSection: one collapsible section on the matchup page, like "TD Scorers"
+  or "Spread (1st Half)". Every tab (Player Props, Team Props, Halves, Quarters,
+  D/ST, Game Specials) is a list of these, so they all look and work the same.
+*/
+export type MarketSection = {
+  /** The heading, like "TD Scorers". */
+  title: string;
+  /** Which market it is, so each odds button can become a bet slip pick. */
+  market: Pick<Market, "key" | "category" | "label" | "period">;
+  /** One row per team, player, or the whole game. */
+  rows: MarketSectionRow[];
+};

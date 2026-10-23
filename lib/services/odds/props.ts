@@ -68,7 +68,7 @@ export const PROP_SECTIONS: Record<PropCategory, SectionPlan[]> = {
   playerLookup: builds a name → ESPN player lookup from BOTH teams' rosters.
   "Patrick Mahomes" (Odds API) → { id: "3139477", name: "Patrick Mahomes", ... } (ESPN).
 */
-async function playerLookup(game: Game): Promise<(name: string) => PlayerSummary | null> {
+export async function playerLookup(game: Game): Promise<(name: string) => PlayerSummary | null> {
   const [home, away] = await Promise.all([
     getTeamRoster(game.league, game.homeTeam.id),
     getTeamRoster(game.league, game.awayTeam.id),
