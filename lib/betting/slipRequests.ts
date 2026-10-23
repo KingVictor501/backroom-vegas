@@ -1,9 +1,9 @@
 /*
   FILE: lib/betting/slipRequests.ts
   WHAT IT'S FOR: How the BROWSER talks to our bet slip API: create a slip,
-  save its picks, delete a slip, and clear the active slip. If the server says no, it throws
+  save its picks, rename it, delete it, and choose or clear the active slip. If the server says no, it throws
   an error with the server's friendly message, so the page can show it.
-  WHO USES IT: components/betslip/BetSlipProvider.tsx.
+  WHO USES IT: components/betslip/BetSlipProvider.tsx and the Bet Slips pages (components/betslips).
   WHY THIS NAME: These are the requests for slips. It ends in .ts because it
   shows nothing on screen. No secrets are involved: the browser sends its login
   cookie automatically, and the server checks it.
@@ -14,9 +14,13 @@ import type { ApiErrorResponse, BetPick, BetSlip, BetSlipCreateInput } from "@/t
 
 /*
   SlipRequestError: a request that didn't work. message is safe to show the user.
+  fieldErrors says which form box was wrong, like { name: "Slip names can be up to 50 characters." }.
 */
 export class SlipRequestError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly fieldErrors: Record<string, string> = {},
+  ) {
     super(message);
     this.name = "SlipRequestError";
   }
@@ -56,7 +60,9 @@ async function send<Result>(path: string, method: "POST" | "PATCH" | "PUT" | "DE
 
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new SlipRequestError(isApiError(data) ? data.error.message : "Your slip didn't save. Please try again.");
+    throw isApiError(data)
+      ? new SlipRequestError(data.error.message, data.error.fieldErrors)
+      : new SlipRequestError("Your slip didn't save. Please try again.");
   }
   return data as Result;
 }
@@ -69,6 +75,16 @@ export function createSlip(input: BetSlipCreateInput): Promise<BetSlip> {
 /* saveSlipPicks: PATCH /api/betslips/<id> with the full new list of picks. */
 export function saveSlipPicks(slipId: string, picks: BetPick[]): Promise<BetSlip> {
   return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { picks });
+}
+
+/* renameSlip: PATCH /api/betslips/<id> with a new name. */
+export function renameSlip(slipId: string, name: string): Promise<BetSlip> {
+  return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { name });
+}
+
+/* setActiveSlip: PUT /api/betslips/active, making this slip the one the slip bar shows. */
+export function setActiveSlip(slipId: string): Promise<BetSlip> {
+  return send<BetSlip>("/api/betslips/active", "PUT", { slipId });
 }
 
 /* deleteSlip: DELETE /api/betslips/<id>. The server also stops it being your active slip. */

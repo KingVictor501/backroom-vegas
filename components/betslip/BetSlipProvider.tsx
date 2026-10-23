@@ -57,6 +57,14 @@ type BetSlipContextValue = {
   startSgp: (game: { gameId: string; gameLabel: string }) => void;
   /** The Done button: ends SGP mode. The SGP stays saved. */
   finishSgp: () => void;
+  /**
+   * For the Bet Slips pages: after they rename, change, delete, or choose a
+   * slip, they hand the server's answer here so the slip bar matches.
+   * null means "no active slip" (missing on purpose).
+   */
+  replaceActiveSlip: (slip: BetSlip | null) => void;
+  /** Shows a short message at the top of the screen, like "Slip deleted." */
+  announce: (text: string, tone?: "info" | "error") => void;
 };
 
 const BetSlipContext = createContext<BetSlipContextValue | null>(null);
@@ -263,6 +271,12 @@ export default function BetSlipProvider({
     });
   }
 
+  /* replaceActiveSlip: the Bet Slips pages already saved the change, so this just updates the screen. */
+  function replaceActiveSlip(next: BetSlip | null) {
+    savedRef.current = next;
+    show(next);
+  }
+
   /* The popup's two buttons. */
   function cancelConflict() {
     setPendingConflict(null);
@@ -290,6 +304,8 @@ export default function BetSlipProvider({
     removePick,
     startSgp,
     finishSgp,
+    replaceActiveSlip,
+    announce: notify,
   };
 
   return (
