@@ -1,7 +1,9 @@
 /*
   FILE: components/feed/GameCard.tsx
   WHAT IT'S FOR: One game card on the Feed and league page, like a real
-  sportsbook: the day and time (or "Live" with the score), both teams with
+  sportsbook. Tapping anywhere on the card opens the matchup page, EXCEPT the
+  parts with their own job: team names open the team page, odds buttons add to
+  your slip, and SGP starts Build your own SGP. The card shows: the day and time (or "Live" with the score), both teams with
   their logos and records, and a three-column odds table (Spread, Total,
   Winner) where each price is a tappable odds button. A missing price shows a
   dash instead of crashing (the table is components/feed/GameLinesTable.tsx).
@@ -49,34 +51,46 @@ export default function GameCard({
   const headingId = `game-${game.id}`;
 
   return (
-    <article aria-labelledby={headingId} className="rounded-2xl border border-line bg-card p-4">
+    // relative: the matchup link below stretches over this whole card.
+    <article aria-labelledby={headingId} className="relative rounded-2xl border border-line bg-card p-4 transition-colors hover:border-gold/50">
       <header className="flex items-center justify-between gap-2">
         {/* The day label depends on today's date, which can differ by a second between server and browser, so React is told not to worry about it. */}
         <h3 id={headingId} className="font-sans text-xs font-medium text-gold" suppressHydrationWarning>
-          <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
-          {game.status === "in-progress" && <span className="font-semibold text-danger">● Live</span>}
-          {game.status === "postponed" && <span className="font-semibold text-danger">Postponed</span>}
-          {game.status === "scheduled" && `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}`}
+          {/*
+            The day and time is the card's link to the matchup page. Its invisible
+            "after:" layer stretches over the WHOLE card (after:absolute after:inset-0),
+            so tapping anywhere on the card opens the matchup. It's one link, so screen
+            readers hear it once: "New England Patriots at Chicago Bears, Sunday 9:30 AM ET".
+          */}
+          <Link href={`/matchup/${game.id}`} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">
+            <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
+            {game.status === "in-progress" && <span className="font-semibold text-danger">● Live</span>}
+            {game.status === "postponed" && <span className="font-semibold text-danger">Postponed</span>}
+            {game.status === "scheduled" && `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}`}
+          </Link>
         </h3>
-        <StartSgpButton gameId={game.id} gameLabel={label} look="link" />
+        {/* relative z-10: sits on top of the card's link, so it starts an SGP instead of opening the matchup. */}
+        <div className="relative z-10">
+          <StartSgpButton gameId={game.id} gameLabel={label} look="link" />
+        </div>
       </header>
 
-      {/* The odds table. On the Feed, team names open the matchup page. */}
+      {/* The odds table. Team names open the team page; odds buttons add to your slip. */}
       <div className="mt-2">
-        <GameLinesTable game={game} sportsbook={sportsbook} teamHref={() => `/matchup/${game.id}`} />
+        <GameLinesTable game={game} sportsbook={sportsbook} />
       </div>
 
       <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         {propsLink ? (
           <Link
             href={`/matchup/${game.id}?props=${propsLink.slug}`}
-            className="inline-flex min-h-11 items-center rounded-xl border border-gold px-3 font-semibold text-gold hover:bg-gold hover:text-bg"
+            className="relative z-10 inline-flex min-h-11 items-center rounded-xl border border-gold px-3 font-semibold text-gold hover:bg-gold hover:text-bg"
           >
             See {propsLink.label} props
             <span className="sr-only"> for {label}</span>
           </Link>
         ) : (
-          <Link href={`/matchup/${game.id}`} className="inline-flex min-h-11 items-center text-money underline-offset-4 hover:underline">
+          <Link href={`/matchup/${game.id}`} className="relative z-10 inline-flex min-h-11 items-center text-money underline-offset-4 hover:underline">
             More bets ›<span className="sr-only"> for {label}</span>
           </Link>
         )}

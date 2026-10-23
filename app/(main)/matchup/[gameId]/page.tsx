@@ -126,7 +126,7 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
         <>
           {game.lines ? (
             <section aria-label="Game lines" className="rounded-2xl border border-line bg-card p-4">
-              <GameLinesTable game={game} sportsbook={user.preferredSportsbook} teamHref={(team) => `/team/${team.id}`} />
+              <GameLinesTable game={game} sportsbook={user.preferredSportsbook} />
             </section>
           ) : (
             <NoOdds bookName={bookName} what="game lines" />

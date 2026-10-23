@@ -2,7 +2,9 @@
   FILE: components/feed/GameLinesTable.tsx
   WHAT IT'S FOR: The three-column odds table: a row for each team, with
   Spread, Total, and Winner odds buttons on the right. A missing price shows a
-  dash (with "No odds" for screen readers) instead of crashing.
+  dash (with "No odds" for screen readers) instead of crashing. Team names link
+  to the team page. On the Feed the whole card is also a link to the matchup, so
+  the names and odds buttons sit ON TOP of it ("relative z-10") and keep their own jobs.
   WHO USES IT: components/feed/GameCard.tsx (Feed and league page) and the
   matchup page's Game Lines view (components/matchup).
   WHY THIS NAME: It's the table of game lines. It ends in .tsx because it shows something on screen.
@@ -44,14 +46,17 @@ function OddsCell({
   let lineText: string | undefined;
   if (kind === "spread" && outcome.line !== null) lineText = formatLine(outcome.line);
   if (kind === "total" && outcome.line !== null) lineText = `${outcome.side === "over" ? "O" : "U"} ${outcome.line}`;
-  return <OddsButton pick={gameLinePick(game, kind, outcome, sportsbook)} lineText={lineText} lineTone="gold" />;
+  return (
+    <div className="relative z-10">
+      <OddsButton pick={gameLinePick(game, kind, outcome, sportsbook)} lineText={lineText} lineTone="gold" />
+    </div>
+  );
 }
 
 /*
-  TeamCell: a team's logo, nickname, and record (or score once the game starts).
-  - href: where the name links (the matchup page on the Feed, the team page on the matchup page)
+  TeamCell: a team's logo, nickname (linking to the team page), and record (or score once the game starts).
 */
-function TeamCell({ team, score, href }: { team: TeamSummary; score: number | null; href: string }) {
+function TeamCell({ team, score }: { team: TeamSummary; score: number | null }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
       {team.logoUrl ? (
@@ -60,7 +65,7 @@ function TeamCell({ team, score, href }: { team: TeamSummary; score: number | nu
         <span aria-hidden className="size-7 shrink-0 rounded-full bg-card-raised" />
       )}
       <div className="min-w-0">
-        <Link href={href} className="block truncate text-sm font-semibold text-text hover:text-gold">
+        <Link href={`/team/${team.id}`} className="relative z-10 block truncate text-sm font-semibold text-text hover:text-gold">
           {team.name}
         </Link>
         <p className="text-xs tabular-nums text-gold">{score !== null ? `Score ${score}` : (team.record ?? "")}</p>
@@ -73,16 +78,13 @@ function TeamCell({ team, score, href }: { team: TeamSummary; score: number | nu
   GameLinesTable
   - game: the game and its odds (lines is null if the book has no odds yet → all dashes)
   - sportsbook: which book the odds came from (saved on each pick)
-  - teamHref: where each team name links to
 */
 export default function GameLinesTable({
   game,
   sportsbook,
-  teamHref,
 }: {
   game: GameWithLines;
   sportsbook: SportsbookId;
-  teamHref: (team: TeamSummary) => string;
 }) {
   const lines = game.lines;
   return (
@@ -94,12 +96,12 @@ export default function GameLinesTable({
         </span>
       ))}
 
-      <TeamCell team={game.awayTeam} score={game.awayScore} href={teamHref(game.awayTeam)} />
+      <TeamCell team={game.awayTeam} score={game.awayScore} />
       <OddsCell game={game} kind="spread" outcome={lines?.spread.away ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="total" outcome={lines?.total.over ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.away ?? null} sportsbook={sportsbook} />
 
-      <TeamCell team={game.homeTeam} score={game.homeScore} href={teamHref(game.homeTeam)} />
+      <TeamCell team={game.homeTeam} score={game.homeScore} />
       <OddsCell game={game} kind="spread" outcome={lines?.spread.home ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="total" outcome={lines?.total.under ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.home ?? null} sportsbook={sportsbook} />
