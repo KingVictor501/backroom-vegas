@@ -54,11 +54,17 @@ body {
   font-family: var(--font-sans);
 }
 
-/* All headings use the fancy font automatically. */
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
+/*
+  All headings use the fancy font automatically.
+  "@layer base" makes this a DEFAULT, so a class on one heading (like
+  "font-sans" on the game card times) can still change it.
+*/
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
 /*
@@ -78,8 +84,13 @@ h3 {
   - overscroll-behavior-x: contain stops a swipe from also swiping the browser back a page.
   - scrollbar-width: none hides the scroll bar (you swipe on phones, or use a trackpad
     or Shift + mouse wheel on a computer). The ::-webkit-scrollbar line does the same in older Safari.
+  - position: relative keeps EVERYTHING inside the row, including the hidden
+    screen-reader text (like "coming soon" on the league tabs). Without it, that
+    hidden text at the far end of the row stretched the whole page wider than a
+    phone, so the page could be dragged sideways into empty space.
 */
 .scroll-row {
+  position: relative;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
