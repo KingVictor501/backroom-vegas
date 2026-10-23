@@ -4,7 +4,8 @@
   - RecentGames: the last 5 games (date, opponent, final score, win or loss)
     with the team's stats from each game
   - KeyPlayers: the starting QB, top running backs, and top receivers, each
-    with their last 5 games and an average row at the bottom
+    with their last 5 games and an average row at the bottom (one collapsible
+    section that starts closed)
   - InjuriesAndNews: the injury report and the team's latest news, at the bottom
   - SectionSkeleton: the gray placeholder shown while a part is loading
   Each part loads its own data on the server. The page wraps each one in
@@ -25,6 +26,8 @@ import { getTeamInjuries } from "@/lib/services/espn/injuries";
 import { getNews } from "@/lib/services/espn/news";
 // The last 5 games with stats and the key players, from lib/services/teamPage.ts.
 import { GAME_STATS, getTeamKeyPlayers, getTeamRecentGames } from "@/lib/services/teamPage";
+// The "Collapse" button for the bottom of an open section, from components/CollapseButton.tsx.
+import CollapseButton from "@/components/CollapseButton";
 // The shared injury report from components/InjuryList.tsx.
 import InjuryList from "@/components/InjuryList";
 // The shared news list from components/NewsList.tsx.
@@ -172,11 +175,27 @@ function KeyPlayerCard({ keyPlayer }: { keyPlayer: TeamKeyPlayer }) {
   );
 }
 
-/* KeyPlayers: the QB, RBs, and receivers, grouped under small headings. */
+/*
+  KeyPlayers: the QB, RBs, and receivers, grouped under small headings.
+  The whole section is collapsible and starts CLOSED: tap its heading to show
+  or hide every player. It uses the browser's built-in <details> box, so it
+  works with a keyboard (Tab to the heading, then Enter or Space) and with JavaScript off.
+*/
 export async function KeyPlayers({ league, teamId }: TeamSectionProps) {
   const players = await getTeamKeyPlayers(league, teamId).catch(() => null);
   return (
-    <Card id="key-players" title="Key players: last 5 games">
+    <details className="group rounded-2xl border border-line bg-card">
+      {/* summary: the heading you tap. The arrow turns when the section is open. */}
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+        <h2 id="key-players" className="text-xl text-text">
+          Key players: last 5 games
+        </h2>
+        {/* The open/close arrow: money green and a bit larger, so it's easy to spot. */}
+        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-money transition-transform group-open:rotate-180" fill="currentColor">
+          <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
+        </svg>
+      </summary>
+      <div className="px-5 pb-5">
       {players === null ? (
         <Unavailable what="Player stats" />
       ) : players.length === 0 ? (
@@ -200,7 +219,12 @@ export async function KeyPlayers({ league, teamId }: TeamSectionProps) {
           })}
         </div>
       )}
-    </Card>
+      {/* At the bottom of the open section: close it without scrolling back up. */}
+      <div className="mt-5">
+        <CollapseButton label="Collapse key players" />
+      </div>
+      </div>
+    </details>
   );
 }
 
