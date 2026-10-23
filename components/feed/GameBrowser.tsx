@@ -158,12 +158,17 @@ export default function GameBrowser({
           ))}
         </ul>
       ) : (
-        <div className="rounded-2xl border border-line bg-card p-6 text-center">
+        <div className="space-y-3 rounded-2xl border border-line bg-card p-6 text-center">
+          {/*
+            Not red on purpose: this isn't always a mistake. Typing a PLAYER's name finds
+            them in the search above, but games are only filtered by TEAM names. A real
+            typo already shows the red "No teams or players match" message in the search bar.
+          */}
           <p className="text-sm text-muted">
             {games.length === 0
               ? `No upcoming ${leagueLabel} games right now.`
               : words
-                ? `No games match "${search.trim()}".`
+                ? `No games match "${search.trim()}". Games are filtered by team name, like "Chiefs" or "KC".`
                 : "No games for this filter."}
           </p>
           {(words || dateFilter !== "all") && games.length > 0 && (
@@ -173,7 +178,7 @@ export default function GameBrowser({
                 setSearch("");
                 setDateFilter("all");
               }}
-              className="mt-3 min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg"
+              className="min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg"
             >
               Show all games
             </button>

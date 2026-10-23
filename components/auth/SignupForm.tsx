@@ -22,6 +22,8 @@ import {
 } from "@/lib/auth/validation";
 // The shared labeled text box from the file next to this one.
 import AuthField from "./AuthField";
+// The red error box from components/ErrorMessage.tsx.
+import ErrorMessage from "@/components/ErrorMessage";
 
 /*
   SignupForm: the form itself. Works the same way as LoginForm (see that file for how useActionState works).
@@ -38,12 +40,7 @@ export default function SignupForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
 
       {state.message && (
-        <p
-          role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-        >
-          {state.message}
-        </p>
+        <ErrorMessage>{state.message}</ErrorMessage>
       )}
 
       <AuthField

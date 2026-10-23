@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Vegas Backroom – App API (internal)",
-    "description": "FILE: postman/internal-routes.postman_collection.json\nWHAT IT IS FOR: Tests for the app's OWN API routes (Section 6): games, one game, props, teams, injuries, news, search, plus logged-out, fake-ID, bad-input, and CORS checks.\nHOW TO USE: Import this file AND postman/internal-local.postman_environment.json, select the \"Vegas Backroom – App (local)\" environment, then paste your login cookie value into session_cookie (Current value only).\nHOW TO GET THE COOKIE: log in at http://localhost:3000, open DevTools (Cmd+Option+I) > Application > Cookies > http://localhost:3000, click bv_session, copy its Value. It lasts 7 days. Never paste it into a chat or commit it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
+    "description": "FILE: postman/internal-routes.postman_collection.json\nWHAT IT IS FOR: Tests for the app's OWN API routes (Section 6): games, one game, props, teams, injuries, news, search, players (Section 11B), plus logged-out, fake-ID, bad-input, and CORS checks.\nHOW TO USE: Import this file AND postman/internal-local.postman_environment.json, select the \"Vegas Backroom – App (local)\" environment, then paste your login cookie value into session_cookie (Current value only).\nHOW TO GET THE COOKIE: log in at http://localhost:3000, open DevTools (Cmd+Option+I) > Application > Cookies > http://localhost:3000, click bv_session, copy its Value. It lasts 7 days. Never paste it into a chat or commit it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -142,6 +142,21 @@
             "url": "{{baseUrl}}/api/search?q=mahomes",
             "description": "Expect 200: a player result."
           }
+        },
+        {
+          "name": "Player (Aaron Rodgers)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/players/8439",
+            "description": "Expect 200: player (name, photo, number, position, team, injuryStatus), seasonStats, recentGames (up to 10), last5Average, last10Average, nextGameId, news. Stats only, no props (costs no Odds API credits)."
+          }
         }
       ]
     },
@@ -206,6 +221,36 @@
             ],
             "url": "{{baseUrl}}/api/injuries?team=999",
             "description": "Expect 404 not-found."
+          }
+        },
+        {
+          "name": "Fake player ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/players/999999999",
+            "description": "Expect 404 \"We couldn't find that player.\""
+          }
+        },
+        {
+          "name": "Bad player ID (letters)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/players/abc",
+            "description": "Expect 404."
           }
         }
       ]

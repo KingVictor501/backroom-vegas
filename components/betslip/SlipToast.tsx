@@ -11,6 +11,9 @@
 
 "use client";
 
+// The warning triangle from components/ErrorMessage.tsx, for error messages.
+import { WarningIcon } from "@/components/ErrorMessage";
+
 /*
   ToastMessage: one message.
   - tone "info" (gold) or "error" (red)
@@ -38,10 +41,13 @@ export default function SlipToast({
       {message && (
         <div
           key={message.key}
-          className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-xl border bg-card-raised px-4 py-3 text-sm shadow-lg shadow-black/50 ${
-            message.tone === "error" ? "border-danger text-danger" : "border-gold text-text"
+          className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg shadow-black/50 ${
+            message.tone === "error"
+              ? "border-2 border-danger bg-[color-mix(in_oklab,var(--color-danger)_15%,var(--color-card-raised))] font-semibold text-danger"
+              : "border border-gold bg-card-raised text-text"
           }`}
         >
+          {message.tone === "error" && <WarningIcon />}
           <p className="flex-1">{message.text}</p>
           <button
             type="button"

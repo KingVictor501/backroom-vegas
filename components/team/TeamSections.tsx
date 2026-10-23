@@ -25,15 +25,14 @@ import { getTeamInjuries } from "@/lib/services/espn/injuries";
 import { getNews } from "@/lib/services/espn/news";
 // The last 5 games with stats and the key players, from lib/services/teamPage.ts.
 import { GAME_STATS, getTeamKeyPlayers, getTeamRecentGames } from "@/lib/services/teamPage";
-import type { LeagueSlug, PlayerGameLog, PlayerStats, TeamKeyPlayer } from "@/types";
+// The shared news list from components/NewsList.tsx.
+import NewsList from "@/components/NewsList";
+// The shared stat table pieces from components/stats/StatTable.tsx.
+import { num, PlayerGamesTable, TableBox, td, th } from "@/components/stats/StatTable";
+import type { LeagueSlug, TeamKeyPlayer } from "@/types";
 
 /* TeamSectionProps: every section needs the league and the team. */
 type TeamSectionProps = { league: LeagueSlug; teamId: string };
-
-/* num: a stat for a table cell, or a dash if it's missing. */
-function num(value: number | null | undefined): string {
-  return value === null || value === undefined ? "–" : value.toLocaleString("en-US", { maximumFractionDigits: 1 });
-}
 
 /* Card: the box around each section, with its heading. */
 function Card({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -51,23 +50,6 @@ function Card({ id, title, children }: { id: string; title: string; children: Re
 function Unavailable({ what }: { what: string }) {
   return <p className="text-sm text-muted">{what} aren&apos;t available right now. Please try again in a few minutes.</p>;
 }
-
-/*
-  TableBox: lets a wide table scroll sideways on phones, inside its card, so
-  the page itself never gets wider than the screen. (scroll-row is in app/globals.css.)
-*/
-function TableBox({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    // tabIndex: lets keyboard users focus the box and scroll it with the arrow keys.
-    <div className="scroll-row -mx-5 px-5" role="region" aria-label={label} tabIndex={0}>
-      <table className="w-full min-w-max text-left text-sm tabular-nums">{children}</table>
-    </div>
-  );
-}
-
-/* Header cells and body cells share these looks. */
-const th = "whitespace-nowrap px-2 py-2 text-xs font-medium uppercase tracking-wide text-muted first:pl-0";
-const td = "whitespace-nowrap px-2 py-2.5 text-text first:pl-0";
 
 /* SectionSkeleton: gray bars shown while a section loads. */
 export function SectionSkeleton({ title }: { title: string }) {
@@ -144,45 +126,12 @@ export async function RecentGames({ league, teamId }: TeamSectionProps) {
   );
 }
 
-/*
-  ROLE_COLUMNS: which stats each kind of player shows, as [heading, how to show it].
-  QBs get passing, RBs rushing (plus catches), receivers receiving.
-*/
-const ROLE_COLUMNS: Record<TeamKeyPlayer["role"], [string, (s: PlayerStats) => string][]> = {
-  QB: [
-    ["C/Att", (s) => `${num(s.passCompletions)}/${num(s.passAttempts)}`],
-    ["Pass yds", (s) => num(s.passYards)],
-    ["TD", (s) => num(s.passTouchdowns)],
-    ["INT", (s) => num(s.interceptions)],
-    ["Rush yds", (s) => num(s.rushYards)],
-  ],
-  RB: [
-    ["Car", (s) => num(s.rushAttempts)],
-    ["Rush yds", (s) => num(s.rushYards)],
-    ["TD", (s) => num(s.rushTouchdowns)],
-    ["Rec", (s) => num(s.receptions)],
-    ["Rec yds", (s) => num(s.receivingYards)],
-  ],
-  "WR-TE": [
-    ["Rec", (s) => num(s.receptions)],
-    ["Tgt", (s) => num(s.targets)],
-    ["Rec yds", (s) => num(s.receivingYards)],
-    ["TD", (s) => num(s.receivingTouchdowns)],
-  ],
-};
-
 /* ROLE_TITLES: the small heading over each group of players. */
 const ROLE_TITLES: Record<TeamKeyPlayer["role"], string> = { QB: "Quarterback", RB: "Running backs", "WR-TE": "Receivers" };
-
-/* opponentText: "vs LV" or "@ LV". */
-function opponentText(game: PlayerGameLog): string {
-  return `${game.isHome ? "vs" : "@"} ${game.opponentAbbreviation}`;
-}
 
 /* KeyPlayerCard: one player's photo and name (linking to their page) with their last 5 games and average. */
 function KeyPlayerCard({ keyPlayer }: { keyPlayer: TeamKeyPlayer }) {
   const { player, role, games, average } = keyPlayer;
-  const columns = ROLE_COLUMNS[role];
   return (
     <article aria-labelledby={`kp-${player.id}`} className="min-w-0 rounded-xl border border-line bg-card-raised p-4">
       <div className="flex items-center gap-3">
@@ -208,38 +157,13 @@ function KeyPlayerCard({ keyPlayer }: { keyPlayer: TeamKeyPlayer }) {
         <p className="mt-3 text-sm text-muted">No games played yet this season.</p>
       ) : (
         <div className="mt-3">
-          <TableBox label={`${player.name}, last ${games.length} games`}>
-            <thead>
-              <tr className="border-b border-line">
-                <th scope="col" className={th}>Game</th>
-                {columns.map(([heading]) => (
-                  <th key={heading} scope="col" className={th}>{heading}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {games.map((game) => (
-                <tr key={game.gameId}>
-                  <td className={`${td} text-muted`}>
-                    {shortDate(game.playedAt)} {opponentText(game)}
-                  </td>
-                  {columns.map(([heading, value]) => (
-                    <td key={heading} className={td}>{value(game.stats)}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-gold/40">
-                <th scope="row" className={`${td} font-semibold text-gold`}>
-                  Average
-                </th>
-                {columns.map(([heading, value]) => (
-                  <td key={heading} className={`${td} font-semibold text-gold`}>{value(average)}</td>
-                ))}
-              </tr>
-            </tfoot>
-          </TableBox>
+          <PlayerGamesTable
+            role={role}
+            games={games}
+            averages={[{ label: "Average", stats: average }]}
+            label={`${player.name}, last ${games.length} games`}
+            bleed="-mx-4 px-4"
+          />
         </div>
       )}
     </article>
@@ -315,22 +239,8 @@ export async function InjuriesAndNews({ league, teamId }: TeamSectionProps) {
       <Card id="team-news" title="Team news">
         {news === null ? (
           <Unavailable what="News stories" />
-        ) : news.length === 0 ? (
-          <p className="text-sm text-muted">No news right now.</p>
         ) : (
-          <ul className="divide-y divide-line">
-            {news.map((article) => (
-              <li key={article.id} className="py-3">
-                {/* News opens on ESPN in a new tab. noopener noreferrer: the ESPN page can't control or see our page. */}
-                <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text hover:text-gold">
-                  {article.headline}
-                  <span className="sr-only"> (opens ESPN in a new tab)</span>
-                </a>
-                {article.description && <p className="mt-1 line-clamp-2 text-xs text-muted">{article.description}</p>}
-                <p className="mt-1 text-xs text-muted">{shortDate(article.publishedAt)}</p>
-              </li>
-            ))}
-          </ul>
+          <NewsList articles={news} />
         )}
       </Card>
     </div>

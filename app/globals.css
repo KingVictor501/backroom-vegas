@@ -71,10 +71,14 @@ body {
   Keyboard users: when someone moves around with the Tab key, whatever is
   selected gets a clear gold outline so they can always see where they are.
   "focus-visible" only shows it for keyboard use, not mouse clicks.
+  "@layer base" makes it a DEFAULT, so a box that shows focus its own way (like
+  the search bar, whose rounded border glows gold) can turn the square outline off.
 */
-:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
 }
 
 /*

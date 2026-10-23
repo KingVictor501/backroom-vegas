@@ -11,7 +11,7 @@
     Game Specials → will the game go to overtime? (≤ 1)
   (Only markets that come back cost anything.) Results are saved for 60 minutes.
   Everything is turned into MarketSections (types/odds.ts), so every tab looks the same.
-  WHO USES IT: app/(main)/matchup/[gameId]/page.tsx.
+  WHO USES IT: app/(main)/matchup/[gameId]/page.tsx (and mainLineOnly is reused by lib/services/playerProps.ts).
   WHY THIS NAME: It's the service for the matchup page. It ends in .ts because it shows nothing on screen.
 */
 
@@ -67,7 +67,7 @@ function sectionPlansFor(view: Exclude<MatchupView, { kind: "game-lines" } | { k
   The result is always [Over, Under], so the page can show two neat columns.
   Rows that aren't over/under are left as they are.
 */
-function mainLineOnly(outcomes: MarketOutcome[]): MarketOutcome[] {
+export function mainLineOnly(outcomes: MarketOutcome[]): MarketOutcome[] {
   const overs = outcomes.filter((o) => o.side === "over");
   const unders = outcomes.filter((o) => o.side === "under");
   if (overs.length === 0 || overs.length + unders.length !== outcomes.length) return outcomes;

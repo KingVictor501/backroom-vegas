@@ -18,6 +18,8 @@ import { login } from "@/app/actions/auth";
 import { EMPTY_AUTH_FORM_STATE } from "@/lib/auth/validation";
 // The shared labeled text box from the file next to this one.
 import AuthField from "./AuthField";
+// The red error box from components/ErrorMessage.tsx.
+import ErrorMessage from "@/components/ErrorMessage";
 
 /*
   LoginForm: the form itself.
@@ -41,12 +43,7 @@ export default function LoginForm({ next }: { next: string }) {
 
       {/* role="alert" makes screen readers announce the error as soon as it appears. */}
       {state.message && (
-        <p
-          role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-        >
-          {state.message}
-        </p>
+        <ErrorMessage>{state.message}</ErrorMessage>
       )}
 
       <AuthField
@@ -56,6 +53,8 @@ export default function LoginForm({ next }: { next: string }) {
         autoComplete="email"
         defaultValue={state.email}
         error={state.fieldErrors.email}
+        // A wrong email or password turns BOTH boxes red. (We never say which one was wrong, for security.)
+        invalid={Boolean(state.message)}
       />
       <AuthField
         name="password"
@@ -63,6 +62,7 @@ export default function LoginForm({ next }: { next: string }) {
         type="password"
         autoComplete="current-password"
         error={state.fieldErrors.password}
+        invalid={Boolean(state.message)}
       />
 
       <button
