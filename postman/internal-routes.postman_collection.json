@@ -1,0 +1,373 @@
+{
+  "info": {
+    "name": "Vegas Backroom – App API (internal)",
+    "description": "FILE: postman/internal-routes.postman_collection.json\nWHAT IT IS FOR: Tests for the app's OWN API routes (Section 6): games, one game, props, teams, injuries, news, search, plus logged-out, fake-ID, bad-input, and CORS checks.\nHOW TO USE: Import this file AND postman/internal-local.postman_environment.json, select the \"Vegas Backroom – App (local)\" environment, then paste your login cookie value into session_cookie (Current value only).\nHOW TO GET THE COOKIE: log in at http://localhost:3000, open DevTools (Cmd+Option+I) > Application > Cookies > http://localhost:3000, click bv_session, copy its Value. It lasts 7 days. Never paste it into a chat or commit it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 – Works (logged in)",
+      "item": [
+        {
+          "name": "Games this week",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games",
+            "description": "Expect 200: sportsbook, games (each with lines), oddsUnavailable."
+          }
+        },
+        {
+          "name": "One game (KC @ SEA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games/401873022",
+            "description": "Expect 200: game (with winProbability and lines), teamStats."
+          }
+        },
+        {
+          "name": "Props – touchdowns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games/401873022/props?category=touchdowns",
+            "description": "Expect 200: sections TD Scorers, First TD Scorer, 2+ TDs, 1st Half TDs. About 4 credits the first time per hour."
+          }
+        },
+        {
+          "name": "Teams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams",
+            "description": "Expect 200: array of 32 teams."
+          }
+        },
+        {
+          "name": "One team (Chiefs = 12)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams/12",
+            "description": "Expect 200: team, divisionStanding, seasonStats, recentResults, roster."
+          }
+        },
+        {
+          "name": "Injuries (Chiefs)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/injuries?team=12",
+            "description": "Expect 200: array of injuries."
+          }
+        },
+        {
+          "name": "News",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/news?limit=5",
+            "description": "Expect 200: array of 5 plain-text articles."
+          }
+        },
+        {
+          "name": "Search – team",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/search?q=chiefs",
+            "description": "Expect 200: a team result."
+          }
+        },
+        {
+          "name": "Search – player",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/search?q=mahomes",
+            "description": "Expect 200: a player result."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 – Not found (fake IDs)",
+      "item": [
+        {
+          "name": "Fake game",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games/999999999",
+            "description": "Expect 404 not-found."
+          }
+        },
+        {
+          "name": "Fake game (props)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games/999999999/props?category=passing",
+            "description": "Expect 404 not-found. No credits spent."
+          }
+        },
+        {
+          "name": "Fake team",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams/999",
+            "description": "Expect 404 not-found."
+          }
+        },
+        {
+          "name": "Fake team (injuries)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/injuries?team=999",
+            "description": "Expect 404 not-found."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 – Bad input",
+      "item": [
+        {
+          "name": "League turned off",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games?league=nba",
+            "description": "Expect 400 invalid-input (league)."
+          }
+        },
+        {
+          "name": "Bad prop category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/games/401873022/props?category=kicking",
+            "description": "Expect 400 invalid-input (category)."
+          }
+        },
+        {
+          "name": "Search too short",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/search?q=a",
+            "description": "Expect 400 invalid-input (q)."
+          }
+        },
+        {
+          "name": "News limit too big",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/news?limit=99",
+            "description": "Expect 400 invalid-input (limit)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 – Logged out",
+      "item": [
+        {
+          "name": "Games without cookie",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/games",
+            "description": "Expect 401 unauthorized. (This request sends no Cookie header.)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 – CORS (add an Origin header)",
+      "description": "Postman ignores CORS, so we pretend to be a website by sending an Origin header, then read the response headers.",
+      "item": [
+        {
+          "name": "Allowed website",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Origin",
+                "value": "{{allowedOrigin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams",
+            "description": "Expect 200 AND response header Access-Control-Allow-Origin: http://localhost:3000."
+          }
+        },
+        {
+          "name": "Unknown website",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Origin",
+                "value": "https://evil.example.com"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams",
+            "description": "Expect 403 forbidden and NO Access-Control-Allow-Origin header."
+          }
+        },
+        {
+          "name": "Preflight – allowed",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{allowedOrigin}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "GET"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams",
+            "description": "Expect 204 with Access-Control-Allow-Origin and Allow-Methods headers."
+          }
+        },
+        {
+          "name": "Preflight – unknown",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "https://evil.example.com"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "GET"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teams",
+            "description": "Expect 403 forbidden."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -286,6 +286,24 @@ export const gameLogSchema = z.object({
 });
 
 /*
+  C16: ESPN's player search results ("walker" → Kenneth Walker III, Quay Walker, ...).
+  Each result's team is inside "teamRelationships".
+*/
+export const playerSearchSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.string(),
+      displayName: z.string(),
+      position: z.object({ abbreviation: z.string() }).optional(),
+      isActive: z.boolean().optional(),
+      teamRelationships: z
+        .array(z.object({ core: z.object({ abbreviation: z.string().optional() }).optional() }))
+        .optional(),
+    }),
+  ),
+});
+
+/*
   C11: a player's season stats, by category (passing, rushing, receiving, ...).
   Each category lists its stat "names", then one row per season in "statistics".
 */
