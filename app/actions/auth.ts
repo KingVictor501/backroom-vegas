@@ -22,6 +22,8 @@ import { redirect } from "next/navigation";
 // The shared database connection and the User model from Section 3.
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { UserModel } from "@/lib/db/models/User";
+// isDuplicateKeyError from lib/db/errors.ts: spots "that email is already used".
+import { isDuplicateKeyError } from "@/lib/db/errors";
 // Cookie helpers from lib/auth/session.ts: log in = create the cookie, log out = delete it.
 import { createSession, deleteSession } from "@/lib/auth/session";
 // The form rules, friendly messages, and helpers from lib/auth/validation.ts.
@@ -53,19 +55,6 @@ const DUMMY_HASH =
 
 /** The one message for any failed login, so we never reveal which part was wrong. */
 const INVALID_LOGIN_MESSAGE = "Invalid email or password.";
-
-/*
-  isDuplicateKeyError: true if MongoDB refused to save because the email is
-  already used (MongoDB's error code 11000 means "duplicate").
-*/
-function isDuplicateKeyError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === 11000
-  );
-}
 
 /*
   signup: creates an account, logs the user in, and sends them on.

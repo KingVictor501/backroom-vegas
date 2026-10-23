@@ -1,0 +1,773 @@
+{
+  "info": {
+    "name": "Vegas Backroom – Bet Slip API",
+    "description": "FILE: postman/betslips.postman_collection.json\nWHAT IT IS FOR: Tests for the bet slip API (Section 7): create, list, get, rename, change picks, and delete, plus fake-ID, bad-input, and logged-out checks. Each request has automatic checks: see the Test Results tab after you click Send.\nHOW TO USE: Uses the SAME environment as the Section 6 collection (\"Vegas Backroom – App (local)\" with your session_cookie). Run folder 1 in order, top to bottom: request 2 saves the new slip's ID, and requests 3-10 use it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "slip_id",
+      "value": "",
+      "description": "Filled in automatically by request 2."
+    }
+  ],
+  "item": [
+    {
+      "name": "1 – Works (run in order)",
+      "item": [
+        {
+          "name": "1. Create a slip with no name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Named with a date\", () => pm.expect(pm.response.json().name).to.match(/^\\d{2}-\\d{2}-\\d{4}/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 201. The name is today's date, like 10-22-2026 (or 10-22-2026 (2) if you already have one). Empty slip: type straight, combinedOdds null.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "2. Create \"Postman test slip\" (with a fake type and odds)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const slip = pm.response.json();",
+                  "pm.collectionVariables.set(\"slip_id\", slip.id);",
+                  "pm.test(\"Server worked out the type (straight)\", () => pm.expect(slip.type).to.eql(\"straight\"));",
+                  "pm.test(\"Server worked out the odds (-110)\", () => pm.expect(slip.combinedOdds).to.eql(-110));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 201. We SEND type \"sgp\" and combinedOdds 9999, but the server ignores them: you get type \"straight\" and combinedOdds -110, worked out from the one pick. Saves the slip ID for the next requests. NOW: open MongoDB Atlas > Browse Collections > betslips and find it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman test slip\",\n  \"type\": \"sgp\",\n  \"combinedOdds\": 9999,\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Create the same name again",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 409 conflict: you already have a slip with that name.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman test slip\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. List my slips",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Is a list\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 200: a list of ONLY your slips, newest first."
+          }
+        },
+        {
+          "name": "5. Get the slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 200: the slip from request 2."
+          }
+        },
+        {
+          "name": "6. Rename the slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Renamed\", () => pm.expect(pm.response.json().name).to.eql(\"Postman renamed slip\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 200 with the new name. NOW: refresh Atlas and see the new name.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman renamed slip\"\n}"
+            }
+          }
+        },
+        {
+          "name": "7. Make it a parlay (2 games)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const slip = pm.response.json();",
+                  "pm.test(\"Type is parlay\", () => pm.expect(slip.type).to.eql(\"parlay\"));",
+                  "pm.test(\"Odds are +377\", () => pm.expect(slip.combinedOdds).to.eql(377));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 200: Chiefs -3 (-110) + Lions to win (+150) from DIFFERENT games → type parlay, combinedOdds 377.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873006|h2h|full-game|team:8|home\",\n      \"gameId\": \"401873006\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"LAC @ KC\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"h2h\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Winner\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"8\",\n        \"name\": \"Detroit Lions\"\n      },\n      \"side\": \"home\",\n      \"line\": null,\n      \"odds\": 150,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Lions to win\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "8. Make it an SGP (same game)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const slip = pm.response.json();",
+                  "pm.test(\"Type is sgp\", () => pm.expect(slip.type).to.eql(\"sgp\"));",
+                  "pm.test(\"Marked Estimated\", () => pm.expect(slip.oddsAreEstimated).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 200: two picks from the SAME game → type sgp, oddsAreEstimated true (the real SGP price is usually lower).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873022|player_pass_yds|full-game|player:3139477|over|274.5\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"player_pass_yds\",\n      \"marketCategory\": \"player-props\",\n      \"marketLabel\": \"Passing Yards\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"player\",\n        \"id\": \"3139477\",\n        \"name\": \"Patrick Mahomes\"\n      },\n      \"side\": \"over\",\n      \"line\": 274.5,\n      \"odds\": -115,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Mahomes Over 274.5 Passing Yards\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "9. Delete the slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Deleted\", () => pm.expect(pm.response.json().deleted).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 200 { deleted: true }. NOW: refresh Atlas and see that it's gone."
+          }
+        },
+        {
+          "name": "10. Get it after deleting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{slip_id}}",
+            "description": "Expect 404: it's gone."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 – Not found",
+      "item": [
+        {
+          "name": "Get a fake slip ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
+            "description": "Expect 404 \"We couldn't find that bet slip.\" (Someone else's slip ID gets this exact same answer.)"
+          }
+        },
+        {
+          "name": "Get a badly formed ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/abc",
+            "description": "Expect 404."
+          }
+        },
+        {
+          "name": "Rename a fake slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
+            "description": "Expect 404.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nope\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete a fake slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
+            "description": "Expect 404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 – Bad input",
+      "item": [
+        {
+          "name": "Name over 50 characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 400, fieldErrors.name says names can be up to 50 characters.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Fake odds (-50)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 400, fieldErrors[\"picks.0.odds\"]: odds must be American odds.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -50,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Unknown sportsbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 400, fieldErrors[\"picks.0.sportsbook\"].",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"fanduel\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Same pick twice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 400: the same pick is on the list twice.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873022|spreads|full-game|team:12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Not JSON",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 400: That isn't valid JSON.",
+            "body": {
+              "mode": "raw",
+              "raw": "{oops"
+            }
+          }
+        },
+        {
+          "name": "Missing Content-Type header",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 415\", () => pm.response.to.have.status(415));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 415: send the data as JSON.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Rename with nothing to change",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
+            "description": "Expect 400: send a new name, a new list of picks, or both. (Checked before the ID is looked up.)",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 – Logged out",
+      "item": [
+        {
+          "name": "List while logged out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "No Cookie header. Expect 401 \"Please log in.\""
+          }
+        },
+        {
+          "name": "Create while logged out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "No Cookie header. Expect 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Delete while logged out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
+            "description": "No Cookie header. Expect 401."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@
   - withUser(): runs a route only for logged-in users (401 otherwise), and
     turns any crash or outside-API failure into a friendly JSON error
   - parseQuery(): checks the ?settings in the address (like ?league=nfl) with zod
+  - parseJsonBody(): checks the JSON data sent with a POST or PATCH with zod
   WHO USES IT: Every route in app/api (Sections 6 and 7).
   WHY THIS NAME: It's how the API responds. It ends in .ts because it shows nothing on screen.
 */
@@ -69,18 +70,85 @@ export async function withUser(run: (user: User) => Promise<Response>): Promise<
 export function parseQuery<Schema extends z.ZodType>(
   request: Request,
   schema: Schema,
-): { ok: true; data: z.infer<Schema> } | { ok: false; response: Response } {
+): Parsed<z.infer<Schema>> {
   const params = Object.fromEntries(new URL(request.url).searchParams);
   const parsed = schema.safeParse(params);
   if (parsed.success) return { ok: true, data: parsed.data };
-
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of parsed.error.issues) {
-    const field = String(issue.path[0] ?? "query");
-    fieldErrors[field] ??= issue.message;
-  }
   return {
     ok: false,
-    response: apiError("invalid-input", "Some of the request's settings are missing or wrong.", 400, fieldErrors),
+    response: apiError(
+      "invalid-input",
+      "Some of the request's settings are missing or wrong.",
+      400,
+      toFieldErrors(parsed.error.issues, "query"),
+    ),
+  };
+}
+
+/*
+  Parsed: what parseQuery and parseJsonBody give back. Either the checked data,
+  or a ready-made error response to send.
+*/
+type Parsed<Data> = { ok: true; data: Data } | { ok: false; response: Response };
+
+/*
+  toFieldErrors: turns zod's list of problems into { "field": "message" }, one
+  message per field. Fields inside lists are named by their position, like
+  "picks.0.odds" (the first pick's odds), so you can see exactly what's wrong.
+*/
+function toFieldErrors(issues: z.core.$ZodIssue[], fallback: string): Record<string, string> {
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of issues) {
+    const field = issue.path.length > 0 ? issue.path.map(String).join(".") : fallback;
+    fieldErrors[field] ??= issue.message;
+  }
+  return fieldErrors;
+}
+
+/** The biggest body we accept: about 100 KB. A full 25-pick slip is around 15 KB. */
+const MAX_BODY_CHARACTERS = 100_000;
+
+/*
+  parseJsonBody: reads and checks the JSON data sent with a POST or PATCH.
+  1. It must be marked as JSON (Content-Type: application/json), or it gets 415.
+     This also helps block sneaky form posts from other websites.
+  2. It can't be huge (413).
+  3. It must be real JSON (400).
+  4. It must follow the schema's rules (400, with fieldErrors saying what's wrong).
+*/
+export async function parseJsonBody<Schema extends z.ZodType>(
+  request: Request,
+  schema: Schema,
+): Promise<Parsed<z.infer<Schema>>> {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("application/json")) {
+    return {
+      ok: false,
+      response: apiError("invalid-input", "Send the data as JSON (Content-Type: application/json).", 415),
+    };
+  }
+
+  const text = await request.text();
+  if (text.length > MAX_BODY_CHARACTERS) {
+    return { ok: false, response: apiError("invalid-input", "That's too much data for one request.", 413) };
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return { ok: false, response: apiError("invalid-input", "That isn't valid JSON.", 400) };
+  }
+
+  const parsed = schema.safeParse(body);
+  if (parsed.success) return { ok: true, data: parsed.data };
+  return {
+    ok: false,
+    response: apiError(
+      "invalid-input",
+      "Some of the data is missing or wrong.",
+      400,
+      toFieldErrors(parsed.error.issues, "body"),
+    ),
   };
 }
