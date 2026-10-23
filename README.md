@@ -16,7 +16,7 @@ Tailwind CSS, and MongoDB Atlas, and hosted on Vercel.
 
 | Page | What you can do |
 |---|---|
-| **Sign up / Log in** | Email and password only (no email verification). You stay logged in for 7 days. Every page needs you to be logged in. |
+| **Sign up / Log in** | Email and password only (no email verification). Emails must end in a common ending (.com, .org, .net, .edu, .gov, .mil, .io, .us, country endings like .uk or .ca, and a few more; the list is `EMAIL_ENDINGS` in `lib/auth/validation.ts`), which also catches typos like `.con`. You stay logged in for 7 days. Every page needs you to be logged in. |
 | **Feed** (`/`) | Search teams and players; league tabs (NFL works, the others say "Coming soon"); bet-type buttons; this week's and next week's games with **Spread / Total / Winner** odds buttons; filters (All, Today, This Week); and an **NFL news** box. |
 | **League** (`/league/nfl`) | Every upcoming NFL matchup, soonest first. |
 | **Matchup** (`/matchup/<id>`) | Both teams, records, date and time, an Odds / Insights switch (Insights is "coming soon"), **Build your own SGP**, and tabs: Game Lines (+ each team's chance of winning and both teams' injury reports), Player Props, Team Props, Halves, Quarters, D/ST, and Game Specials. Plus news about the matchup. |

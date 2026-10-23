@@ -19,8 +19,33 @@ export const PASSWORD_RULES_TEXT =
   "At least 8 characters, with at least one letter and one number.";
 
 /*
-  emailRule: trims spaces, lowercases it, checks it looks like an email, and
-  caps the length at 254 characters (the longest real email address).
+  EMAIL_ENDINGS: the email endings (the part after the last dot) we accept.
+  Common ones, plus country endings, so real people aren't turned away
+  (you@school.co.uk ends in ".uk", so it's accepted). Anything else, like
+  ".xyz" or a typo like ".con", gets a friendly red message.
+  To accept another ending later, add it here.
+*/
+export const EMAIL_ENDINGS = new Set([
+  // Common endings
+  "com", "org", "net", "edu", "gov", "mil", "us", "io", "co", "me", "info", "biz", "app", "dev",
+  // Country endings
+  "uk", "ca", "au", "nz", "ie", "de", "fr", "es", "it", "nl", "be", "ch", "at", "se", "no", "dk", "fi",
+  "pl", "pt", "mx", "br", "ar", "jp", "kr", "in", "sg", "za", "il",
+]);
+
+/* EMAIL_ENDING_MESSAGE: what people see when their email's ending isn't on the list. */
+const EMAIL_ENDING_MESSAGE = "Use an email ending in .com, .org, .net, .edu, .gov, .mil, or another common ending.";
+
+/* hasAcceptedEnding: true if the email ends in one of EMAIL_ENDINGS ("you@navy.mil" → "mil"). */
+export function hasAcceptedEnding(email: string): boolean {
+  const ending = email.slice(email.lastIndexOf(".") + 1).toLowerCase();
+  return email.includes("@") && EMAIL_ENDINGS.has(ending);
+}
+
+/*
+  emailRule: trims spaces, lowercases it, checks it looks like an email, checks
+  its ending is on the EMAIL_ENDINGS list, and caps the length at 254 characters
+  (the longest real email address). Used by BOTH sign up and login.
 */
 const emailRule = z
   .string()
@@ -28,7 +53,8 @@ const emailRule = z
   .toLowerCase()
   .min(1, { error: "Enter your email." })
   .max(254, { error: "That email is too long." })
-  .pipe(z.email({ error: "Enter a valid email, like you@example.com." }));
+  .pipe(z.email({ error: "Enter a valid email, like you@example.com." }))
+  .refine(hasAcceptedEnding, { error: EMAIL_ENDING_MESSAGE });
 
 /*
   newPasswordRule: the rules for a NEW password at sign up.

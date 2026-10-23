@@ -137,12 +137,11 @@ export async function login(
     password: formText(formData, "password"),
   });
   if (!parsed.success) {
-    const fieldErrors = firstFieldErrors(parsed.error);
-    // A badly formed email still only gets the general message, so we don't hint at anything.
-    if (fieldErrors.email && typedEmail.trim() !== "") {
-      return { message: INVALID_LOGIN_MESSAGE, fieldErrors: {}, email: typedEmail };
-    }
-    return { message: null, fieldErrors, email: typedEmail };
+    // Show what's wrong with the email itself (like "Use an email ending in .com, ...")
+    // in red under the box. These rules are the same for everyone, so they never
+    // reveal whether an account exists. A wrong email or password for a real-looking
+    // address still only gets "Invalid email or password." (below).
+    return { message: null, fieldErrors: firstFieldErrors(parsed.error), email: typedEmail };
   }
   const { email, password } = parsed.data;
 
