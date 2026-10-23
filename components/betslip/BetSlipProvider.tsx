@@ -3,7 +3,11 @@
   WHAT IT'S FOR: The "brain" of the bet slip in the browser. It holds your
   ACTIVE slip (the one you're adding picks to) and follows BET SLIP RULES:
   - Your first tap on any odds creates a slip automatically.
-  - Tapping a pick that's already on the slip removes it.
+  - Tapping a pick that's already on the slip removes it. Removing the LAST
+    pick asks "Delete this slip?": Delete removes the whole slip (and the bar);
+    Keep leaves the empty slip saved as your current slip, so the bar stays.
+  - The slip bar only appears once there's a slip being built (your first pick,
+    or Build your own SGP).
   - A pick that clashes with one on the slip opens the conflict popup instead.
     Cancel changes nothing. Start new slip makes a second slip with just that pick.
   - Build your own SGP starts a slip locked to one game, until you tap Done.
@@ -26,10 +30,11 @@ import { findConflict, type Conflict } from "@/lib/betting/conflicts";
 // The parlay math from lib/betting/parlay.ts, so the bar updates instantly before the server answers.
 import { getSlipPricing } from "@/lib/betting/parlay";
 // The browser's requests to our bet slip API, from lib/betting/slipRequests.ts.
-import { clearActiveSlip, createSlip, saveSlipPicks } from "@/lib/betting/slipRequests";
+import { clearActiveSlip, createSlip, deleteSlip, saveSlipPicks } from "@/lib/betting/slipRequests";
 // THE shared bet slip types from the types folder, plus the 25-pick limit the server uses too.
 import { BET_SLIP_MAX_PICKS, type BetPick, type BetSlip, type NewBetPick } from "@/types";
 // The pieces this provider draws, from the files next to this one.
+import ChoiceDialog from "./ChoiceDialog";
 import ConflictDialog from "./ConflictDialog";
 import SlipBar from "./SlipBar";
 import SlipPanel from "./SlipPanel";
@@ -103,6 +108,8 @@ export default function BetSlipProvider({
   // What's on screen right now (may be a preview that isn't saved yet).
   const [slip, setSlip] = useState<BetSlip | null>(initialSlip);
   const [pendingConflict, setPendingConflict] = useState<PendingConflict | null>(null);
+  // The slip waiting on the "Delete this slip?" prompt (after its last pick was removed), or null.
+  const [pendingDelete, setPendingDelete] = useState<BetSlip | null>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   /*
@@ -191,9 +198,7 @@ export default function BetSlipProvider({
     if (!current) return startNewSlipWith(pick, false);
 
     // Already on the slip: tapping again removes it.
-    if (current.picks.some((p) => p.id === pick.id)) {
-      return savePicks(current, current.picks.filter((p) => p.id !== pick.id));
-    }
+    if (current.picks.some((p) => p.id === pick.id)) return removePick(pick.id);
 
     // Clashes with a pick on the slip (or the wrong game for an SGP): ask first.
     const conflict = findConflict(current.picks, pick, current.sgpGameId);
@@ -205,10 +210,32 @@ export default function BetSlipProvider({
     savePicks(current, [...current.picks, pick]);
   }
 
-  /* removePick: the × next to a pick in the slip panel. */
+  /*
+    removePick: takes one pick off the slip (tapping a gold button again, or the
+    × in the slip panel). If it's the LAST pick, nothing changes yet: the
+    "Delete this slip?" prompt opens first.
+  */
   function removePick(pickId: string) {
     const current = shownRef.current;
-    if (current) savePicks(current, current.picks.filter((p) => p.id !== pickId));
+    if (!current) return;
+    const remaining = current.picks.filter((p) => p.id !== pickId);
+    if (remaining.length === 0) return setPendingDelete(current);
+    savePicks(current, remaining);
+  }
+
+  /* The prompt's choices. Escape or clicking outside closes it and changes nothing (the pick stays). */
+  function keepEmptySlip() {
+    setPendingDelete(null);
+    const current = shownRef.current;
+    if (current) savePicks(current, []);
+  }
+  function deleteWholeSlip() {
+    setPendingDelete(null);
+    show(null);
+    queueSave(async () => {
+      await deleteSlip(savedSlipId());
+      return null;
+    });
   }
 
   /*
@@ -276,6 +303,18 @@ export default function BetSlipProvider({
         conflict={pendingConflict?.conflict ?? null}
         onCancel={cancelConflict}
         onStartNewSlip={confirmNewSlip}
+      />
+      <ChoiceDialog
+        open={pendingDelete !== null}
+        title="Delete this slip?"
+        message={`That was the last pick on "${pendingDelete?.name ?? "your slip"}".`}
+        note="Delete the whole slip, or keep it (empty) as your current slip?"
+        stayLabel="Keep slip"
+        actLabel="Delete slip"
+        danger
+        onStay={keepEmptySlip}
+        onAct={deleteWholeSlip}
+        onDismiss={() => setPendingDelete(null)}
       />
       <SlipToast message={toast} onDismiss={() => setToast(null)} />
     </BetSlipContext>

@@ -1,7 +1,7 @@
 /*
   FILE: lib/betting/slipRequests.ts
   WHAT IT'S FOR: How the BROWSER talks to our bet slip API: create a slip,
-  save its picks, and clear the active slip. If the server says no, it throws
+  save its picks, delete a slip, and clear the active slip. If the server says no, it throws
   an error with the server's friendly message, so the page can show it.
   WHO USES IT: components/betslip/BetSlipProvider.tsx.
   WHY THIS NAME: These are the requests for slips. It ends in .ts because it
@@ -40,14 +40,16 @@ function isApiError(data: unknown): data is ApiErrorResponse {
   The <Result> type is what our own route sends back (types/betslip.ts), so we
   trust its shape here. It comes from our server, not an outside API.
 */
-async function send<Result>(path: string, method: "POST" | "PATCH" | "PUT", body: unknown): Promise<Result> {
+async function send<Result>(path: string, method: "POST" | "PATCH" | "PUT" | "DELETE", body?: unknown): Promise<Result> {
   let response: Response;
   try {
-    response = await fetch(path, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    // A DELETE sends no data, so it has no body (and no Content-Type).
+    response = await fetch(
+      path,
+      body === undefined
+        ? { method }
+        : { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+    );
   } catch {
     throw new SlipRequestError("We couldn't reach the server. Check your connection and try again.");
   }
@@ -67,6 +69,11 @@ export function createSlip(input: BetSlipCreateInput): Promise<BetSlip> {
 /* saveSlipPicks: PATCH /api/betslips/<id> with the full new list of picks. */
 export function saveSlipPicks(slipId: string, picks: BetPick[]): Promise<BetSlip> {
   return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { picks });
+}
+
+/* deleteSlip: DELETE /api/betslips/<id>. The server also stops it being your active slip. */
+export function deleteSlip(slipId: string): Promise<{ deleted: true; id: string }> {
+  return send<{ deleted: true; id: string }>(`/api/betslips/${encodeURIComponent(slipId)}`, "DELETE");
 }
 
 /* clearActiveSlip: PUT /api/betslips/active with no slip (what "Done" does in SGP mode). */
