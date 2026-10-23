@@ -9,6 +9,9 @@
   2. THE SERVER DOES THE MATH: the slip type (Straight, Parlay, SGP) and the
      combined odds are always worked out here with getSlipPricing(), never
      taken from the browser.
+  3. THE SERVER CHECKS THE RULES: picks that can't go together (and picks from
+     another game on an SGP slip) are refused here too, not just by the popup.
+  It also keeps track of your ACTIVE slip, the one shown in the slip bar.
   WHO USES IT: app/api/betslips/route.ts and app/api/betslips/[id]/route.ts.
   Later: the Bet Slips pages (Section 12) and the slip bar (Section 8).
   WHY THIS NAME: It's the database code for bet slips, in lib/db. It ends in .ts
@@ -27,8 +30,10 @@ import { UserModel } from "@/lib/db/models/User";
 import { isDuplicateKeyError } from "@/lib/db/errors";
 // getSlipPricing from lib/betting/parlay.ts: the server's own type and odds math.
 import { getSlipPricing } from "@/lib/betting/parlay";
+// The "picks that can't go together" rules from lib/betting/conflicts.ts (the same ones the popup uses).
+import { findConflictInList } from "@/lib/betting/conflicts";
 // THE shared bet slip definitions from the types folder.
-import type { BetPick, BetSlip } from "@/types";
+import type { BetPick, BetSlip, User } from "@/types";
 
 /*
   SlipNameTakenError: thrown when the user already has a slip with that name.
@@ -39,6 +44,24 @@ export class SlipNameTakenError extends Error {
     super(`You already have a slip named "${slipName}". Pick another name.`);
     this.name = "SlipNameTakenError";
   }
+}
+
+/*
+  SlipConflictError: thrown when the picks break a BET SLIP RULE (like both
+  sides of the same bet). The API turns it into a "409 conflict" answer with
+  the same message the popup would show.
+*/
+export class SlipConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SlipConflictError";
+  }
+}
+
+/* checkPicks: throws SlipConflictError if any picks clash. */
+function checkPicks(picks: readonly BetPick[], sgpGameId: string | null): void {
+  const conflict = findConflictInList(picks, sgpGameId);
+  if (conflict) throw new SlipConflictError(conflict.message);
 }
 
 /*
@@ -71,15 +94,20 @@ function todaysSlipName(): string {
   return `${part("month")}-${part("day")}-${part("year")}`;
 }
 
+/* escapeRegex: makes text safe to search for exactly (so "KC @ SEA (2)" is matched as plain text). */
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /*
-  nextDefaultName: today's date, or the first free "date (2)", "date (3)", ...
-  if the user already has slips with that name.
+  nextFreeName: the name itself, or the first free "name (2)", "name (3)", ...
+  if the user already has slips with that name. The base is today's date
+  ("10-23-2026") unless another is given (like "KC @ SEA SGP").
 */
-async function nextDefaultName(userId: string): Promise<string> {
-  const base = todaysSlipName();
-  // Finds this user's slips named "10-23-2026" or "10-23-2026 (any number)".
+async function nextFreeName(userId: string, base: string = todaysSlipName()): Promise<string> {
+  // Finds this user's slips named "<base>" or "<base> (any number)".
   const existing = await BetSlipModel.find(
-    { userId, name: { $regex: `^${base}( \\(\\d+\\))?$` } },
+    { userId, name: { $regex: `^${escapeRegex(base)}( \\(\\d+\\))?$` } },
     { name: 1 },
   ).lean();
   const taken = new Set(existing.map((slip) => slip.name));
@@ -110,21 +138,34 @@ export async function getBetSlip(userId: string, slipId: string): Promise<BetSli
 }
 
 /*
-  createBetSlip: saves a new slip for this user and returns it.
-  With no name, it uses today's date ("10-23-2026", then "10-23-2026 (2)", ...).
-  If two slips are created at the exact same moment, the database's
-  unique-name rule refuses one, and we simply try the next number (up to 5 tries).
-  A name the user typed that's already taken throws SlipNameTakenError.
+  CreateSlipInput: what createBetSlip needs (already checked by lib/betting/validation.ts).
 */
-export async function createBetSlip(
-  userId: string,
-  input: { name?: string; picks: BetPick[]; sgpGameId: string | null },
-): Promise<BetSlip> {
+type CreateSlipInput = {
+  name?: string;
+  picks: BetPick[];
+  sgpGameId: string | null;
+  setActive: boolean;
+  numberIfTaken: boolean;
+};
+
+/*
+  createBetSlip: saves a new slip for this user and returns it.
+  - No name: today's date ("10-23-2026", then "10-23-2026 (2)", ...).
+  - numberIfTaken: the given name gets (2), (3), ... if it's taken (for "KC @ SEA SGP").
+  - Otherwise, a name the user typed that's already taken throws SlipNameTakenError.
+  - Picks that clash throw SlipConflictError.
+  - setActive: also makes it the user's active slip (the slip bar shows it).
+  If two slips are created at the exact same moment, the database's
+  unique-name rule refuses one, and automatic names simply try the next number (up to 5 tries).
+*/
+export async function createBetSlip(userId: string, input: CreateSlipInput): Promise<BetSlip> {
+  checkPicks(input.picks, input.sgpGameId);
   await connectToDatabase();
   const pricing = getSlipPricing(input.picks);
+  const autoNumber = input.name === undefined || input.numberIfTaken;
 
   for (let attempt = 1; ; attempt += 1) {
-    const name = input.name ?? (await nextDefaultName(userId));
+    const name = autoNumber ? await nextFreeName(userId, input.name) : (input.name ?? "");
     try {
       const created = await BetSlipModel.create({
         userId,
@@ -133,19 +174,23 @@ export async function createBetSlip(
         picks: input.picks,
         ...pricing,
       });
+      if (input.setActive) {
+        await UserModel.updateOne({ _id: userId }, { $set: { activeBetSlipId: created._id } });
+      }
       return toBetSlip(created.toObject<BetSlipRecord>());
     } catch (error) {
       if (!isDuplicateKeyError(error)) throw error;
-      if (input.name !== undefined || attempt >= 5) throw new SlipNameTakenError(name);
+      if (!autoNumber || attempt >= 5) throw new SlipNameTakenError(name);
     }
   }
 }
 
 /*
   updateBetSlip: renames a slip and/or replaces its picks, ONLY if it belongs to
-  this user. Changing the picks recalculates the type and combined odds.
+  this user. Changing the picks recalculates the type and combined odds, and
+  checks the new picks against the conflict rules (and the SGP's game).
   Returns the updated slip, or null if it's not found (missing on purpose).
-  A new name that's already taken throws SlipNameTakenError.
+  A taken name throws SlipNameTakenError. Clashing picks throw SlipConflictError.
 */
 export async function updateBetSlip(
   userId: string,
@@ -154,6 +199,14 @@ export async function updateBetSlip(
 ): Promise<BetSlip | null> {
   if (!isSlipId(slipId)) return null;
   await connectToDatabase();
+
+  if (changes.picks !== undefined) {
+    // We need the slip's SGP game (if any) to check the new picks against it.
+    const current = await BetSlipModel.findOne({ _id: slipId, userId }, { sgpGameId: 1 }).lean<Pick<BetSlipRecord, "sgpGameId">>();
+    if (!current) return null;
+    checkPicks(changes.picks, current.sgpGameId);
+  }
+
   try {
     const record = await BetSlipModel.findOneAndUpdate(
       { _id: slipId, userId },
@@ -185,4 +238,33 @@ export async function deleteBetSlip(userId: string, slipId: string): Promise<boo
   if (!deleted) return false;
   await UserModel.updateOne({ _id: userId, activeBetSlipId: deleted._id }, { $set: { activeBetSlipId: null } });
   return true;
+}
+
+/*
+  getActiveBetSlip: the slip the user is adding picks to right now, or null if
+  they don't have one (missing on purpose: the slip bar is hidden).
+*/
+export async function getActiveBetSlip(user: User): Promise<BetSlip | null> {
+  if (user.activeBetSlipId === null) return null;
+  return getBetSlip(user.id, user.activeBetSlipId);
+}
+
+/*
+  setActiveBetSlip: makes one of the user's slips their active slip, and
+  returns it. null if that slip isn't theirs or doesn't exist (missing on purpose).
+*/
+export async function setActiveBetSlip(userId: string, slipId: string): Promise<BetSlip | null> {
+  const slip = await getBetSlip(userId, slipId);
+  if (!slip) return null;
+  await UserModel.updateOne({ _id: userId }, { $set: { activeBetSlipId: slip.id } });
+  return slip;
+}
+
+/*
+  clearActiveBetSlip: the user has no active slip anymore. Their slips stay
+  saved; the next odds they tap start a new one. This is what "Done" does in SGP mode.
+*/
+export async function clearActiveBetSlip(userId: string): Promise<void> {
+  await connectToDatabase();
+  await UserModel.updateOne({ _id: userId }, { $set: { activeBetSlipId: null } });
 }

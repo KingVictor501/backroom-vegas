@@ -23,6 +23,7 @@ import { isValidAmericanOdds } from "@/lib/betting/parlay";
 import { espnIdRule } from "@/lib/api/params";
 // THE shared bet slip definitions and allowed-value lists from the types folder (Section 2).
 import {
+  BET_SLIP_MAX_PICKS,
   BET_SLIP_NAME_MAX_LENGTH,
   GAME_PERIODS,
   MARKET_CATEGORIES,
@@ -32,9 +33,6 @@ import {
   type BetPick,
   type LeagueSlug,
 } from "@/types";
-
-/** The most picks one slip can hold. Matches the database rule in lib/db/models/BetSlip.ts. */
-export const BET_SLIP_MAX_PICKS = 25;
 
 /* ENABLED_LEAGUES: the slugs of leagues that are turned on (just "nfl" for now). */
 const ENABLED_LEAGUES = LEAGUES.filter((l) => l.enabled).map((l) => l.slug);
@@ -123,6 +121,9 @@ const picksRule = z
   - name left out or blank → the server names it with today's date
   - picks left out → an empty slip
   - sgpGameId → a Build your own SGP slip locked to that game
+  - setActive: true → also make it your active slip (the one in the slip bar)
+  - numberIfTaken: true → if the name is taken, add (2), (3), ... instead of
+    refusing. Used for automatic names like "KC @ SEA SGP".
 */
 export const createBetSlipRule = z.object({
   // A blank name counts as "no name", so the date gets used.
@@ -135,6 +136,8 @@ export const createBetSlipRule = z.object({
   picks: picksRule.default([]),
   // null means "missing on purpose": a normal slip isn't locked to one game.
   sgpGameId: espnIdRule.nullable().default(null),
+  setActive: z.boolean({ error: "setActive must be true or false." }).default(false),
+  numberIfTaken: z.boolean({ error: "numberIfTaken must be true or false." }).default(false),
 });
 
 /*
@@ -146,3 +149,12 @@ export const updateBetSlipRule = z
   .refine((input) => input.name !== undefined || input.picks !== undefined, {
     error: "Send a new name, a new list of picks, or both.",
   });
+
+/*
+  activeBetSlipRule: what PUT /api/betslips/active accepts.
+  { "slipId": "<id>" } makes that slip your active one. { "slipId": null }
+  means no active slip (null is missing on purpose), which is what "Done" does in SGP mode.
+*/
+export const activeBetSlipRule = z.object({
+  slipId: z.string({ error: "slipId must be a slip ID or null." }).max(100).nullable(),
+});

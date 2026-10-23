@@ -5,7 +5,9 @@
     route the rubric checks: "visiting /api/betslips in the browser shows JSON."
   - POST /api/betslips → creates a slip. Send JSON like
     { "name": "Sunday picks", "picks": [ ... ] }. Everything is optional, and
-    with no name it's named with today's date, like "10-23-2026".
+    with no name it's named with today's date, like "10-23-2026". Add
+    "setActive": true to make it your active slip (the slip bar shows it).
+    Picks that can't go together get "409 conflict".
   WHO USES IT: Postman tests now. Later: the Bet Slips list page (Section 12)
   and the odds buttons that auto-create a slip on your first pick (Section 8).
   WHY THIS NAME: The folders app/api/betslips become /api/betslips. Route files
@@ -17,7 +19,7 @@ import { apiError, parseJsonBody, withUser } from "@/lib/api/respond";
 // The rules for a new slip, from lib/betting/validation.ts.
 import { createBetSlipRule } from "@/lib/betting/validation";
 // The bet slip database code from lib/db/betslips.ts. It only ever touches the logged-in user's slips.
-import { createBetSlip, listBetSlips, SlipNameTakenError } from "@/lib/db/betslips";
+import { createBetSlip, listBetSlips, SlipConflictError, SlipNameTakenError } from "@/lib/db/betslips";
 
 /* GET: logged-in users only. Returns [] (an empty list) if you have no slips yet. */
 export async function GET() {
@@ -40,6 +42,10 @@ export async function POST(request: Request) {
     } catch (error) {
       if (error instanceof SlipNameTakenError) {
         return apiError("conflict", error.message, 409, { name: error.message });
+      }
+      // Picks that can't go together (the same message the conflict popup shows).
+      if (error instanceof SlipConflictError) {
+        return apiError("conflict", error.message, 409, { picks: error.message });
       }
       throw error;
     }

@@ -20,6 +20,7 @@ import { isValidAmericanOdds } from "@/lib/betting/parlay";
 // THE shared bet slip and pick definitions from the types folder (Section 2), plus the
 // lists of allowed values. Using these keeps the database in step with the rest of the app.
 import {
+  BET_SLIP_MAX_PICKS,
   BET_SLIP_NAME_MAX_LENGTH,
   BET_SLIP_TYPES,
   GAME_PERIODS,
@@ -122,10 +123,10 @@ const betSlipSchema = new Schema<BetSlipRecord>(
     picks: {
       type: [pickSchema],
       default: [],
-      // Keeps one slip from growing huge. Real sportsbooks cap parlays around 20 to 25 picks.
+      // Keeps one slip from growing huge (BET_SLIP_MAX_PICKS = 25, from types/betslip.ts).
       validate: {
-        validator: (picks: BetPick[]) => picks.length <= 25,
-        message: "A slip can have at most 25 picks.",
+        validator: (picks: BetPick[]) => picks.length <= BET_SLIP_MAX_PICKS,
+        message: `A slip can have at most ${BET_SLIP_MAX_PICKS} picks.`,
       },
     },
     combinedOdds: { type: Number, default: null, validate: oddsRule },

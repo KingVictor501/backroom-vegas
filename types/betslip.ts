@@ -26,6 +26,9 @@ import type { SportsbookId } from "./sportsbook";
 /** The longest a slip name can be. Both the form and the server check it. */
 export const BET_SLIP_NAME_MAX_LENGTH = 50;
 
+/** The most picks one slip can hold. Real sportsbooks cap parlays around 20 to 25 picks. */
+export const BET_SLIP_MAX_PICKS = 25;
+
 /*
   BET_SLIP_TYPES: the three kinds of slip.
   - "straight": exactly 1 pick (or an empty slip that hasn't got picks yet).
@@ -87,6 +90,13 @@ export type BetPick = {
 };
 
 /*
+  NewBetPick: a pick that hasn't been added to a slip yet: everything except
+  addedAt, which gets filled in the moment the user taps the odds button.
+  Odds buttons are given one of these.
+*/
+export type NewBetPick = Omit<BetPick, "addedAt">;
+
+/*
   BetSlip: one saved bet slip, as the API sends it and the pages show it.
 */
 export type BetSlip = {
@@ -133,6 +143,8 @@ export type BetSlip = {
   - no name → the server uses today's date
   - no picks → an empty slip
   - sgpGameId → starts a Build your own SGP slip locked to that game
+  - setActive → also make it the active slip (the one in the slip bar)
+  - numberIfTaken → add (2), (3), ... if the name is taken, instead of refusing
   Notice there's no type, combinedOdds, or userId: the server works those out
   itself, so a user can't fake them.
 */
@@ -140,6 +152,8 @@ export type BetSlipCreateInput = {
   name?: string;
   picks?: BetPick[];
   sgpGameId?: string | null;
+  setActive?: boolean;
+  numberIfTaken?: boolean;
 };
 
 /*

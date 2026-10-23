@@ -17,7 +17,7 @@ import { apiError, parseJsonBody, withUser } from "@/lib/api/respond";
 // The rules for changing a slip, from lib/betting/validation.ts.
 import { updateBetSlipRule } from "@/lib/betting/validation";
 // The bet slip database code from lib/db/betslips.ts. Every call includes the user's ID.
-import { deleteBetSlip, getBetSlip, SlipNameTakenError, updateBetSlip } from "@/lib/db/betslips";
+import { deleteBetSlip, getBetSlip, SlipConflictError, SlipNameTakenError, updateBetSlip } from "@/lib/db/betslips";
 
 /** The one "not found" answer, used for fake IDs AND other people's slips. */
 function slipNotFound(): Response {
@@ -49,6 +49,10 @@ export async function PATCH(request: Request, context: RouteContext<"/api/betsli
     } catch (error) {
       if (error instanceof SlipNameTakenError) {
         return apiError("conflict", error.message, 409, { name: error.message });
+      }
+      // Picks that can't go together (the same message the conflict popup shows).
+      if (error instanceof SlipConflictError) {
+        return apiError("conflict", error.message, 409, { picks: error.message });
       }
       throw error;
     }

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Vegas Backroom – Bet Slip API",
-    "description": "FILE: postman/betslips.postman_collection.json\nWHAT IT IS FOR: Tests for the bet slip API (Section 7): create, list, get, rename, change picks, and delete, plus fake-ID, bad-input, and logged-out checks. Each request has automatic checks: see the Test Results tab after you click Send.\nHOW TO USE: Uses the SAME environment as the Section 6 collection (\"Vegas Backroom – App (local)\" with your session_cookie). Run folder 1 in order, top to bottom: request 2 saves the new slip's ID, and requests 3-10 use it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
+    "description": "FILE: postman/betslips.postman_collection.json\nWHAT IT IS FOR: Tests for the bet slip API (Sections 7 and 8): create, list, get, rename, change picks, and delete, plus fake-ID, bad-input, and logged-out checks, and (folder 5) conflicts, Build your own SGP, and the active slip. Each request has automatic checks: see the Test Results tab after you click Send.\nHOW TO USE: Uses the SAME environment as the Section 6 collection (\"Vegas Backroom – App (local)\" with your session_cookie). Run folder 1 in order, top to bottom: request 2 saves the new slip's ID, and requests 3-10 use it.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections (JSON can not hold comments, so this description is the file header).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -9,6 +9,11 @@
       "key": "slip_id",
       "value": "",
       "description": "Filled in automatically by request 2."
+    },
+    {
+      "key": "sgp_id",
+      "value": "",
+      "description": "Filled in automatically by folder 5, request 3."
     }
   ],
   "item": [
@@ -765,6 +770,306 @@
             "header": [],
             "url": "{{baseUrl}}/api/betslips/000000000000000000000000",
             "description": "No Cookie header. Expect 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 – Conflicts and SGP (Section 8, run in order)",
+      "item": [
+        {
+          "name": "1. Both sides of the same bet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 409: Chiefs -3 and Seahawks +3 can't go together. The message is the same one the popup shows.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873022|spreads|26|home|3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"26\",\n        \"name\": \"Seattle Seahawks\"\n      },\n      \"side\": \"home\",\n      \"line\": 3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Seahawks +3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Moneyline + spread, same team",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 409: Chiefs to win and Chiefs -3 can't go together.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873022|h2h|12|away|\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"h2h\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Winner\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": null,\n      \"odds\": -165,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs to win\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Start an SGP (KC @ SEA)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const slip = pm.response.json();",
+                  "pm.collectionVariables.set(\"sgp_id\", slip.id);",
+                  "pm.test(\"Locked to KC @ SEA\", () => pm.expect(slip.sgpGameId).to.eql(\"401873022\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips",
+            "description": "Expect 201: an empty slip named \"KC @ SEA SGP\" (or \"... (2)\" if you already have one), locked to that game, and made your ACTIVE slip. NOW: refresh any app page in Safari and the slip bar shows \"SGP · KC @ SEA\" with a Done button.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"KC @ SEA SGP\",\n  \"numberIfTaken\": true,\n  \"sgpGameId\": \"401873022\",\n  \"setActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Add a pick from another game to the SGP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{sgp_id}}",
+            "description": "Expect 409: SGP picks must all come from the same game.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873006|spreads|24|away|2.5\",\n      \"gameId\": \"401873006\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"LAC @ KC\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"24\",\n        \"name\": \"Los Angeles Chargers\"\n      },\n      \"side\": \"away\",\n      \"line\": 2.5,\n      \"odds\": -105,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chargers +2.5\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Add 2 picks from its own game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Type is sgp\", () => pm.expect(pm.response.json().type).to.eql(\"sgp\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{sgp_id}}",
+            "description": "Expect 200: type sgp, oddsAreEstimated true.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picks\": [\n    {\n      \"id\": \"401873022|spreads|12|away|-3\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -3,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -3\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    },\n    {\n      \"id\": \"401873022|player_pass_yds|3139477|over|249.5\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20Z\",\n      \"marketKey\": \"player_pass_yds\",\n      \"marketCategory\": \"player-props\",\n      \"marketLabel\": \"Passing Yards\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"player\",\n        \"id\": \"3139477\",\n        \"name\": \"Patrick Mahomes\"\n      },\n      \"side\": \"over\",\n      \"line\": 249.5,\n      \"odds\": -115,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Mahomes Over 249.5 Passing Yards\",\n      \"addedAt\": \"2026-10-22T20:00:00Z\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "6. Get my active slip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/active",
+            "description": "Expect 200: the SGP from request 3."
+          }
+        },
+        {
+          "name": "7. Done (no active slip)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"No active slip\", () => pm.expect(pm.response.json()).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/active",
+            "description": "Expect 200 null: what the Done button does. NOW: refresh Safari and the slip bar is gone (the SGP is still saved on the Bet Slips list).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slipId\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "8. Make a fake slip active",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/active",
+            "description": "Expect 404.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slipId\": \"000000000000000000000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "9. Delete the test SGP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "bv_session={{session_cookie}}",
+                "description": "Your login cookie, copied from the browser (see collection description)."
+              }
+            ],
+            "url": "{{baseUrl}}/api/betslips/{{sgp_id}}",
+            "description": "Expect 200: cleans up the SGP from request 3."
           }
         }
       ]

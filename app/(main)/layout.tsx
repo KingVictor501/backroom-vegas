@@ -1,8 +1,9 @@
 /*
   FILE: app/(main)/layout.tsx
   WHAT IT'S FOR: The shared frame around every page that's part of the app itself
-  (Feed, league, matchup, team, player, Bet Slips, Settings). It adds the menu and
-  leaves room for it so page content never hides behind the menu.
+  (Feed, league, matchup, team, player, Bet Slips, Settings). It adds the menu,
+  the bet slip (bar on phones and tablets, panel on the right on desktop), and
+  leaves room for both so page content never hides behind them.
   WHO USES IT: Next.js wraps every page inside the app/(main) folder with it.
   WHY THIS NAME: "layout" is the name Next.js requires. The folder name "(main)" has
   parentheses, which makes it a "route group": a folder used only for organizing,
@@ -13,18 +14,31 @@
 
 // The menu (bottom bar on phones, sidebar on desktop) from the components folder.
 import AppNav from "@/components/nav/AppNav";
+// The bet slip "brain" from components/betslip: odds buttons, slip bar, panel, and conflict popup.
+import BetSlipProvider from "@/components/betslip/BetSlipProvider";
+// getCurrentUser from lib/auth/dal.ts: who's logged in (shared with the page, so it's only looked up once).
+import { getCurrentUser } from "@/lib/auth/dal";
+// getActiveBetSlip from lib/db/betslips.ts: the slip you're adding picks to, if any.
+import { getActiveBetSlip } from "@/lib/db/betslips";
 
 /*
-  MainLayout: puts the page content and the menu side by side.
+  MainLayout: puts the page content, the menu, and the bet slip together.
+  - It loads your active slip ON THE SERVER, so the slip bar is there the
+    moment the page appears, with no flicker. Because it's a layout, Next.js
+    keeps it (and your slip) on screen while you move between pages.
   - A "Skip to main content" link comes first. It's invisible until a keyboard
     user presses Tab, and it lets them jump past the menu.
   - pb-32 leaves empty space at the bottom on phones so the floating bar never
     covers the last item on the page.
-  - lg:pl-60 pushes content right on desktop to make room for the 240px sidebar.
+  - lg:pl-66 makes room for the 240px sidebar on desktop, and xl:pr-86 makes
+    room for the 320px slip panel at 1280px and wider.
 */
-export default function MainLayout({ children }: LayoutProps<"/">) {
+export default async function MainLayout({ children }: LayoutProps<"/">) {
+  const user = await getCurrentUser();
+  const activeSlip = user ? await getActiveBetSlip(user) : null;
+
   return (
-    <>
+    <BetSlipProvider initialSlip={activeSlip}>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gold focus:px-4 focus:py-2 focus:text-bg"
@@ -34,10 +48,10 @@ export default function MainLayout({ children }: LayoutProps<"/">) {
       <AppNav />
       <main
         id="main-content"
-        className="min-h-screen px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pl-66 lg:pr-10"
+        className="min-h-screen px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pl-66 lg:pr-10 xl:pr-86"
       >
         {children}
       </main>
-    </>
+    </BetSlipProvider>
   );
 }
