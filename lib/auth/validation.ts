@@ -117,12 +117,19 @@ export function firstFieldErrors(
   inside THIS app. Something like "//evil.com" or "https://evil.com" could send
   the user to a fake site (an "open redirect" trick), so anything that isn't a
   plain "/something" path goes to the Feed ("/") instead.
+  It also refuses hidden characters (tabs, line breaks, and other invisible
+  control characters) and backslashes ANYWHERE in the path. Browsers silently
+  delete tabs and line breaks from addresses, so "/<tab>/evil.com" would turn
+  into "//evil.com" (another website). As a final check, the path is read the
+  way a browser would, and it must still point at this same site.
 */
 export function safeNextPath(value: unknown): string {
   if (typeof value !== "string") return "/";
-  const isInternalPath =
-    value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\");
-  if (!isInternalPath) return "/";
+  if (/[\u0000-\u001F\u007F\\]/.test(value)) return "/";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  // Read it the way a browser would, against a made-up site. If it lands anywhere else, refuse it.
+  const parsed = new URL(value, "https://this-site.invalid");
+  if (parsed.origin !== "https://this-site.invalid") return "/";
   // Don't send people back to the login pages they just left.
   if (value.startsWith("/login") || value.startsWith("/signup")) return "/";
   return value;

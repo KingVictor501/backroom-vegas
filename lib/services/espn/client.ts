@@ -9,6 +9,8 @@
 */
 
 import "server-only";
+// assertSafePath from lib/services/safePath.ts: refuses traversal tricks like ".." in an address.
+import { assertSafePath } from "@/lib/services/safePath";
 import type { z } from "zod";
 // fetchJson and UpstreamError from lib/services/http.ts: the shared fetch-with-timeout-and-checks helper.
 import { fetchJson, UpstreamError } from "@/lib/services/http";
@@ -68,6 +70,8 @@ export function espnUrl(
   league: LeagueConfig,
   path: string,
 ): string {
+  // Second lock against path traversal: refuse "..", ".", or hidden slashes in the path (lib/services/safePath.ts).
+  assertSafePath(path);
   const { sport, league: leagueName } = league.espn;
   if (host === "site") return `${SITE}/${sport}/${leagueName}/${path}`;
   if (host === "web") return `${WEB}/${sport}/${leagueName}/${path}`;

@@ -9,6 +9,8 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+// requireUser from lib/auth/dal.ts: logged-in users only (checks the account still exists, too).
+import { requireUser } from "@/lib/auth/dal";
 // The form itself, from components/betslips.
 import NewSlipForm from "@/components/betslips/NewSlipForm";
 
@@ -16,7 +18,8 @@ import NewSlipForm from "@/components/betslips/NewSlipForm";
 export const metadata: Metadata = { title: "New Slip" };
 
 /* NewSlipPage: the heading, a way back, and the form. */
-export default function NewSlipPage() {
+export default async function NewSlipPage() {
+  await requireUser();
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <Link href="/betslips" className="inline-flex min-h-11 items-center text-sm text-muted hover:text-gold">

@@ -11,6 +11,8 @@
 */
 
 import "server-only";
+// assertSafePath from lib/services/safePath.ts: refuses traversal tricks like ".." in an address.
+import { assertSafePath } from "@/lib/services/safePath";
 import type { z } from "zod";
 import { fetchJson, UpstreamError } from "@/lib/services/http";
 // Our sportsbook IDs and each one's Odds API name, from config/sportsbooks.ts.
@@ -55,6 +57,8 @@ export async function oddsGet<Schema extends z.ZodType>(
     throw new UpstreamError("The Odds API", null, "ODDS_API_KEY is missing from .env.local / Vercel");
   }
 
+  // Second lock against path traversal: refuse "..", ".", or hidden slashes in the path (lib/services/safePath.ts).
+  assertSafePath(path);
   const query = new URLSearchParams({
     ...params,
     bookmakers: ALL_BOOKMAKER_KEYS,

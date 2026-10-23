@@ -56,6 +56,8 @@ const searchPlayers = cached(
 */
 export async function search(leagueSlug: LeagueSlug, query: string): Promise<SearchResult[]> {
   const text = normalizeName(query);
+  // Nothing left after removing symbols (like "../../" or "!!"): nothing can match, so don't search at all.
+  if (text === "") return [];
   const teams = await getTeams(leagueSlug);
   const teamResults: SearchResult[] = teams
     .filter((team) =>

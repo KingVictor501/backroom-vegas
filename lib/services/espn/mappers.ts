@@ -127,7 +127,9 @@ export function toGame(event: EspnEvent, league: LeagueSlug): Game | null {
 */
 export function toNewsArticle(article: EspnArticle): NewsArticle | null {
   const url = article.links?.web?.href;
-  if (!url) return null;
+  // Only regular https web addresses. A link starting with "javascript:" (or
+  // anything else) could run code when tapped, so that story is skipped.
+  if (!url || !url.startsWith("https://")) return null;
   const image = article.images?.[0];
   const headline = toPlainText(article.headline);
   return {

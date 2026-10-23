@@ -22,6 +22,8 @@ import TeamHeader from "@/components/team/TeamHeader";
 import { InjuriesAndNews, KeyPlayers, RecentGames, SectionSkeleton } from "@/components/team/TeamSections";
 // The league (only NFL for now), from config/leagues.ts.
 import { DEFAULT_LEAGUE_SLUG } from "@/config/leagues";
+// requireUser from lib/auth/dal.ts: logged-in users only (checks the account still exists, too).
+import { requireUser } from "@/lib/auth/dal";
 // getTeamOverview from lib/services/espn/teams.ts: the top of the page (null for a fake team ID).
 import { getTeamOverview } from "@/lib/services/espn/teams";
 import type { LeagueSlug } from "@/types";
@@ -48,6 +50,7 @@ export async function generateMetadata(props: PageProps<"/team/[teamId]">): Prom
 */
 export default async function TeamPage(props: PageProps<"/team/[teamId]">) {
   const { teamId } = await props.params;
+  await requireUser();
   if (!isTeamId(teamId)) notFound();
 
   const overview = await getTeamOverview(LEAGUE, teamId);

@@ -1,6 +1,31 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /* poweredByHeader: false stops every answer from announcing "X-Powered-By: Next.js" (no need to tell strangers what we run). */
+  poweredByHeader: false,
+  /*
+    headers: safety settings sent with EVERY page and API answer (from the
+    Next.js docs' security headers list):
+    - X-Frame-Options DENY: other websites can't show our pages inside a frame
+      (stops "clickjacking", where a hidden frame tricks you into tapping our buttons)
+    - X-Content-Type-Options nosniff: the browser never guesses a file's type,
+      so a file can't be passed off as a script
+    - Referrer-Policy: other websites only see our domain, never full page addresses
+    - Permissions-Policy: the app never uses the camera, microphone, or location, so they're switched off
+  */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+        ],
+      },
+    ];
+  },
   /*
     images.remotePatterns: the only outside website next/image may load pictures
     from. ESPN hosts the team logos (and later player photos) at a.espncdn.com/i/...
