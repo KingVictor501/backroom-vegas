@@ -2,6 +2,10 @@ The Vegas Backroom: Quality Check
 
 LINKS
 Live app: https://backroom-vegas.vercel.app
+Live backend (API): https://backroom-vegas.vercel.app/api
+  (The backend runs inside the same Vercel app as the pages, using Next.js API routes and Server Actions. This is the base address every API route starts with; open one of the routes below to see it working.)
+  • Public status check: https://backroom-vegas.vercel.app/api/health/db
+  • Bet slips as JSON: https://backroom-vegas.vercel.app/api/betslips (log in to the live app first, then open this link)
 GitHub repo: https://github.com/KingVictor501/backroom-vegas
 
 VALUE STATEMENT
