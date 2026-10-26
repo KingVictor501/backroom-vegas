@@ -1,0 +1,38 @@
+The Vegas Backroom: Quality Check
+
+LINKS
+Live app: https://backroom-vegas.vercel.app
+GitHub repo: https://github.com/KingVictor501/backroom-vegas
+
+VALUE STATEMENT
+The Vegas Backroom puts everything you need to plan a football bet in one place, so you don't have to bounce between a betting app, a news site, and a stats site. The biggest difference is injuries. Most betting apps show you the odds but not who's hurt, and that matters a lot. For example, if a team's starting cornerback and safety are both out, the other team's best receiver is suddenly being covered by backups, and their quarterback has a much easier day throwing the ball, so bets on those two players having a big game start to look a lot better. In this app, both teams' injury reports sit right next to the odds, along with each player's recent games, news about that specific game, and prices from three different sportsbooks, and you can save your picks to a bet slip without ever leaving the app.
+
+SECURITY NOTES
+(Full details, to include what I missed and what Claude caught, are in the README's Security section on GitHub.)
+
+How the app keeps users and data safe:
+• Secret keys stay hidden. The database password, login secret, and odds API key live in private settings files (.env), not in the code. Those files are blocked from GitHub, and a check of every saved version of the project found no secrets.
+• Passwords are never stored. Each password is scrambled with bcrypt before it's saved, so even the database never holds the real password.
+• Login is required. Every page and every data request checks that the person is logged in. Logins use a signed cookie that lasts 7 days and can't be read by page scripts.
+• You only see your own bet slips. Every bet slip lookup is tied to the logged-in account, so nobody can open, change, or delete someone else's slips.
+• Every form is checked. Anything a user types or sends is checked on the server (right type, right length, allowed values) before it's saved.
+• Odds keys never reach the browser. All requests to the sports data services happen on the server. A search of every file sent to browsers found no keys.
+• Only this website can use the app's data (CORS). Other websites are blocked, and "allow everyone" (*) is never used.
+• No sneaky code (XSS). Text from news stories and users is always shown as plain text, never as raw HTML, so nothing hidden in it can run.
+• Error messages give no inside details. Users see short, friendly messages. Technical details only go to private server logs.
+• No file uploads. The app doesn't accept uploaded files, so that kind of attack doesn't apply.
+• Safety headers on every page stop other sites from framing the app to trick clicks.
+
+Problems found during the security review, and how they were fixed:
+• Open redirect: a hidden tab or line break in the login link could send someone to a fake website after logging in. Fixed: the app now only allows addresses on its own site, with automatic tests.
+• Path traversal: the app now double-checks every address it builds for the sports data services, so a trick like "../" can't make it fetch the wrong thing. Added automatic tests.
+• Public health check said too much: the database status page named the database and a secret setting. Fixed: it now says only "The database isn't available right now."
+• Two pages only did a basic login check. Fixed: they now confirm the account still exists.
+• News links: only normal https:// links are allowed, so a link can't run code when tapped.
+• A testing tool had a known security issue. Fixed by updating it.
+
+Known limits:
+• There's no limit on how many times someone can try a password.
+• The sports data comes from ESPN's free, unofficial service, which is fine for a non-commercial school project.
+
+All checks were re-tested on the live site, and 56 automatic tests pass.

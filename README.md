@@ -9,6 +9,10 @@ and **Same Game Parlay (SGP)**.
 
 > **Reference tool only.** Nobody places real bets or spends money in this app.
 
+## Why it's valuable
+
+The Vegas Backroom puts everything you need to plan a football bet in one place, so you don't have to bounce between a betting app, a news site, and a stats site. The biggest difference is injuries. Most betting apps show you the odds but not who's hurt, and that matters a lot. For example, if a team's starting cornerback and safety are both out, the other team's best receiver is suddenly being covered by backups, and their quarterback has a much easier day throwing the ball, so bets on those two players having a big game start to look a lot better. In this app, both teams' injury reports sit right next to the odds, along with each player's recent games, news about that specific game, and prices from three different sportsbooks, and you can save your picks to a bet slip without ever leaving the app.
+
 Applied AI capstone project. Built with Next.js (App Router), TypeScript,
 Tailwind CSS, and MongoDB Atlas, and hosted on Vercel.
 
@@ -38,6 +42,11 @@ itself and checks the same rules, so they can't be faked.
 ---
 
 ## How the app connects to the APIs
+
+> **Diagrams:** see [`docs/week6-capstone-diagrams.md`](docs/week6-capstone-diagrams.md)
+> for the database model (users, bet slips, picks) and a diagram of where the
+> data comes from. Picture versions: `docs/week6-capstone-database-diagram.png`
+> and `docs/week6-capstone-data-sources-diagram.png`.
 
 ```
 Your browser ──► The Vegas Backroom server (Next.js on Vercel) ──► ESPN (stats, news, injuries, logos)
@@ -148,7 +157,7 @@ The **NFL news** box at the bottom of the Feed loads in the browser from
 | **News** | `/`: picture, headline, short summary, and a link to the story on ESPN. |
 
 These test switches only change what *that visitor* sees; they never change
-any data. Screenshots of all four looks are in `docs/screenshots/`.
+any data. Screenshots of all four looks are in `docs/week6-capstone-news-widget-screenshots/`.
 
 ---
 
