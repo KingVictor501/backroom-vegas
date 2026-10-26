@@ -5,6 +5,8 @@ Compare live odds from **Hard Rock Bet, BetMGM, and Caesars**, read NFL news,
 look up team and player stats, and build bet slips: **Straight**, **Parlay**,
 and **Same Game Parlay (SGP)**.
 
+**Live app: https://backroom-vegas.vercel.app** (sign up with any email that has a common ending, like .com, .org, or .edu; no verification email)
+
 > **Reference tool only.** Nobody places real bets or spends money in this app.
 
 Applied AI capstone project. Built with Next.js (App Router), TypeScript,
