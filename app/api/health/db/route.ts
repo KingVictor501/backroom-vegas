@@ -16,7 +16,8 @@ import { pingDatabase } from "@/lib/db/mongodb";
 /*
   GET: runs when someone visits /api/health/db.
   - If the database answers: status 200 ("OK") with { "status": "connected", "database": "backroom-vegas" }.
-  - If not: status 503 ("Service Unavailable") with a friendly message.
+  - If not: status 503 ("Service Unavailable") with a plain message. The
+    details only go to the server log, since anyone can open this address.
   Security note: we never send back the real error or the connection string. Error
   details can include your cluster address. The full error goes to the server's log
   (your terminal, or Vercel's logs) where only you can see it.
@@ -26,14 +27,10 @@ export async function GET() {
     const database = await pingDatabase();
     return Response.json({ status: "connected", database });
   } catch (error) {
-    console.error("Database health check failed:", error);
-    return Response.json(
-      {
-        status: "error",
-        message:
-          "Can't reach the database. Check MONGODB_URI and MongoDB Atlas Network Access.",
-      },
-      { status: 503 },
-    );
+    // The details (and what to check: MONGODB_URI and Atlas Network Access) go
+    // only to the server log (Vercel → Logs). This route is public, so strangers
+    // just get a plain message with no hints about how the app is set up.
+    console.error("Database health check failed. Check MONGODB_URI and MongoDB Atlas Network Access.", error);
+    return Response.json({ status: "error", message: "The database isn't available right now." }, { status: 503 });
   }
 }

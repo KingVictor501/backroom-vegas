@@ -211,6 +211,12 @@ Here's how none of it can ever run as code:
   `..`, or hidden `/` in a path as a second lock (`lib/services/safePath.ts`,
   tested in `safePath.test.ts`). So a trick like `/api/players/..%2f..%2fnews`
   just gets "not found".
+- **Error messages say only what a user needs.** Every error is a short,
+  friendly message like "We couldn't find that bet slip." or "Please log in."
+  Unexpected crashes answer "Something went wrong on our side." Stack traces,
+  file paths, and database details only go to the server log (Vercel → Logs),
+  never to the visitor. That includes the public `/api/health/db` check.
+- **No file uploads.** The app doesn't accept any uploaded files, so there's nothing to misuse there.
 - **No secrets on GitHub.** `.env*` files are ignored (except `.env.example`,
   which has names only), and so are the saved sample API answers in `api-samples/`.
 
@@ -248,6 +254,7 @@ unsafe, and what was done instead:
 | Two pages (team page, New Slip) relied only on the page guard's cookie check | A valid cookie for a deleted account would still pass | Both pages also check the account still exists (`requireUser`) |
 | A news link from ESPN would have been used as-is | A `javascript:` link would run code when tapped | Only `https://` links are kept |
 | The first after-login redirect guard only blocked `//` and `/\` at the start | A hidden tab or line break (`/%09/evil.com`) slipped through, and the browser turned it into `//evil.com`: an open redirect to a fake site | The guard refuses all hidden characters and backslashes and checks the final address stays on this site, with tests |
+| The public database health check (`/api/health/db`) answered "Check MONGODB_URI and MongoDB Atlas Network Access" when the database was down | It told any stranger which database the app uses and the name of a secret setting | It now says only "The database isn't available right now."; the details go to the server log |
 | The ESPN address builder trusted that callers had checked IDs | If a future page forgot to check, an ID like `..` could make the server fetch a different ESPN address (path traversal) | Every address is checked for `.`, `..`, and hidden slashes before it's used, with tests |
 
 <!-- Add any other time an AI tool suggested something unsafe that you rejected: -->
