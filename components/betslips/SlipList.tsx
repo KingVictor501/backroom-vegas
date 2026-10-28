@@ -192,7 +192,7 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
                     onClick={() => void onCopy(slip)}
                     disabled={copyingId !== null || activatingId !== null}
                     aria-label={`Copy slip ${slip.name}`}
-                    className="min-h-11 rounded-lg px-1 text-sm font-semibold text-gold hover:text-gold-bright disabled:cursor-wait disabled:opacity-50"
+                    className="min-h-11 rounded-lg px-3 text-sm font-semibold text-gold hover:bg-gold hover:text-bg disabled:cursor-wait disabled:opacity-50"
                   >
                     {copyingId === slip.id ? "Copying…" : "Copy slip"}
                   </button>
@@ -203,7 +203,7 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
                       onClick={() => void onMakeActive(slip)}
                       disabled={copyingId !== null || activatingId !== null}
                       aria-label={`Make ${slip.name} your active slip`}
-                      className="min-h-11 rounded-lg px-1 text-sm font-semibold text-gold hover:text-gold-bright disabled:cursor-wait disabled:opacity-50"
+                      className="min-h-11 rounded-lg px-3 text-sm font-semibold text-gold hover:bg-gold hover:text-bg disabled:cursor-wait disabled:opacity-50"
                     >
                       {activatingId === slip.id ? "Switching…" : "Make Active"}
                     </button>
