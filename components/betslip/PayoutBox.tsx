@@ -94,7 +94,10 @@ export default function PayoutBox({ picks, type, wager, onSave, compact = false 
           Wager amount
         </label>
         <div className="relative">
-          <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted ${compact ? "text-sm" : "text-xl"}`}
+          >
             $
           </span>
           <input
@@ -107,12 +110,11 @@ export default function PayoutBox({ picks, type, wager, onSave, compact = false 
             onBlur={() => void save()}
             aria-invalid={error !== null}
             aria-describedby={error ? errorId : undefined}
-            className={`min-h-11 w-28 rounded-xl border-2 bg-card-raised py-1 pl-7 pr-3 text-right text-sm tabular-nums text-text ${
-              error ? "border-danger bg-danger/15" : "border-line focus:border-gold"
-            }`}
+            className={`min-h-11 rounded-xl border-2 bg-card-raised py-1 pr-3 text-right tabular-nums text-text ${
+              compact ? "w-28 pl-7 text-sm" : "w-40 pl-9 text-xl font-semibold"
+            } ${error ? "border-danger bg-danger/15" : "border-line focus:border-gold"}`}
           />
         </div>
-        {!compact && <span className="text-xs text-muted">Pretend money, for reference only</span>}
       </div>
       {error && <FieldError id={errorId}>{error}</FieldError>}
 
