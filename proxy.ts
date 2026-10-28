@@ -6,11 +6,15 @@
      "403 Forbidden". Login for API routes is checked inside each route, which
      answers with JSON instead of redirecting.
   2. Pages:
-     - Not logged in, and trying to open an app page → go to /login (and remember
-       where they were going, so they land there after logging in).
-     - Already logged in, and opening /login or /signup → go to the Feed instead.
-  This is a fast "first guard" that only looks at the cookie and headers, not
-  the database. The real checks still happen next to the data (lib/auth/dal.ts
+     - No valid invite cookie (and not logged in), and opening ANY page except
+       /invite → go to /invite. That includes /login and /signup, so nobody
+       reaches them without entering an invite code first.
+     - Has the invite cookie, not logged in, and trying to open an app page → go to
+       /login (and remember where they were going, so they land there after logging in).
+     - Already logged in, and opening /login, /signup, or /invite → go to the Feed instead.
+  This is a fast "first guard" that only looks at the cookies and headers, not
+  the database. (So it can tell an invite cookie is genuine, but not whether the
+  code has since been used up. Sign up checks that again against the database.) The real checks still happen next to the data (lib/auth/dal.ts
   and every API route), as the Next.js docs recommend.
   WHO USES IT: Next.js runs it automatically on every matching request.
   WHY THIS NAME: Next.js 16 requires the exact name "proxy" (older versions
@@ -20,12 +24,15 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 // The cookie name and token checker from lib/auth/token.ts, the same ones used when logging in.
-import { readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/token";
+import { INVITE_COOKIE_NAME, readInviteToken, readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/token";
 // The CORS allowlist from lib/api/cors.ts (read from ALLOWED_ORIGINS in .env.local / Vercel).
 import { corsHeaders, isAllowedOrigin } from "@/lib/api/cors";
 
-/** Pages anyone can see without logging in. */
-const LOGGED_OUT_ONLY_PATHS = ["/login", "/signup"];
+/** Pages only for visitors who are NOT logged in (a logged-in visitor is sent to the Feed). */
+const LOGGED_OUT_ONLY_PATHS = ["/login", "/signup", "/invite"];
+
+/** The one page a visitor can see without an invite cookie: where they enter the code. */
+const INVITE_PATH = "/invite";
 
 /*
   handleApiCors: the CORS step for /api requests.
@@ -76,16 +83,31 @@ export async function proxy(request: NextRequest) {
   );
   const isLoggedOutPage = LOGGED_OUT_ONLY_PATHS.includes(pathname);
 
-  // Not logged in and not on /login or /signup → send to /login?next=<where they were going>.
-  if (!session && !isLoggedOutPage) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") loginUrl.searchParams.set("next", pathname + search);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Logged in but on /login or /signup → send to the Feed.
+  // Logged in but on /login, /signup, or /invite → send to the Feed.
   if (session && isLoggedOutPage) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (!session) {
+    // The invite page itself is always open to logged-out visitors.
+    if (pathname === INVITE_PATH) return NextResponse.next();
+
+    const invite = await readInviteToken(request.cookies.get(INVITE_COOKIE_NAME)?.value);
+
+    // No valid invite → everything leads to /invite first. We remember where
+    // they were going (but not /login or /signup, which are not real destinations).
+    if (!invite) {
+      const inviteUrl = new URL(INVITE_PATH, request.url);
+      if (pathname !== "/" && !isLoggedOutPage) inviteUrl.searchParams.set("next", pathname + search);
+      return NextResponse.redirect(inviteUrl);
+    }
+
+    // A valid invite but not logged in, trying to open an app page → /login?next=<where they were going>.
+    if (!isLoggedOutPage) {
+      const loginUrl = new URL("/login", request.url);
+      if (pathname !== "/") loginUrl.searchParams.set("next", pathname + search);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return NextResponse.next();

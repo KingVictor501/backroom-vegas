@@ -67,11 +67,66 @@ export async function readSessionToken(
       // where an attacker labels a token as "unsigned".
       algorithms: ["HS256"],
     });
+    // A login token has no "aud" (audience) label. An invite-cookie token has one
+    // (see below). Both are signed with the same secret, so this keeps one from
+    // ever being accepted as the other.
+    if (payload.aud !== undefined) return null;
     // A MongoDB ID is exactly 24 characters of 0-9 and a-f. Anything else is rejected.
     if (typeof payload.sub !== "string" || !/^[a-f0-9]{24}$/.test(payload.sub)) {
       return null;
     }
     return { userId: payload.sub };
+  } catch {
+    return null;
+  }
+}
+
+/** The invite cookie's name in the browser. "bv" = Backroom Vegas. */
+export const INVITE_COOKIE_NAME = "bv_invite";
+
+/** How long a valid invite code is remembered: 30 days, in seconds. */
+export const INVITE_DURATION_SECONDS = 30 * 24 * 60 * 60;
+
+/*
+  INVITE_AUDIENCE: the label stamped on every invite token ("aud" is short for
+  "audience": who the token is meant for). A token labeled "invite" is only
+  good as an invite cookie. readSessionToken above refuses any token that has a label.
+*/
+const INVITE_AUDIENCE = "invite";
+
+/*
+  createInviteToken: makes a signed token saying "this browser entered a valid
+  invite code", good for 30 days. It holds only the ID of the invite code record
+  (in "sub"), never the code itself. Sign up checks that record AGAIN on the
+  server, so a code that was turned off or used up since then still can't be used.
+*/
+export async function createInviteToken(inviteCodeId: string): Promise<string> {
+  return new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(inviteCodeId)
+    .setAudience(INVITE_AUDIENCE)
+    .setIssuedAt()
+    .setExpirationTime(`${INVITE_DURATION_SECONDS}s`)
+    .sign(getSecretKey());
+}
+
+/*
+  readInviteToken: checks an invite token and gives back the invite code's record
+  ID, or null if it's missing, fake, changed, expired, or really a login token
+  (null is missing on purpose: "no valid invite"). It never throws.
+  `audience: INVITE_AUDIENCE` makes jose reject any token without the invite label.
+*/
+export async function readInviteToken(token: string | undefined): Promise<{ inviteCodeId: string } | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getSecretKey(), {
+      algorithms: ["HS256"],
+      audience: INVITE_AUDIENCE,
+    });
+    if (typeof payload.sub !== "string" || !/^[a-f0-9]{24}$/.test(payload.sub)) {
+      return null;
+    }
+    return { inviteCodeId: payload.sub };
   } catch {
     return null;
   }

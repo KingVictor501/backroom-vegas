@@ -23,7 +23,7 @@ import { readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/token";
 import { EMPTY_AUTH_FORM_STATE } from "@/lib/auth/validation";
 import { UserModel } from "@/lib/db/models/User";
 import { cookieJar } from "./support/cookies";
-import { createTestUser, resetDatabase } from "./support/db";
+import { createInviteCode, createTestUser, grantInviteAccess, resetDatabase } from "./support/db";
 
 /* formData: builds the form the browser would submit. */
 function formData(fields: Record<string, string>): FormData {
@@ -40,6 +40,11 @@ beforeEach(async () => {
 });
 
 describe("sign up", () => {
+  // Sign up needs an invite now, so every test here starts with a valid invite cookie.
+  beforeEach(async () => {
+    await grantInviteAccess(await createInviteCode());
+  });
+
   it("saves a bcrypt hash, not the password, and logs the new user in", async () => {
     const form = formData({ email: "New.User@Example.com", password: "Sup3rSecret", confirmPassword: "Sup3rSecret" });
 

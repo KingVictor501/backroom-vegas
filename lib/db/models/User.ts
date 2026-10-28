@@ -38,6 +38,11 @@ export type UserRecord = {
   preferredSportsbook: SportsbookId;
   /** The slip they're adding picks to right now, or null if none (missing on purpose). */
   activeBetSlipId: Types.ObjectId | null;
+  /**
+   * Which invite code this person signed up with (points at a record in the InviteCode
+   * collection), or null for accounts made before invite codes existed (missing on purpose).
+   */
+  inviteCodeId: Types.ObjectId | null;
   /** When the account was created. Mongoose fills this in automatically. */
   createdAt: Date;
   /** When the account was last changed. Mongoose fills this in automatically. */
@@ -83,6 +88,12 @@ const userSchema = new Schema<UserRecord>(
       ref: "BetSlip",
       default: null,
     },
+    inviteCodeId: {
+      type: Schema.Types.ObjectId,
+      // ref: this ID points to a record in the InviteCode collection.
+      ref: "InviteCode",
+      default: null,
+    },
   },
   // timestamps: Mongoose adds and updates createdAt and updatedAt automatically.
   { timestamps: true },
@@ -110,6 +121,7 @@ export function toUser(record: Omit<UserRecord, "passwordHash">): User {
     email: record.email,
     preferredSportsbook: record.preferredSportsbook,
     activeBetSlipId: record.activeBetSlipId?.toString() ?? null,
+    inviteCodeId: record.inviteCodeId?.toString() ?? null,
     createdAt: record.createdAt.toISOString(),
   };
 }

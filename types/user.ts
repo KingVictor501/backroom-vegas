@@ -30,6 +30,11 @@ export type User = {
    * null if they don't have one. Tapping the first odds button creates one.
    */
   activeBetSlipId: string | null;
+  /**
+   * The ID of the invite code record they signed up with, or null for accounts made
+   * before invite codes existed (missing on purpose).
+   */
+  inviteCodeId: string | null;
   /** When the account was created (ISO date-time text). */
   createdAt: string;
 };

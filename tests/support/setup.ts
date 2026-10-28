@@ -10,7 +10,8 @@
      The secret is made up fresh on every run. No real secret is used or stored.
   4. Swaps three pieces of Next.js that only work inside a real web request:
      - "server-only" (a build-time guard) becomes a harmless empty module
-     - "next/headers" cookies() becomes our pretend cookie jar
+     - "next/headers" cookies() becomes our pretend cookie jar, and headers()
+       becomes our pretend request headers (so a test can pose as any IP address)
      - "next/navigation" redirect() throws an error reading "REDIRECT:<where>",
        so a test can check where the app tried to send the visitor
   5. Closes the database connection when the test file finishes.
@@ -45,10 +46,10 @@ delete process.env.ODDS_API_KEY;
 // "server-only" would stop the file from loading outside Next.js, so replace it with nothing.
 vi.mock("server-only", () => ({}));
 
-// Hand the app our pretend cookie jar instead of the real visitor's cookies.
+// Hand the app our pretend cookie jar and request headers instead of a real visitor's.
 vi.mock("next/headers", async () => {
-  const { cookieJar } = await import("./cookies");
-  return { cookies: async () => cookieJar };
+  const { cookieJar, requestHeaders } = await import("./cookies");
+  return { cookies: async () => cookieJar, headers: async () => requestHeaders };
 });
 
 // redirect() normally ends the request. Here it throws "REDIRECT:/where" so tests can see where it went.

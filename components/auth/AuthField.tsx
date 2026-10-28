@@ -15,23 +15,27 @@ import { FieldError } from "@/components/ErrorMessage";
   AuthFieldProps: what each form passes in.
   - name: the field's name, sent to the Server Action (like "email").
   - label: the visible label above the box.
-  - type: "email" or "password" (password boxes hide what you type).
+  - type: "email", "password" (password boxes hide what you type), or "text" (like the invite code).
   - autoComplete: tells the browser and password managers what to fill in.
   - error: the message to show under the box, if there's a problem.
   - invalid: turns the box red even without its own message (for example, the
     login form's "Invalid email or password." is shown above both boxes).
   - hint: optional help text, like the password rules.
   - defaultValue: what to show in the box at first (used to keep the typed email after an error).
+  - placeholder: faint example text inside the empty box (like BRV-XXXX-XXXX).
+  - maxLength: the most characters the box accepts (the server checks too; this just stops a long paste).
 */
 type AuthFieldProps = {
   name: string;
   label: string;
-  type: "email" | "password";
+  type: "email" | "password" | "text";
   autoComplete: string;
   error?: string;
   invalid?: boolean;
   hint?: string;
   defaultValue?: string;
+  placeholder?: string;
+  maxLength?: number;
 };
 
 /*
@@ -51,6 +55,8 @@ export default function AuthField({
   invalid = false,
   hint,
   defaultValue,
+  placeholder,
+  maxLength,
 }: AuthFieldProps) {
   const isBad = invalid || Boolean(error);
   const id = `field-${name}`;
@@ -71,6 +77,8 @@ export default function AuthField({
         type={type}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
+        placeholder={placeholder}
+        maxLength={maxLength}
         required
         aria-invalid={isBad ? true : undefined}
         aria-describedby={describedBy}

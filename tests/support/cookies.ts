@@ -4,6 +4,8 @@
   our code the visitor's cookies through `cookies()` from "next/headers". There
   is no visitor in a test, so tests/support/setup.ts swaps in this jar. A test
   can then "log in" by putting a bv_session cookie in it, or "log out" by emptying it.
+  It also holds the pretend REQUEST HEADERS (requestHeaders), so a test can pose
+  as a visitor from a particular IP address by setting "x-forwarded-for".
   WHO USES IT: tests/support/setup.ts (to replace next/headers) and
   tests/support/db.ts (to log test users in and out).
   WHY THIS NAME: It's the cookie helper for tests. It ends in .ts because it shows nothing on screen.
@@ -46,3 +48,14 @@ export const cookieJar = {
     cookies.clear();
   },
 };
+
+/*
+  requestHeaders: the pretend headers of the request being tested. The app reads the
+  visitor's IP address from "x-forwarded-for". Tests set it to pose as different visitors.
+*/
+export const requestHeaders = new Headers();
+
+/* resetRequestHeaders: removes every pretend header, so the next test starts as an unknown visitor. */
+export function resetRequestHeaders(): void {
+  for (const name of [...requestHeaders.keys()]) requestHeaders.delete(name);
+}
