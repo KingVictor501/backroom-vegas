@@ -16,6 +16,8 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/dal";
 // UpstreamError from lib/services/http.ts: thrown when ESPN or The Odds API fails.
 import { UpstreamError } from "@/lib/services/http";
+// logServerError from lib/logging/safeLog.ts: logs a short error line with secrets blanked out.
+import { logServerError } from "@/lib/logging/safeLog";
 // The shared error shape and the User type, from the types folder.
 import type { ApiErrorCode, ApiErrorResponse, User } from "@/types";
 
@@ -56,7 +58,8 @@ export async function withUser(run: (user: User) => Promise<Response>): Promise<
         502,
       );
     }
-    console.error("API route failed:", error);
+    // Cleaned-up log line (no whole error object), so a database error can't leak connection details.
+    logServerError("API route failed:", error);
     return apiError("server-error", "Something went wrong on our side. Please try again.", 500);
   }
 }

@@ -4,7 +4,8 @@
   unexpectedly (like ESPN not answering): a short message, a "Try again"
   button, and a way back to the Feed. The technical details only go to the
   browser console, never on screen.
-  WHO USES IT: the error.tsx files for the matchup, team, and player pages.
+  WHO USES IT: the error.tsx files for the matchup, team, player, and Bet Slips pages,
+  plus the catch-all ones in app/(main)/error.tsx and app/error.tsx.
   WHY THIS NAME: It's the error screen. It ends in .tsx because it shows something on screen.
 */
 

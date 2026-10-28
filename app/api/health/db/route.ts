@@ -12,10 +12,13 @@
 
 // pingDatabase comes from lib/db/mongodb.ts, the one shared place that knows how to connect to MongoDB.
 import { pingDatabase } from "@/lib/db/mongodb";
+// logServerError from lib/logging/safeLog.ts: logs a short error line with secrets blanked out.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /*
   GET: runs when someone visits /api/health/db.
-  - If the database answers: status 200 ("OK") with { "status": "connected", "database": "backroom-vegas" }.
+  - If the database answers: status 200 ("OK") with { "status": "connected" }. It does NOT say
+    which database it reached, because anyone can open this address.
   - If not: status 503 ("Service Unavailable") with a plain message. The
     details only go to the server log, since anyone can open this address.
   Security note: we never send back the real error or the connection string. Error
@@ -24,13 +27,14 @@ import { pingDatabase } from "@/lib/db/mongodb";
 */
 export async function GET() {
   try {
-    const database = await pingDatabase();
-    return Response.json({ status: "connected", database });
+    // pingDatabase also gives back the database's name, but we deliberately don't send it out.
+    await pingDatabase();
+    return Response.json({ status: "connected" });
   } catch (error) {
     // The details (and what to check: MONGODB_URI and Atlas Network Access) go
     // only to the server log (Vercel → Logs). This route is public, so strangers
     // just get a plain message with no hints about how the app is set up.
-    console.error("Database health check failed. Check MONGODB_URI and MongoDB Atlas Network Access.", error);
+    logServerError("Database health check failed. Check MONGODB_URI and MongoDB Atlas Network Access.", error);
     return Response.json({ status: "error", message: "The database isn't available right now." }, { status: 503 });
   }
 }

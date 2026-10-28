@@ -26,6 +26,8 @@ import { UserModel } from "@/lib/db/models/User";
 import { isDuplicateKeyError } from "@/lib/db/errors";
 // Cookie helpers from lib/auth/session.ts: log in = create the cookie, log out = delete it.
 import { createSession, deleteSession } from "@/lib/auth/session";
+// logServerError from lib/logging/safeLog.ts: logs only a short, cleaned-up error line (never the whole error object).
+import { logServerError } from "@/lib/logging/safeLog";
 // The form rules, friendly messages, and helpers from lib/auth/validation.ts.
 import {
   firstFieldErrors,
@@ -108,7 +110,7 @@ export async function signup(
     // Two people signing up with the same email at the same instant: the
     // database's "unique email" rule catches the second one.
     if (isDuplicateKeyError(error)) return emailTakenState;
-    console.error("Sign up failed:", error);
+    logServerError("Sign up failed:", error);
     return {
       message: "We couldn't create your account right now. Please try again.",
       fieldErrors: {},
@@ -164,7 +166,7 @@ export async function login(
     }
     userId = user._id.toString();
   } catch (error) {
-    console.error("Login failed:", error);
+    logServerError("Login failed:", error);
     return {
       message: "We couldn't log you in right now. Please try again.",
       fieldErrors: {},
