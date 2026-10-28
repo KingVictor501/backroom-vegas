@@ -33,7 +33,7 @@ import { getSlipPricing } from "@/lib/betting/parlay";
 // The "picks that can't go together" rules from lib/betting/conflicts.ts (the same ones the popup uses).
 import { findConflictInList } from "@/lib/betting/conflicts";
 // THE shared bet slip definitions from the types folder.
-import type { BetPick, BetSlip, User } from "@/types";
+import type { BetPick, BetSlip, SlipCopyInfo, User } from "@/types";
 
 /*
   SlipNameTakenError: thrown when the user already has a slip with that name.
@@ -146,6 +146,8 @@ type CreateSlipInput = {
   sgpGameId: string | null;
   setActive: boolean;
   numberIfTaken: boolean;
+  /** Set only by lib/db/betslipCopy.ts when a slip is copied. The browser can't send it (see createBetSlipRule). */
+  copiedFrom?: SlipCopyInfo;
 };
 
 /*
@@ -173,6 +175,8 @@ export async function createBetSlip(userId: string, input: CreateSlipInput): Pro
         sgpGameId: input.sgpGameId,
         picks: input.picks,
         ...pricing,
+        // null = not a copy (missing on purpose).
+        copiedFrom: input.copiedFrom ?? null,
       });
       if (input.setActive) {
         await UserModel.updateOne({ _id: userId }, { $set: { activeBetSlipId: created._id } });

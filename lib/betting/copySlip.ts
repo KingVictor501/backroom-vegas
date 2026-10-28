@@ -126,7 +126,7 @@ function relabel(pick: BetPick, newLine: number | null): string {
   skipReason: why a pick can't be copied, or null if it can (missing on purpose: no reason = copy it).
   A game counts as started when ESPN says so OR its kickoff time has passed.
 */
-function skipReason(pick: BetPick, status: GameStatus | undefined, nowMs: number): string | null {
+export function pickSkipReason(pick: BetPick, status: GameStatus | undefined, nowMs: number): string | null {
   if (status === "final") return "That game is already over.";
   if (status === "canceled") return "That game was canceled.";
   if (status === "in-progress" || Date.parse(pick.gameStartsAt) <= nowMs) return "That game already started.";
@@ -168,7 +168,7 @@ export function planSlipCopy({ picks, odds, gameStatuses, sportsbook, now }: Pla
   const addedAt = now.toISOString();
 
   for (const pick of picks) {
-    const reason = skipReason(pick, gameStatuses.get(pick.gameId), now.getTime());
+    const reason = pickSkipReason(pick, gameStatuses.get(pick.gameId), now.getTime());
     if (reason) {
       skipped.push({ label: pick.label, gameLabel: pick.gameLabel, reason });
       continue;
