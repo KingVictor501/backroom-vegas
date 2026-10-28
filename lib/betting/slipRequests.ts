@@ -1,7 +1,7 @@
 /*
   FILE: lib/betting/slipRequests.ts
   WHAT IT'S FOR: How the BROWSER talks to our bet slip API: create a slip,
-  save its picks, rename it, delete it, and choose or clear the active slip. If the server says no, it throws
+  save its picks, rename it, copy it, delete it, and choose or clear the active slip. If the server says no, it throws
   an error with the server's friendly message, so the page can show it.
   WHO USES IT: components/betslip/BetSlipProvider.tsx and the Bet Slips pages (components/betslips).
   WHY THIS NAME: These are the requests for slips. It ends in .ts because it
@@ -85,6 +85,15 @@ export function renameSlip(slipId: string, name: string): Promise<BetSlip> {
 /* setActiveSlip: PUT /api/betslips/active, making this slip the one the slip bar shows. */
 export function setActiveSlip(slipId: string): Promise<BetSlip> {
   return send<BetSlip>("/api/betslips/active", "PUT", { slipId });
+}
+
+/*
+  copySlip: POST /api/betslips/<id>/copy. Gives back the new slip, which already carries its
+  notes: which picks were skipped (copiedFrom) and each pick's price check (refresh).
+  It can take a few seconds, because it looks up current odds.
+*/
+export function copySlip(slipId: string): Promise<BetSlip> {
+  return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}/copy`, "POST");
 }
 
 /* deleteSlip: DELETE /api/betslips/<id>. The server also stops it being your active slip. */

@@ -5,6 +5,8 @@
   - see every pick, with games that already started marked "Started"
   - remove picks (removing the last one asks "Delete this slip?", like the slip bar)
   - set it as your active slip (the one your taps add to)
+  - copy it: a new slip named "Copy of ..." with picks for games that haven't started, refreshed to the
+    current price from your sportsbook (the copy then shows which picks were skipped and which odds changed)
   - delete it, after an "Are you sure?" popup
   Each change goes to the bet slip API, and the slip bar updates to match.
   WHO USES IT: app/(main)/betslips/[id]/page.tsx, which loads the slip on the server.
@@ -21,11 +23,13 @@ import { useBetSlip } from "@/components/betslip/BetSlipProvider";
 import ChoiceDialog from "@/components/betslip/ChoiceDialog";
 // The red error styles, from components/ErrorMessage.tsx.
 import ErrorMessage, { FieldError } from "@/components/ErrorMessage";
+// The sentences shown after a slip is copied (shared with the slip list).
+import { copyAnnouncement, pickRefreshText, refreshSummary, skippedHeading } from "@/lib/betting/copyMessages";
 // Odds and type words, and the day/time words.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
 // The browser's requests to our bet slip API, from lib/betting/slipRequests.ts.
-import { deleteSlip, renameSlip, saveSlipPicks, setActiveSlip, SlipRequestError } from "@/lib/betting/slipRequests";
+import { copySlip, deleteSlip, renameSlip, saveSlipPicks, setActiveSlip, SlipRequestError } from "@/lib/betting/slipRequests";
 // The sportsbook names (each pick remembers its book).
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 // THE shared bet slip type and the 50-character limit, from the types folder.
@@ -45,6 +49,8 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
   const [nameError, setNameError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // True while a copy is being made (it can take a few seconds, because it looks up current odds).
+  const [copying, setCopying] = useState(false);
   // Which popup is open: "delete" (Delete button), "last-pick" (removing the last pick, with the pick's ID), or none.
   const [popup, setPopup] = useState<{ kind: "delete" } | { kind: "last-pick"; pickId: string } | null>(null);
   const nameId = useId();
@@ -89,6 +95,25 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
     } finally {
       setBusy(false);
     }
+  }
+
+  /*
+    onCopy: makes the copy on the server, makes it the active slip, and opens it, so its notes
+    (skipped picks, changed odds) are the first thing you see.
+  */
+  function onCopy() {
+    setCopying(true);
+    void run(async () => {
+      try {
+        const copy = await copySlip(slip.id);
+        replaceActiveSlip(copy);
+        announce(copyAnnouncement(copy));
+        router.push(`/betslips/${copy.id}`);
+        router.refresh();
+      } finally {
+        setCopying(false);
+      }
+    });
   }
 
   /* removePick: removing the last pick asks first, like the slip bar does. */
@@ -173,19 +198,56 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
           </p>
         )}
 
-        {isActive ? (
-          <p className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-bg">✓ Your active slip</p>
-        ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          {isActive ? (
+            <p className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-bg">✓ Your active slip</p>
+          ) : (
+            <button
+              type="button"
+              onClick={makeActive}
+              disabled={busy}
+              className="min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg disabled:opacity-50"
+            >
+              Set as active slip
+            </button>
+          )}
           <button
             type="button"
-            onClick={makeActive}
+            onClick={onCopy}
             disabled={busy}
-            className="min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg disabled:opacity-50"
+            className="min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg disabled:cursor-wait disabled:opacity-50"
           >
-            Set as active slip
+            {copying ? "Copying…" : "Copy slip"}
           </button>
-        )}
+        </div>
       </section>
+
+      {/* Only on a copied slip: where it came from, how the prices were refreshed, and which picks were left out. */}
+      {slip.copiedFrom && (
+        <section aria-labelledby="copy-heading" className="space-y-3 rounded-2xl border border-gold/40 bg-card p-5">
+          <h2 id="copy-heading" className="text-xl text-text">
+            Copied from &ldquo;{slip.copiedFrom.fromName}&rdquo;
+          </h2>
+          <p className="text-sm text-muted">
+            Prices were refreshed from {SPORTSBOOKS[slip.copiedFrom.sportsbook].name}.
+            {refreshSummary(slip.picks) && <> {refreshSummary(slip.picks)}.</>}
+          </p>
+          {slip.copiedFrom.skipped.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-text">
+                {skippedHeading(slip.copiedFrom.skipped.length)} because {slip.copiedFrom.skipped.length === 1 ? "its game" : "their games"} already started or finished:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-muted">
+                {slip.copiedFrom.skipped.map((skipped, index) => (
+                  <li key={`${skipped.label}-${index}`} className="break-words">
+                    <span className="text-text">{skipped.label}</span> ({skipped.gameLabel}): {skipped.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* The picks. */}
       <section aria-labelledby="picks-heading" className="rounded-2xl border border-line bg-card p-5">
@@ -211,6 +273,21 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
                       </Link>{" "}
                       · {SPORTSBOOKS[pick.sportsbook].name}
                     </p>
+                    {(() => {
+                      // Only picks that came from a copy have a price-check note.
+                      const note = pickRefreshText(pick);
+                      if (!note) return null;
+                      return (
+                        <p
+                          className={`mt-1 text-xs ${
+                            note.tone === "changed" ? "font-semibold text-gold" : note.tone === "warning" ? "font-semibold text-gold" : "text-muted"
+                          }`}
+                        >
+                          {note.tone === "warning" ? "⚠ " : note.tone === "changed" ? "↻ " : ""}
+                          {note.text}
+                        </p>
+                      );
+                    })()}
                     <p className="mt-1 text-xs">
                       {started ? (
                         <span className="rounded-full border border-danger/60 px-2 py-0.5 font-semibold text-danger">Started</span>

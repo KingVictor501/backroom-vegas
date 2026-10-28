@@ -7,6 +7,7 @@
   search and filter update instantly, with no page reload.
   Each slip shows its name, its type (Straight, Parlay, or SGP), how many
   picks, the combined odds, and when it was last changed, and links to its page.
+  Each also has a "Copy slip" button.
   WHO USES IT: app/(main)/betslips/page.tsx.
   WHY THIS NAME: It's the list of slips. It ends in .tsx because it shows something on screen.
 */
@@ -15,9 +16,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 // useBetSlip from the bet slip provider: which slip is active right now.
 import { useBetSlip } from "@/components/betslip/BetSlipProvider";
+// The red error box from components/ErrorMessage.tsx.
+import ErrorMessage from "@/components/ErrorMessage";
+// The sentence shown after a copy, from lib/betting/copyMessages.ts.
+import { copyAnnouncement } from "@/lib/betting/copyMessages";
+// copySlip: the browser's request to the copy route, from lib/betting/slipRequests.ts.
+import { copySlip } from "@/lib/betting/slipRequests";
 // formatOdds, pickCount, and the type words, from lib/betting/picks.ts.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 // shortDate ("Oct 23"), from lib/format/gameTime.ts.
@@ -36,7 +44,11 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
 
 /* SlipList: shows a friendly message when there are no slips at all. */
 export default function SlipList({ slips }: { slips: BetSlip[] }) {
-  const { slip: activeSlip } = useBetSlip();
+  const router = useRouter();
+  const { slip: activeSlip, replaceActiveSlip, announce } = useBetSlip();
+  // Which slip is being copied right now (its ID), and the red message if a copy fails.
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const searchId = useId();
@@ -54,6 +66,26 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
         </Link>
       </div>
     );
+  }
+
+  /*
+    onCopy: copies one slip on the server (it can take a few seconds), makes the copy your active
+    slip, and opens it so you can see what was skipped and which odds changed.
+  */
+  async function onCopy(slip: BetSlip) {
+    setCopyingId(slip.id);
+    setCopyError(null);
+    try {
+      const copy = await copySlip(slip.id);
+      replaceActiveSlip(copy);
+      announce(copyAnnouncement(copy));
+      router.push(`/betslips/${copy.id}`);
+      router.refresh();
+    } catch (error) {
+      setCopyError(error instanceof Error ? error.message : "That didn't copy. Please try again.");
+    } finally {
+      setCopyingId(null);
+    }
   }
 
   const words = search.trim().toLowerCase();
@@ -98,6 +130,7 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
         ))}
       </div>
 
+      {copyError && <ErrorMessage>{copyError}</ErrorMessage>}
       {/* aria-live: screen readers hear how many slips match after each change. */}
       <p aria-live="polite" className="text-xs text-muted">
         {shown.length} of {slips.length} {slips.length === 1 ? "slip" : "slips"}
@@ -113,11 +146,12 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
           {shown.map((slip) => {
             const isActive = slip.id === activeSlip?.id;
             return (
-              <li key={slip.id}>
-                <Link
-                  href={`/betslips/${slip.id}`}
-                  className={`block rounded-2xl border bg-card p-4 transition-colors hover:border-gold/60 ${isActive ? "border-gold" : "border-line"}`}
-                >
+              <li
+                key={slip.id}
+                className={`rounded-2xl border bg-card transition-colors hover:border-gold/60 ${isActive ? "border-gold" : "border-line"}`}
+              >
+                {/* The card links to the slip. The Copy button sits below it, not inside the link (a button can't live inside a link). */}
+                <Link href={`/betslips/${slip.id}`} className="block rounded-t-2xl p-4">
                   <div className="flex items-start justify-between gap-3">
                     <p className="min-w-0 truncate font-semibold text-text">{slip.name}</p>
                     <p className="shrink-0 text-lg font-semibold tabular-nums text-gold">{formatOdds(slip.combinedOdds)}</p>
@@ -130,6 +164,17 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
                     <span className="text-muted">· Updated {shortDate(slip.updatedAt)}</span>
                   </div>
                 </Link>
+                <div className="border-t border-line px-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => void onCopy(slip)}
+                    disabled={copyingId !== null}
+                    aria-label={`Copy slip ${slip.name}`}
+                    className="min-h-11 rounded-lg px-1 text-sm font-semibold text-gold hover:text-gold-bright disabled:cursor-wait disabled:opacity-50"
+                  >
+                    {copyingId === slip.id ? "Copying…" : "Copy slip"}
+                  </button>
+                </div>
               </li>
             );
           })}
