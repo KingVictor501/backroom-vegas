@@ -77,6 +77,11 @@ export function saveSlipPicks(slipId: string, picks: BetPick[]): Promise<BetSlip
   return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { picks });
 }
 
+/* saveSlipWager: PATCH /api/betslips/<id> with a new pretend wager (dollars). */
+export function saveSlipWager(slipId: string, wager: number): Promise<BetSlip> {
+  return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { wager });
+}
+
 /* renameSlip: PATCH /api/betslips/<id> with a new name. */
 export function renameSlip(slipId: string, name: string): Promise<BetSlip> {
   return send<BetSlip>(`/api/betslips/${encodeURIComponent(slipId)}`, "PATCH", { name });

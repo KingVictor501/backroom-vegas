@@ -5,6 +5,8 @@
   - see every pick, with games that already started marked "Started"
   - remove picks (removing the last one asks "Delete this slip?", like the slip bar)
   - set it as your active slip (the one your taps add to)
+  - change the pretend wager and see the estimated payout (profit, total return, sportsbook)
+  - change the pretend wager and see the estimated payout (profit, total return, sportsbook)
   - copy it: a new slip named "Copy of ..." with picks for games that haven't started, refreshed to the
     current price from your sportsbook (the copy then shows which picks were skipped and which odds changed)
   - delete it, after an "Are you sure?" popup
@@ -23,13 +25,15 @@ import { useBetSlip } from "@/components/betslip/BetSlipProvider";
 import ChoiceDialog from "@/components/betslip/ChoiceDialog";
 // The red error styles, from components/ErrorMessage.tsx.
 import ErrorMessage, { FieldError } from "@/components/ErrorMessage";
+// The wager box and estimated payout, shared with the slip bar and the desktop panel.
+import PayoutBox from "@/components/betslip/PayoutBox";
 // The sentences shown after a slip is copied (shared with the slip list).
 import { copyAnnouncement, pickRefreshText, refreshSummary, skippedHeading } from "@/lib/betting/copyMessages";
 // Odds and type words, and the day/time words.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
 // The browser's requests to our bet slip API, from lib/betting/slipRequests.ts.
-import { copySlip, deleteSlip, renameSlip, saveSlipPicks, setActiveSlip, SlipRequestError } from "@/lib/betting/slipRequests";
+import { copySlip, deleteSlip, renameSlip, saveSlipPicks, saveSlipWager, setActiveSlip, SlipRequestError } from "@/lib/betting/slipRequests";
 // The sportsbook names (each pick remembers its book).
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 // THE shared bet slip type and the 50-character limit, from the types folder.
@@ -95,6 +99,11 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
     } finally {
       setBusy(false);
     }
+  }
+
+  /* onSaveWager: saves the pretend wager. A failure is thrown back to the wager box, which shows it in red. */
+  async function onSaveWager(wager: number) {
+    afterSave(await saveSlipWager(slip.id, wager));
   }
 
   /*
@@ -198,6 +207,7 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
           </p>
         )}
 
+        <PayoutBox picks={slip.picks} type={slip.type} wager={slip.wager} onSave={onSaveWager} />
         <div className="flex flex-wrap items-center gap-3">
           {isActive ? (
             <p className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-bg">✓ Your active slip</p>

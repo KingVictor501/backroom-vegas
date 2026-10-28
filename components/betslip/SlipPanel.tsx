@@ -2,7 +2,7 @@
   FILE: components/betslip/SlipPanel.tsx
   WHAT IT'S FOR: The right-side panel on desktop (1280px and wider) showing
   your active slip in full: every pick with a × to remove it, the slip type,
-  and the combined odds. In Build your own SGP mode it says the odds are
+  the combined odds, and a wager box with the estimated payout. In Build your own SGP mode it says the odds are
   Estimated (and why) and has a Done button.
   On smaller screens, components/betslip/SlipBar.tsx is shown instead.
   WHO USES IT: components/betslip/BetSlipProvider.tsx.
@@ -13,6 +13,8 @@
 "use client";
 
 import Link from "next/link";
+// The wager box and payout, shared with the slip page and the slip bar.
+import PayoutBox from "./PayoutBox";
 // The odds format, "3 picks" text, and slip type words from lib/betting/picks.ts.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 // useBetSlip from the provider next to this file: the active slip, remove, and Done.
@@ -23,7 +25,7 @@ import { useBetSlip } from "./BetSlipProvider";
   It's fixed to the right edge, full height. app/(main)/layout.tsx leaves room for it.
 */
 export default function SlipPanel() {
-  const { slip, removePick, finishSgp } = useBetSlip();
+  const { slip, removePick, finishSgp, setWager } = useBetSlip();
   const isSgp = slip !== null && slip.sgpGameId !== null;
 
   return (
@@ -82,6 +84,7 @@ export default function SlipPanel() {
             </p>
             <p className="text-xl font-semibold tabular-nums text-gold">{formatOdds(slip.combinedOdds)}</p>
           </div>
+          {slip.id && <PayoutBox picks={slip.picks} type={slip.type} wager={slip.wager} onSave={setWager} />}
           {isSgp && (
             <p className="text-xs leading-relaxed text-muted">
               Estimated: the sportsbook&apos;s real SGP price is usually lower, because picks from the same game are related.

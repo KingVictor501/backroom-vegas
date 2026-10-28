@@ -4,6 +4,7 @@
   slip: its name, type, number of picks, and combined odds.
   - Normal slip: a "View" link opens the slip's page.
   - Build your own SGP: it shows the game, the "Estimated" label, and a Done button.
+  A wager box under it shows the estimated payout (components/betslip/PayoutBox.tsx).
   It only shows on phones, tablets, and small laptops. At 1280px and wider,
   components/betslip/SlipPanel.tsx shows the slip on the right instead.
   WHO USES IT: components/betslip/BetSlipProvider.tsx.
@@ -14,6 +15,8 @@
 "use client";
 
 import Link from "next/link";
+// The wager box and payout, shared with the slip page and the desktop panel.
+import PayoutBox from "./PayoutBox";
 // The odds format, "3 picks" text, and slip type words from lib/betting/picks.ts.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 // useBetSlip from the provider next to this file: the active slip and the Done button.
@@ -25,7 +28,7 @@ import { useBetSlip } from "./BetSlipProvider";
   1024px+ (where the menu becomes a sidebar), and hidden at 1280px+ ("xl:hidden").
 */
 export default function SlipBar() {
-  const { slip, finishSgp } = useBetSlip();
+  const { slip, finishSgp, setWager } = useBetSlip();
   if (!slip) return null;
 
   const isSgp = slip.sgpGameId !== null;
@@ -75,6 +78,8 @@ export default function SlipBar() {
           )
         )}
       </div>
+      {/* The ID is empty while a brand-new slip is saving, so the wager box waits for it. */}
+      {slip.id && <PayoutBox compact picks={slip.picks} type={slip.type} wager={slip.wager} onSave={setWager} />}
     </aside>
   );
 }

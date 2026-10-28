@@ -30,7 +30,7 @@ import { findConflict, type Conflict } from "@/lib/betting/conflicts";
 // The parlay math from lib/betting/parlay.ts, so the bar updates instantly before the server answers.
 import { getSlipPricing } from "@/lib/betting/parlay";
 // The browser's requests to our bet slip API, from lib/betting/slipRequests.ts.
-import { clearActiveSlip, createSlip, deleteSlip, saveSlipPicks } from "@/lib/betting/slipRequests";
+import { clearActiveSlip, createSlip, deleteSlip, saveSlipPicks, saveSlipWager } from "@/lib/betting/slipRequests";
 // THE shared bet slip types from the types folder, plus the 25-pick limit the server uses too.
 import { BET_SLIP_DEFAULT_WAGER, BET_SLIP_MAX_PICKS, type BetPick, type BetSlip, type NewBetPick } from "@/types";
 // The pieces this provider draws, from the files next to this one.
@@ -53,6 +53,8 @@ type BetSlipContextValue = {
   togglePick: (pick: NewBetPick) => void;
   /** Removes one pick (the × in the slip panel). */
   removePick: (pickId: string) => void;
+  /** Changes the pretend wager on the active slip (the wager box in the bar and panel). */
+  setWager: (wager: number) => void;
   /** Starts Build your own SGP for one game. */
   startSgp: (game: { gameId: string; gameLabel: string }) => void;
   /** The Done button: ends SGP mode. The SGP stays saved. */
@@ -190,6 +192,14 @@ export default function BetSlipProvider({
     queueSave(() => saveSlipPicks(savedSlipId(), picks));
   }
 
+  /* setWager: shows the new wager right away, then saves it (undone with a message if the save fails). */
+  function setWager(wager: number) {
+    const current = shownRef.current;
+    if (!current) return;
+    show({ ...current, wager });
+    queueSave(() => saveSlipWager(savedSlipId(), wager));
+  }
+
   /* startNewSlipWith: creates a brand-new active slip holding just this pick. */
   function startNewSlipWith(pick: BetPick, announce: boolean) {
     show(previewSlip(null, [pick]));
@@ -305,6 +315,7 @@ export default function BetSlipProvider({
     isOnSlip: (pickId) => pickIds.has(pickId),
     togglePick,
     removePick,
+    setWager,
     startSgp,
     finishSgp,
     replaceActiveSlip,
