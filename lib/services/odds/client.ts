@@ -16,6 +16,8 @@ import { assertSafePath } from "@/lib/services/safePath";
 import type { z } from "zod";
 import { fetchJson, UpstreamError } from "@/lib/services/http";
 // Our sportsbook IDs and each one's Odds API name, from config/sportsbooks.ts.
+// Sample odds mode (dev only): saved answers instead of real requests, from lib/services/odds/sampleOdds.ts.
+import { getSampleOdds, sampleOddsEnabled } from "./sampleOdds";
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 import { SPORTSBOOK_IDS, type SportsbookId } from "@/types";
 
@@ -45,6 +47,7 @@ export function toSportsbookId(oddsApiKey: string): SportsbookId | null {
   - path: like "/sports/americanfootball_nfl/odds"
   - params: extra settings, like markets=h2h,spreads,totals
   Always adds: the key, our three books, and oddsFormat=american (-110 style).
+  With SAMPLE_ODDS=true (dev only) it skips the internet and uses saved samples instead.
 */
 export async function oddsGet<Schema extends z.ZodType>(
   path: string,
@@ -52,6 +55,9 @@ export async function oddsGet<Schema extends z.ZodType>(
   schema: Schema,
   label: string,
 ): Promise<z.infer<Schema>> {
+  // Sample odds mode: answer from saved files, so no credits are used. Never on in production builds.
+  if (sampleOddsEnabled()) return getSampleOdds(path, params, schema, label);
+
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) {
     throw new UpstreamError("The Odds API", null, "ODDS_API_KEY is missing from .env.local / Vercel");
