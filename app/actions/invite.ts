@@ -5,7 +5,7 @@
   1. checks the visitor hasn't made too many wrong tries recently (5 wrong
      codes = a 15-minute wait)
   2. checks the code is real and good (see lib/db/inviteCodes.ts)
-  3. if good: remembers it in the invite cookie and sends them on to log in or sign up
+  3. if good: remembers it in the invite cookie and sends them on to sign up
   4. if not: counts a failed try and shows ONE red message, whatever was wrong
   IMPORTANT: a good code is NOT used up here. It is only used up when an account
   is created (app/actions/auth.ts).
@@ -65,8 +65,8 @@ export async function enterInviteCode(
     return { message: "We couldn't check that code right now. Please try again.", code: typed };
   }
 
-  // 3. A good code: remember it for 30 days and move on. (redirect() is outside
+  // 3. A good code: remember it for 30 days and go on to sign up. (redirect() is outside
   //    the try/catch on purpose: it works by throwing, and we must not catch that.)
   await setInviteCookie(inviteCodeId);
-  redirect(next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`);
+  redirect(next === "/" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`);
 }

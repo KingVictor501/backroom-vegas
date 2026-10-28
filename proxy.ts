@@ -6,11 +6,13 @@
      "403 Forbidden". Login for API routes is checked inside each route, which
      answers with JSON instead of redirecting.
   2. Pages:
-     - No valid invite cookie (and not logged in), and opening ANY page except
-       /invite → go to /invite. That includes /login and /signup, so nobody
-       reaches them without entering an invite code first.
-     - Has the invite cookie, not logged in, and trying to open an app page → go to
-       /login (and remember where they were going, so they land there after logging in).
+     - The invite code is only needed to CREATE AN ACCOUNT. Not logged in, and opening
+       /signup without a valid invite cookie → go to /invite first.
+     - /login and /invite are always open to logged-out visitors. Anyone who already has an
+       account can log in on any device without a code. (Whether an email is allowed in is
+       decided at login: an email that isn't in the database can't log in.)
+     - Not logged in, and trying to open an app page → go to /login (and remember where they
+       were going, so they land there after logging in).
      - Already logged in, and opening /login, /signup, or /invite → go to the Feed instead.
   This is a fast "first guard" that only looks at the cookies and headers, not
   the database. (So it can tell an invite cookie is genuine, but not whether the
@@ -31,7 +33,7 @@ import { corsHeaders, isAllowedOrigin } from "@/lib/api/cors";
 /** Pages only for visitors who are NOT logged in (a logged-in visitor is sent to the Feed). */
 const LOGGED_OUT_ONLY_PATHS = ["/login", "/signup", "/invite"];
 
-/** The one page a visitor can see without an invite cookie: where they enter the code. */
+/** Where a visitor enters an invite code (needed only before creating an account). */
 const INVITE_PATH = "/invite";
 
 /*
@@ -89,25 +91,24 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!session) {
-    // The invite page itself is always open to logged-out visitors.
-    if (pathname === INVITE_PATH) return NextResponse.next();
+    // The invite page and the login page are always open to logged-out visitors.
+    if (pathname === INVITE_PATH || pathname === "/login") return NextResponse.next();
 
-    const invite = await readInviteToken(request.cookies.get(INVITE_COOKIE_NAME)?.value);
-
-    // No valid invite → everything leads to /invite first. We remember where
-    // they were going (but not /login or /signup, which are not real destinations).
-    if (!invite) {
+    // Sign up is the ONE page that needs an invite. No valid invite cookie → enter a code first
+    // (keeping ?next=, so they still end up in the right place afterwards).
+    if (pathname === "/signup") {
+      const invite = await readInviteToken(request.cookies.get(INVITE_COOKIE_NAME)?.value);
+      if (invite) return NextResponse.next();
       const inviteUrl = new URL(INVITE_PATH, request.url);
-      if (pathname !== "/" && !isLoggedOutPage) inviteUrl.searchParams.set("next", pathname + search);
+      const wanted = request.nextUrl.searchParams.get("next");
+      if (wanted) inviteUrl.searchParams.set("next", wanted);
       return NextResponse.redirect(inviteUrl);
     }
 
-    // A valid invite but not logged in, trying to open an app page → /login?next=<where they were going>.
-    if (!isLoggedOutPage) {
-      const loginUrl = new URL("/login", request.url);
-      if (pathname !== "/") loginUrl.searchParams.set("next", pathname + search);
-      return NextResponse.redirect(loginUrl);
-    }
+    // Any app page while logged out → /login?next=<where they were going>.
+    const loginUrl = new URL("/login", request.url);
+    if (pathname !== "/") loginUrl.searchParams.set("next", pathname + search);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

@@ -4,10 +4,10 @@
   who aren't logged in:
   - API routes answer "401 Please log in." with no bv_session cookie, a tampered
     cookie, or a valid cookie for an account that no longer exists
-  - proxy.ts (the guard that runs before pages) sends a visitor with no invite
-    cookie to /invite first (even for /login and /signup), sends a visitor with
-    an invite but no login to /login, remembers where they were going, and
-    bounces a logged-in visitor away from /login, /signup, and /invite
+  - proxy.ts (the guard that runs before pages) lets a logged-out visitor see /login and
+    /invite with no invite cookie, sends them to /invite only when they try /signup, sends
+    app pages to /login (remembering where they were going), and bounces a logged-in
+    visitor away from /login, /signup, and /invite
   - proxy.ts blocks other websites from using the API (CORS)
   WHO USES IT: Vitest, when you run `npm test`.
   WHY THIS NAME: It tests the protected (login-only) parts. It sits in tests/ because it needs the
@@ -117,71 +117,69 @@ function pageRequest(path: string, cookies: { session?: string; invite?: string 
 /* The pages that need a login. */
 const PROTECTED_PAGES = ["/", "/settings", "/profile", "/betslips", "/betslips/new", "/betslips/abc", "/league/nfl", "/matchup/1", "/team/1", "/player/1"];
 
-describe("proxy.ts, a visitor with NO invite cookie (the invite page comes first)", () => {
-  it("sends every page, including /login and /signup, to /invite", async () => {
-    for (const path of [...PROTECTED_PAGES, "/login", "/signup"]) {
+describe("proxy.ts, a visitor with NO invite cookie (an invite is only needed to create an account)", () => {
+  it("sends every app page to /login, so anyone with an account can log in on any device", async () => {
+    for (const path of PROTECTED_PAGES) {
       const response = await proxy(pageRequest(path));
       expect(response.status, path).toBe(307);
-      expect(new URL(response.headers.get("location") ?? "").pathname, path).toBe("/invite");
+      expect(new URL(response.headers.get("location") ?? "").pathname, path).toBe("/login");
     }
   });
 
-  it("remembers the protected page they wanted, but not /login, /signup, or the Feed", async () => {
-    const betslips = await proxy(pageRequest("/betslips"));
-    expect(betslips.headers.get("location")).toBe("http://localhost:3000/invite?next=%2Fbetslips");
-    for (const path of ["/", "/login", "/signup"]) {
-      expect((await proxy(pageRequest(path))).headers.get("location"), path).toBe("http://localhost:3000/invite");
+  it("remembers the protected page they wanted, but not the Feed", async () => {
+    expect((await proxy(pageRequest("/betslips"))).headers.get("location")).toBe("http://localhost:3000/login?next=%2Fbetslips");
+    expect((await proxy(pageRequest("/"))).headers.get("location")).toBe("http://localhost:3000/login");
+  });
+
+  it("lets them see the login page and the invite page without any code", async () => {
+    for (const path of ["/login", "/invite"]) {
+      const response = await proxy(pageRequest(path));
+      expect(response.headers.get("location"), path).toBeNull();
+      expect(response.status, path).toBe(200);
     }
   });
 
-  it("lets them see the invite page itself", async () => {
-    const response = await proxy(pageRequest("/invite"));
-    expect(response.headers.get("location")).toBeNull();
-    expect(response.status).toBe(200);
+  it("sends the sign up page to /invite first, keeping where they were going", async () => {
+    const plain = await proxy(pageRequest("/signup"));
+    expect(plain.status).toBe(307);
+    expect(plain.headers.get("location")).toBe("http://localhost:3000/invite");
+    const withNext = await proxy(pageRequest("/signup?next=%2Fbetslips"));
+    expect(withNext.headers.get("location")).toBe("http://localhost:3000/invite?next=%2Fbetslips");
   });
 
-  it("does not accept a tampered invite cookie", async () => {
+  it("does not accept a tampered invite cookie for sign up", async () => {
     const invite = tamperToken(await createInviteToken(SOME_ID));
-    const response = await proxy(pageRequest("/login", { invite }));
+    const response = await proxy(pageRequest("/signup", { invite }));
     expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/invite");
   });
 
-  it("does not accept a LOGIN token pretending to be an invite cookie", async () => {
+  it("does not accept a LOGIN token pretending to be an invite cookie for sign up", async () => {
     const response = await proxy(pageRequest("/signup", { invite: await createSessionToken(SOME_ID) }));
     expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/invite");
   });
 
   it("does not accept an INVITE token pretending to be a login cookie", async () => {
     const response = await proxy(pageRequest("/betslips", { session: await createInviteToken(SOME_ID) }));
-    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/invite");
+    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/login");
   });
 });
 
 describe("proxy.ts, a visitor WITH a valid invite cookie, not logged in", () => {
-  it("sends protected pages to /login and remembers where they were going", async () => {
-    const invite = await createInviteToken(SOME_ID);
-    const betslips = await proxy(pageRequest("/betslips", { invite }));
-    expect(betslips.status).toBe(307);
-    expect(betslips.headers.get("location")).toBe("http://localhost:3000/login?next=%2Fbetslips");
-    // The Feed doesn't need a "next".
-    expect((await proxy(pageRequest("/", { invite }))).headers.get("location")).toBe("http://localhost:3000/login");
-  });
-
-  it("protects every main page", async () => {
-    const invite = await createInviteToken(SOME_ID);
-    for (const path of PROTECTED_PAGES) {
-      const response = await proxy(pageRequest(path, { invite }));
-      expect(response.status, path).toBe(307);
-      expect(new URL(response.headers.get("location") ?? "").pathname, path).toBe("/login");
-    }
-  });
-
-  it("lets them see /login, /signup, and /invite", async () => {
+  it("lets them see /signup, as well as /login and /invite", async () => {
     const invite = await createInviteToken(SOME_ID);
     for (const path of ["/login", "/signup", "/invite"]) {
       const response = await proxy(pageRequest(path, { invite }));
       expect(response.headers.get("location"), path).toBeNull();
       expect(response.status, path).toBe(200);
+    }
+  });
+
+  it("still sends protected pages to /login", async () => {
+    const invite = await createInviteToken(SOME_ID);
+    for (const path of PROTECTED_PAGES) {
+      const response = await proxy(pageRequest(path, { invite }));
+      expect(response.status, path).toBe(307);
+      expect(new URL(response.headers.get("location") ?? "").pathname, path).toBe("/login");
     }
   });
 

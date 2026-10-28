@@ -1,9 +1,10 @@
 /*
   FILE: app/(auth)/invite/page.tsx
-  WHAT IT'S FOR: The invite page, at /invite: the FIRST thing a new visitor sees.
-  It explains the app is invite-only for now and asks for a code. A good code
-  is remembered for 30 days and leads on to log in or sign up. proxy.ts sends
-  anyone without a valid invite here, even if they try /login or /signup directly.
+  WHAT IT'S FOR: The invite page, at /invite: where someone CREATING AN ACCOUNT enters
+  their invite code. It explains the app is invite-only for now and asks for a code. A good
+  code is remembered for 30 days and leads on to the sign up page. proxy.ts sends anyone
+  without a valid invite here if they try /signup directly. People who already have an
+  account don't need a code: the page links to log in.
   If sign up finds the code has stopped being good (used up, expired, or turned
   off since it was entered), it sends the visitor back here with ?error=invalid,
   and this page shows the same one red message.
@@ -13,6 +14,7 @@
 */
 
 import type { Metadata } from "next";
+import Link from "next/link";
 import InviteForm from "@/components/auth/InviteForm";
 import ErrorMessage from "@/components/ErrorMessage";
 import { safeNextPath } from "@/lib/auth/validation";
@@ -33,7 +35,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
     <div className="rounded-3xl border border-line bg-card p-6 shadow-xl shadow-black/40 sm:p-8">
       <h1 className="text-3xl text-text">Enter your invite code</h1>
       <p className="mt-2 text-sm text-muted">
-        The Vegas Backroom is invite-only for now. Enter the code you were given to continue.
+        The Vegas Backroom is invite-only for now. Enter the code you were given to create your account.
         This is a reference tool only: no real bets, no real money.
       </p>
 
@@ -47,6 +49,16 @@ export default async function InvitePage(props: PageProps<"/invite">) {
       <div className="mt-6">
         <InviteForm next={nextPath} />
       </div>
+      {/* Already have an account? No code is needed to log in. */}
+      <p className="mt-6 text-center text-sm text-muted">
+        Already have an account?{" "}
+        <Link
+          href={nextPath === "/" ? "/login" : `/login?next=${encodeURIComponent(nextPath)}`}
+          className="font-medium text-gold underline underline-offset-4"
+        >
+          Log in
+        </Link>
+      </p>
     </div>
   );
 }

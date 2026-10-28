@@ -1,7 +1,7 @@
 /*
   FILE: tests/invite.test.ts
   WHAT IT'S FOR: Automatic tests for invite codes, from every angle:
-  1. The invite page's action: a valid code is remembered and leads on to log in,
+  1. The invite page's action: a valid code is remembered and leads on to sign up,
      but is NOT used up by being entered
   2. Bad codes: fake, used-up, expired, and turned-off codes (and wrong shapes,
      and tricks like {"$gt": ""}) are all refused with the SAME message
@@ -61,10 +61,10 @@ afterEach(() => {
 });
 
 describe("the invite page: a valid code", () => {
-  it("is remembered in the invite cookie and sends the visitor on to log in", async () => {
+  it("is remembered in the invite cookie and sends the visitor on to sign up", async () => {
     const invite = await createInviteCode();
 
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
 
     // The cookie holds a genuine token for exactly this code's record.
     const token = cookieJar.get(INVITE_COOKIE_NAME)?.value;
@@ -77,22 +77,22 @@ describe("the invite page: a valid code", () => {
     const invite = await createInviteCode({ maxUses: 1 });
     for (let i = 0; i < 10; i += 1) {
       cookieJar.clear();
-      await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+      await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
     }
     expect((await InviteCodeModel.findById(invite._id).lean())?.usedCount).toBe(0);
   });
 
   it("works with lowercase letters and spaces", async () => {
     const invite = await createInviteCode();
-    await expect(enter(`  ${invite.code.toLowerCase()} `)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(`  ${invite.code.toLowerCase()} `)).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("keeps the page the visitor was heading to, but only if it's inside this app", async () => {
     const invite = await createInviteCode();
-    await expect(enter(invite.code, { next: "/betslips" })).rejects.toThrow("REDIRECT:/login?next=%2Fbetslips");
+    await expect(enter(invite.code, { next: "/betslips" })).rejects.toThrow("REDIRECT:/signup?next=%2Fbetslips");
     for (const next of ["//evil.example", "https://evil.example", "/\\evil.example"]) {
       cookieJar.clear();
-      await expect(enter(invite.code, { next })).rejects.toThrow("REDIRECT:/login");
+      await expect(enter(invite.code, { next })).rejects.toThrow("REDIRECT:/signup");
     }
   });
 
@@ -133,7 +133,7 @@ describe("the invite page: a bad code gets one message, whatever was wrong", () 
 
   it("a code that expires in the future still works", async () => {
     const invite = await createInviteCode({ expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("empty, wrong-shaped, and trick inputs are refused with the same message", async () => {
@@ -184,14 +184,14 @@ describe("trying too many codes", () => {
     const invite = await createInviteCode();
     for (let i = 0; i < 4; i += 1) await enter("BRV-AAAA-BBBB");
     // Still allowed to try a right one on the 5th go.
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("a right code does NOT reset the count (so a stolen valid code can't be used to keep guessing)", async () => {
     const invite = await createInviteCode({ maxUses: 100 });
     for (let i = 0; i < 4; i += 1) await enter("BRV-AAAA-BBBB");
     cookieJar.clear();
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login"); // a right one in between
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup"); // a right one in between
     expect((await enter("BRV-AAAA-BBBB")).message).toBe(INVALID_INVITE_MESSAGE); // 5th wrong
     expect((await enter("BRV-AAAA-BBBB")).message).toBe(TOO_MANY_ATTEMPTS_MESSAGE); // blocked
   });
@@ -202,7 +202,7 @@ describe("trying too many codes", () => {
     expect((await enter("BRV-AAAA-BBBB")).message).toBe(TOO_MANY_ATTEMPTS_MESSAGE);
 
     actAsVisitor("198.51.100.77");
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("the time-out ends after 15 minutes", async () => {
@@ -213,7 +213,7 @@ describe("trying too many codes", () => {
     // Pretend 15 minutes have passed by moving the record's end time into the past.
     await AttemptCounterModel.updateMany({}, { $set: { expiresAt: new Date(Date.now() - 1000) } });
 
-    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(invite.code)).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("the time-out lasts the full 15 minutes from the 5th failure", async () => {
@@ -262,6 +262,26 @@ describe("sign up with an invite", () => {
     ).rejects.toThrow("REDIRECT:/");
 
     expect((await InviteCodeModel.findById(invite._id).lean())?.usedCount).toBe(0);
+  });
+
+  it("an existing account can log in on a new device with NO invite cookie and no code", async () => {
+    await createTestUser("member@example.com", "Sup3rSecret");
+    expect(cookieJar.get(INVITE_COOKIE_NAME)).toBeUndefined();
+
+    await expect(
+      login(EMPTY_AUTH_FORM_STATE, formData({ email: "member@example.com", password: "Sup3rSecret" })),
+    ).rejects.toThrow("REDIRECT:/");
+    expect(cookieJar.get(SESSION_COOKIE_NAME)).toBeDefined();
+  });
+
+  it("an email that is not in the database can't log in, even with a valid invite cookie", async () => {
+    const invite = await createInviteCode();
+    await grantInviteAccess(invite);
+
+    const result = await login(EMPTY_AUTH_FORM_STATE, formData({ email: "stranger@example.com", password: "Sup3rSecret" }));
+    expect(result.message).toBeTruthy();
+    expect(cookieJar.get(SESSION_COOKIE_NAME)).toBeUndefined();
+    expect(await UserModel.countDocuments({ email: "stranger@example.com" })).toBe(0);
   });
 
   it("with no invite cookie, goes straight to the invite page and creates nothing", async () => {
@@ -474,7 +494,7 @@ describe("the terminal script (scripts/create-invite-code.ts)", () => {
     expect(saved?.expiresAt?.toISOString()).toBe("2099-12-31T23:59:59.999Z");
     // Not just saved: the website's own code accepts it.
     expect(await findUsableInviteCode(code)).not.toBeNull();
-    await expect(enter(code ?? "")).rejects.toThrow("REDIRECT:/login");
+    await expect(enter(code ?? "")).rejects.toThrow("REDIRECT:/signup");
   });
 
   it("creates the code in the database named by --db and nowhere else", async () => {

@@ -39,7 +39,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
       </div>
 
       <p className="mt-6 text-center text-sm text-muted">
-        New here?{" "}
+        New here? An invite code is needed to create an account.{" "}
         <Link
           // Keep ?next= when switching to sign up, so they still land in the right place.
           href={nextPath === "/" ? "/signup" : `/signup?next=${encodeURIComponent(nextPath)}`}
