@@ -48,10 +48,15 @@ const espnRecordSchema = z.object({
 
 /* Where a game is right now. "state" is "pre" (not started), "in" (live), or "post" (finished). */
 export const espnStatusSchema = z.object({
+  // period: 1 to 4 (5+ for overtime); displayClock: "7:32". Both are 0 / "0:00" before the game.
+  period: z.number().optional(),
+  displayClock: z.string().optional(),
   type: z.object({
     name: z.string(),
     state: z.string(),
     completed: z.boolean(),
+    // ESPN's own short text, like "7:32 - 3rd" or "Final/OT". Used as a fallback for the live label.
+    shortDetail: z.string().optional(),
   }),
 });
 
@@ -62,6 +67,8 @@ const espnCompetitorSchema = z.object({
   // Scoreboard sends "22"; team schedule sends { value: 22 }.
   score: z.union([numberish, z.object({ value: numberish })]).optional(),
   winner: z.boolean().optional(),
+  // Points in each period so far. The scoreboard sends { value: 7 }; the game summary sends { displayValue: "7" }.
+  linescores: z.array(z.object({ value: numberish.optional(), displayValue: z.string().optional() })).optional(),
   team: espnTeamSchema,
   // Scoreboard calls it "records"; game summary calls it "record".
   records: z.array(espnRecordSchema).optional(),
@@ -262,6 +269,25 @@ export const gameSummarySchema = z.object({
             team: z.object({ id: z.string() }),
             statistics: z.array(
               z.object({ name: z.string(), label: z.string().optional(), displayValue: z.string() }),
+            ),
+          }),
+        )
+        .optional(),
+      // Each team's players, grouped by passing / rushing / receiving / ... (used to grade player props live).
+      players: z
+        .array(
+          z.object({
+            statistics: z.array(
+              z.object({
+                name: z.string(),
+                keys: z.array(z.string()).optional(),
+                athletes: z.array(
+                  z.object({
+                    athlete: z.object({ id: z.string(), displayName: z.string() }),
+                    stats: z.array(z.string()),
+                  }),
+                ),
+              }),
             ),
           }),
         )
