@@ -27,6 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "mongodb-memory-server-core": "^11.3.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.11"
