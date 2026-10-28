@@ -26,12 +26,16 @@ import {
   GAME_PERIODS,
   MARKET_CATEGORIES,
   PARTICIPANT_KINDS,
+  PICK_REFRESH_STATUSES,
   PICK_SIDES,
   SPORTSBOOK_IDS,
   type AmericanOdds,
   type BetPick,
   type BetSlip,
   type BetSlipType,
+  type PickRefresh,
+  type SkippedPick,
+  type SlipCopyInfo,
 } from "@/types";
 
 /*
@@ -55,6 +59,8 @@ export type BetSlipRecord = {
   /** The combined price, or null when there are no picks (missing on purpose). */
   combinedOdds: AmericanOdds | null;
   oddsAreEstimated: boolean;
+  /** Where a copied slip came from, or null for normal slips (missing on purpose). */
+  copiedFrom: SlipCopyInfo | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -97,6 +103,48 @@ const pickSchema = new Schema<BetPick>(
     sportsbook: { type: String, required: true, enum: SPORTSBOOK_IDS },
     label: { type: String, required: true, maxlength: 200 },
     addedAt: { type: String, required: true },
+    // Only on copied picks: how the price check went. Left out (undefined) on normal picks.
+    refresh: {
+      type: new Schema<PickRefresh>(
+        {
+          status: { type: String, required: true, enum: PICK_REFRESH_STATUSES },
+          previousOdds: { type: Number, required: true, validate: oddsRule },
+          previousLine: { type: Number, default: null },
+          previousSportsbook: { type: String, required: true, enum: SPORTSBOOK_IDS },
+        },
+        { _id: false },
+      ),
+      default: undefined,
+    },
+  },
+  { _id: false },
+);
+
+/*
+  copyInfoSchema: the rules for the "copied from" note on a copied slip.
+*/
+const copyInfoSchema = new Schema<SlipCopyInfo>(
+  {
+    fromName: { type: String, required: true, maxlength: BET_SLIP_NAME_MAX_LENGTH },
+    sportsbook: { type: String, required: true, enum: SPORTSBOOK_IDS },
+    skipped: {
+      type: [
+        new Schema<SkippedPick>(
+          {
+            label: { type: String, required: true, maxlength: 200 },
+            gameLabel: { type: String, required: true, maxlength: 100 },
+            reason: { type: String, required: true, maxlength: 200 },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+      validate: {
+        validator: (skipped: SkippedPick[]) => skipped.length <= BET_SLIP_MAX_PICKS,
+        message: `At most ${BET_SLIP_MAX_PICKS} skipped picks can be noted.`,
+      },
+    },
+    copiedAt: { type: String, required: true, maxlength: 40 },
   },
   { _id: false },
 );
@@ -131,6 +179,8 @@ const betSlipSchema = new Schema<BetSlipRecord>(
     },
     combinedOdds: { type: Number, default: null, validate: oddsRule },
     oddsAreEstimated: { type: Boolean, required: true, default: false },
+    // null = not a copy (missing on purpose).
+    copiedFrom: { type: copyInfoSchema, default: null },
   },
   { timestamps: true },
 );
@@ -187,9 +237,25 @@ export function toBetSlip(record: BetSlipRecord): BetSlip {
       sportsbook: pick.sportsbook,
       label: pick.label,
       addedAt: pick.addedAt,
+      ...(pick.refresh && {
+        refresh: {
+          status: pick.refresh.status,
+          previousOdds: pick.refresh.previousOdds,
+          previousLine: pick.refresh.previousLine,
+          previousSportsbook: pick.refresh.previousSportsbook,
+        },
+      }),
     })),
     combinedOdds: record.combinedOdds,
     oddsAreEstimated: record.oddsAreEstimated,
+    copiedFrom: record.copiedFrom
+      ? {
+          fromName: record.copiedFrom.fromName,
+          sportsbook: record.copiedFrom.sportsbook,
+          skipped: record.copiedFrom.skipped.map((s) => ({ label: s.label, gameLabel: s.gameLabel, reason: s.reason })),
+          copiedAt: record.copiedFrom.copiedAt,
+        }
+      : null,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };

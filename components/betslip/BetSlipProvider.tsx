@@ -93,6 +93,8 @@ function previewSlip(base: BetSlip | null, picks: BetPick[], sgp?: { gameId: str
     sgpGameId: sgp?.gameId ?? base?.sgpGameId ?? null,
     picks,
     ...getSlipPricing(picks),
+    // A slip being previewed keeps its "copied from" note (null = not a copy, missing on purpose).
+    copiedFrom: base?.copiedFrom ?? null,
     createdAt: base?.createdAt ?? now,
     updatedAt: now,
   };

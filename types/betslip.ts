@@ -42,6 +42,32 @@ export const BET_SLIP_TYPES = ["straight", "parlay", "sgp"] as const;
 export type BetSlipType = (typeof BET_SLIP_TYPES)[number];
 
 /*
+  PICK_REFRESH_STATUSES / PickRefreshStatus: what happened to a pick when its slip was COPIED.
+  - "updated": the sportsbook's current price (or line) is different from the old one
+  - "unchanged": the current price and line are the same as before
+  - "no-odds": the sportsbook has no odds for this bet right now (like Caesars, which has
+    had none in The Odds API), so the pick kept its OLD price
+  - "not-checked": we couldn't look up current odds (The Odds API was down or out of
+    requests), so the pick kept its OLD price
+*/
+export const PICK_REFRESH_STATUSES = ["updated", "unchanged", "no-odds", "not-checked"] as const;
+export type PickRefreshStatus = (typeof PICK_REFRESH_STATUSES)[number];
+
+/*
+  PickRefresh: the note a copied pick carries about its price check. It remembers
+  the OLD price, line, and sportsbook, so the slip can say "was -110, now -115".
+*/
+export type PickRefresh = {
+  status: PickRefreshStatus;
+  /** The price on the slip that was copied. */
+  previousOdds: AmericanOdds;
+  /** The line on the slip that was copied. null for bets with no line (missing on purpose). */
+  previousLine: number | null;
+  /** The sportsbook the old price came from. */
+  previousSportsbook: SportsbookId;
+};
+
+/*
   BetPick: one pick on a bet slip (also called a selection).
   We call it BetPick, not just "Pick", because TypeScript already has a built-in
   tool named "Pick". Reusing that name would cause confusing errors.
@@ -87,6 +113,11 @@ export type BetPick = {
   label: string;
   /** When the user added it (ISO date-time text). */
   addedAt: string;
+  /**
+   * Only on picks that came from COPYING a slip: how the price check went and what
+   * the old price was. Left out (not null) on picks added by hand.
+   */
+  refresh?: PickRefresh;
 };
 
 /*
@@ -95,6 +126,33 @@ export type BetPick = {
   Odds buttons are given one of these.
 */
 export type NewBetPick = Omit<BetPick, "addedAt">;
+
+/*
+  SkippedPick: a pick that was NOT copied, and why. Only the words are kept (not the
+  whole pick), because the pick isn't on the new slip.
+*/
+export type SkippedPick = {
+  /** The pick's words, like "Chiefs -3". */
+  label: string;
+  /** The game, like "KC @ SEA". */
+  gameLabel: string;
+  /** Why it was skipped, like "That game already started." */
+  reason: string;
+};
+
+/*
+  SlipCopyInfo: the note on a slip that was made by COPYING another one.
+*/
+export type SlipCopyInfo = {
+  /** The name of the slip it was copied from (the original may be renamed or deleted later). */
+  fromName: string;
+  /** The sportsbook the prices were refreshed from (the user's sportsbook at the time). */
+  sportsbook: SportsbookId;
+  /** The picks that were left out. */
+  skipped: SkippedPick[];
+  /** When the copy was made (ISO date-time text). */
+  copiedAt: string;
+};
 
 /*
   BetSlip: one saved bet slip, as the API sends it and the pages show it.
@@ -131,6 +189,11 @@ export type BetSlip = {
    * The page shows the word "Estimated" when this is true.
    */
   oddsAreEstimated: boolean;
+  /**
+   * Set only on a slip made with "Copy slip": where it came from and which picks were
+   * left out. null for every other slip (missing on purpose).
+   */
+  copiedFrom: SlipCopyInfo | null;
   /** When the slip was created (ISO date-time text). */
   createdAt: string;
   /** When the slip was last changed (ISO date-time text). */

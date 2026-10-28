@@ -28,6 +28,7 @@ import {
   GAME_PERIODS,
   MARKET_CATEGORIES,
   PARTICIPANT_KINDS,
+  PICK_REFRESH_STATUSES,
   PICK_SIDES,
   SPORTSBOOK_IDS,
   type BetPick,
@@ -66,6 +67,23 @@ export const slipNameRule = z
   });
 
 /*
+  pickRefreshRule: the note on a copied pick (see PickRefresh in types/betslip.ts). It has
+  to be accepted here because the browser sends the whole list of picks back whenever
+  one pick is removed. The server never TRUSTS it for anything important: it is only shown as a label.
+*/
+const pickRefreshRule = z.object({
+  status: z.enum(PICK_REFRESH_STATUSES, { error: "That isn't a price-check result we know." }),
+  previousOdds: z
+    .number({ error: "Odds must be a number." })
+    .refine((value) => isValidAmericanOdds(value) && Math.abs(value) <= 100000, {
+      error: "Odds must be American odds like -110 or +150.",
+    }),
+  // null means "missing on purpose": the bet has no line.
+  previousLine: z.number().finite().min(-10000).max(10000).nullable(),
+  previousSportsbook: z.enum(SPORTSBOOK_IDS, { error: "That isn't a sportsbook we support." }),
+});
+
+/*
   betPickRule: the rules for ONE pick. It has exactly the fields of the shared
   BetPick type ("satisfies" makes TypeScript complain if they ever drift apart).
 */
@@ -102,6 +120,7 @@ export const betPickRule = z.object({
   sportsbook: z.enum(SPORTSBOOK_IDS, { error: "That isn't a sportsbook we support." }),
   label: shortText(200),
   addedAt: dateTimeText,
+  refresh: pickRefreshRule.optional(),
 }) satisfies z.ZodType<BetPick>;
 
 /*
