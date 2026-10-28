@@ -30,6 +30,16 @@ export const BET_SLIP_NAME_MAX_LENGTH = 50;
 export const BET_SLIP_MAX_PICKS = 25;
 
 /*
+  The wager is a PRETEND amount, for reference only: nobody spends real money in this app.
+  - BET_SLIP_DEFAULT_WAGER: what a new slip starts with, in dollars
+  - BET_SLIP_MIN_WAGER / BET_SLIP_MAX_WAGER: the smallest (one cent) and largest ($10,000) allowed.
+    Both the screen and the server check these, so a huge number can't break the math.
+*/
+export const BET_SLIP_DEFAULT_WAGER = 10;
+export const BET_SLIP_MIN_WAGER = 0.01;
+export const BET_SLIP_MAX_WAGER = 10_000;
+
+/*
   BET_SLIP_TYPES: the three kinds of slip.
   - "straight": exactly 1 pick (or an empty slip that hasn't got picks yet).
   - "parlay": 2 or more picks from DIFFERENT games.
@@ -178,6 +188,11 @@ export type BetSlip = {
   /** The picks on the slip, in the order they were added. */
   picks: BetPick[];
   /**
+   * The pretend amount to bet, in dollars, with at most 2 decimal places (like 10 or 25.5).
+   * Used for the estimated payout. Starts at $10. For reference only, no real money.
+   */
+  wager: number;
+  /**
    * All the picks' odds combined into one price (American odds).
    * null when the slip has no picks yet (missing on purpose, since there's nothing
    * to combine). The page shows a dash. Worked out by the server.
@@ -217,13 +232,15 @@ export type BetSlipCreateInput = {
   sgpGameId?: string | null;
   setActive?: boolean;
   numberIfTaken?: boolean;
+  wager?: number;
 };
 
 /*
   BetSlipUpdateInput: what the browser may send to CHANGE a slip (PATCH /api/betslips/<id>).
-  Send only what's changing: a new name, the new full list of picks, or both.
+  Send only what's changing: a new name, the new full list of picks, a new wager, or any of them.
 */
 export type BetSlipUpdateInput = {
   name?: string;
   picks?: BetPick[];
+  wager?: number;
 };

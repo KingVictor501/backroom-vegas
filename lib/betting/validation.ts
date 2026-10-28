@@ -24,6 +24,8 @@ import { espnIdRule } from "@/lib/api/params";
 // THE shared bet slip definitions and allowed-value lists from the types folder (Section 2).
 import {
   BET_SLIP_MAX_PICKS,
+  BET_SLIP_MAX_WAGER,
+  BET_SLIP_MIN_WAGER,
   BET_SLIP_NAME_MAX_LENGTH,
   GAME_PERIODS,
   MARKET_CATEGORIES,
@@ -136,6 +138,18 @@ const picksRule = z
   });
 
 /*
+  wagerRule: the pretend wager, in dollars. A real number from $0.01 to $10,000 with at most 2
+  decimal places. Text like "10" is refused, since the browser sends a number. The same limits
+  are used by the screen (lib/betting/payout.ts) and by the database model.
+*/
+export const wagerRule = z
+  .number({ error: "The wager must be a number." })
+  .finite({ error: "The wager must be a number." })
+  .min(BET_SLIP_MIN_WAGER, { error: `The wager must be at least $${BET_SLIP_MIN_WAGER}.` })
+  .max(BET_SLIP_MAX_WAGER, { error: `The wager can be at most $${BET_SLIP_MAX_WAGER.toLocaleString("en-US")}.` })
+  .refine((value) => Math.round(value * 100) / 100 === value, { error: "The wager can have at most 2 decimal places." });
+
+/*
   createBetSlipRule: what POST /api/betslips accepts (all optional).
   - name left out or blank → the server names it with today's date
   - picks left out → an empty slip
@@ -143,6 +157,7 @@ const picksRule = z
   - setActive: true → also make it your active slip (the one in the slip bar)
   - numberIfTaken: true → if the name is taken, add (2), (3), ... instead of
     refusing. Used for automatic names like "KC @ SEA SGP".
+  - wager → the pretend amount in dollars (left out = $10)
 */
 export const createBetSlipRule = z.object({
   // A blank name counts as "no name", so the date gets used.
@@ -157,16 +172,17 @@ export const createBetSlipRule = z.object({
   sgpGameId: espnIdRule.nullable().default(null),
   setActive: z.boolean({ error: "setActive must be true or false." }).default(false),
   numberIfTaken: z.boolean({ error: "numberIfTaken must be true or false." }).default(false),
+  wager: wagerRule.optional(),
 });
 
 /*
   updateBetSlipRule: what PATCH /api/betslips/<id> accepts. Send a new name, the
-  new full list of picks, or both. Sending neither is refused.
+  new full list of picks, a new wager, or any of them. Sending none is refused.
 */
 export const updateBetSlipRule = z
-  .object({ name: slipNameRule.optional(), picks: picksRule.optional() })
-  .refine((input) => input.name !== undefined || input.picks !== undefined, {
-    error: "Send a new name, a new list of picks, or both.",
+  .object({ name: slipNameRule.optional(), picks: picksRule.optional(), wager: wagerRule.optional() })
+  .refine((input) => input.name !== undefined || input.picks !== undefined || input.wager !== undefined, {
+    error: "Send a new name, a new list of picks, a new wager, or any of them.",
   });
 
 /*

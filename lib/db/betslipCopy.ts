@@ -46,6 +46,8 @@ export async function copyBetSlip(user: User, slipId: string, now: Date = new Da
     name,
     picks: plan.picks,
     sgpGameId,
+    // The copy keeps the original's pretend wager.
+    wager: original.wager,
     setActive: true,
     numberIfTaken: true,
     copiedFrom: {

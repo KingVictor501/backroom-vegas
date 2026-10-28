@@ -146,6 +146,8 @@ type CreateSlipInput = {
   sgpGameId: string | null;
   setActive: boolean;
   numberIfTaken: boolean;
+  /** The pretend wager in dollars. Left out = the model's default ($10). */
+  wager?: number;
   /** Set only by lib/db/betslipCopy.ts when a slip is copied. The browser can't send it (see createBetSlipRule). */
   copiedFrom?: SlipCopyInfo;
 };
@@ -175,6 +177,7 @@ export async function createBetSlip(userId: string, input: CreateSlipInput): Pro
         sgpGameId: input.sgpGameId,
         picks: input.picks,
         ...pricing,
+        ...(input.wager !== undefined && { wager: input.wager }),
         // null = not a copy (missing on purpose).
         copiedFrom: input.copiedFrom ?? null,
       });
@@ -199,7 +202,7 @@ export async function createBetSlip(userId: string, input: CreateSlipInput): Pro
 export async function updateBetSlip(
   userId: string,
   slipId: string,
-  changes: { name?: string; picks?: BetPick[] },
+  changes: { name?: string; picks?: BetPick[]; wager?: number },
 ): Promise<BetSlip | null> {
   if (!isSlipId(slipId)) return null;
   await connectToDatabase();
@@ -217,6 +220,7 @@ export async function updateBetSlip(
       {
         $set: {
           ...(changes.name !== undefined && { name: changes.name }),
+          ...(changes.wager !== undefined && { wager: changes.wager }),
           ...(changes.picks !== undefined && { picks: changes.picks, ...getSlipPricing(changes.picks) }),
         },
       },

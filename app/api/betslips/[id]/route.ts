@@ -2,8 +2,9 @@
   FILE: app/api/betslips/[id]/route.ts
   WHAT IT'S FOR: One bet slip, by its ID.
   - GET    /api/betslips/<id> → the slip
-  - PATCH  /api/betslips/<id> → rename it and/or replace its picks. Send JSON like
-    { "name": "New name" } or { "picks": [ ... ] }
+  - PATCH  /api/betslips/<id> → rename it, replace its picks, and/or change its pretend
+    wager. Send JSON like { "name": "New name" }, { "picks": [ ... ] }, or { "wager": 25.5 }
+    (a number from 0.01 to 10000 with at most 2 decimals; anything else is a 400)
   - DELETE /api/betslips/<id> → deletes it
   A fake ID, a badly formed ID, or someone else's slip all get the same
   "404 not found". That way nobody can find out whether another user's slip exists.

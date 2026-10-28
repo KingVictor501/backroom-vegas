@@ -32,7 +32,7 @@ import { getSlipPricing } from "@/lib/betting/parlay";
 // The browser's requests to our bet slip API, from lib/betting/slipRequests.ts.
 import { clearActiveSlip, createSlip, deleteSlip, saveSlipPicks } from "@/lib/betting/slipRequests";
 // THE shared bet slip types from the types folder, plus the 25-pick limit the server uses too.
-import { BET_SLIP_MAX_PICKS, type BetPick, type BetSlip, type NewBetPick } from "@/types";
+import { BET_SLIP_DEFAULT_WAGER, BET_SLIP_MAX_PICKS, type BetPick, type BetSlip, type NewBetPick } from "@/types";
 // The pieces this provider draws, from the files next to this one.
 import ChoiceDialog from "./ChoiceDialog";
 import ConflictDialog from "./ConflictDialog";
@@ -93,6 +93,7 @@ function previewSlip(base: BetSlip | null, picks: BetPick[], sgp?: { gameId: str
     sgpGameId: sgp?.gameId ?? base?.sgpGameId ?? null,
     picks,
     ...getSlipPricing(picks),
+    wager: base?.wager ?? BET_SLIP_DEFAULT_WAGER,
     // A slip being previewed keeps its "copied from" note (null = not a copy, missing on purpose).
     copiedFrom: base?.copiedFrom ?? null,
     createdAt: base?.createdAt ?? now,

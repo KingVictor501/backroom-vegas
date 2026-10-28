@@ -20,7 +20,10 @@ import { isValidAmericanOdds } from "@/lib/betting/parlay";
 // THE shared bet slip and pick definitions from the types folder (Section 2), plus the
 // lists of allowed values. Using these keeps the database in step with the rest of the app.
 import {
+  BET_SLIP_DEFAULT_WAGER,
   BET_SLIP_MAX_PICKS,
+  BET_SLIP_MAX_WAGER,
+  BET_SLIP_MIN_WAGER,
   BET_SLIP_NAME_MAX_LENGTH,
   BET_SLIP_TYPES,
   GAME_PERIODS,
@@ -56,6 +59,8 @@ export type BetSlipRecord = {
   /** The game an SGP slip is locked to, or null for normal slips (missing on purpose). */
   sgpGameId: string | null;
   picks: BetPick[];
+  /** The pretend amount to bet, in dollars (2 decimal places at most). */
+  wager: number;
   /** The combined price, or null when there are no picks (missing on purpose). */
   combinedOdds: AmericanOdds | null;
   oddsAreEstimated: boolean;
@@ -177,6 +182,18 @@ const betSlipSchema = new Schema<BetSlipRecord>(
         message: `A slip can have at most ${BET_SLIP_MAX_PICKS} picks.`,
       },
     },
+    wager: {
+      type: Number,
+      required: true,
+      default: BET_SLIP_DEFAULT_WAGER,
+      min: [BET_SLIP_MIN_WAGER, `The wager must be at least $${BET_SLIP_MIN_WAGER}.`],
+      max: [BET_SLIP_MAX_WAGER, `The wager can be at most $${BET_SLIP_MAX_WAGER}.`],
+      // Whole cents only: 10, 10.5, and 10.25 are fine; 10.255 is not.
+      validate: {
+        validator: (value: number) => Math.round(value * 100) / 100 === value,
+        message: "The wager can have at most 2 decimal places.",
+      },
+    },
     combinedOdds: { type: Number, default: null, validate: oddsRule },
     oddsAreEstimated: { type: Boolean, required: true, default: false },
     // null = not a copy (missing on purpose).
@@ -246,6 +263,8 @@ export function toBetSlip(record: BetSlipRecord): BetSlip {
         },
       }),
     })),
+    // Slips saved before wagers existed have no value, so they get the default.
+    wager: record.wager ?? BET_SLIP_DEFAULT_WAGER,
     combinedOdds: record.combinedOdds,
     oddsAreEstimated: record.oddsAreEstimated,
     copiedFrom: record.copiedFrom
