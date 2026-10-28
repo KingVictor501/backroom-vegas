@@ -173,7 +173,7 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
                 className={`rounded-2xl border bg-card transition-colors hover:border-gold/60 ${isActive ? "border-gold" : "border-line"}`}
               >
                 {/* The card links to the slip. The Copy button sits below it, not inside the link (a button can't live inside a link). */}
-                <Link href={`/betslips/${slip.id}`} className="block rounded-t-2xl p-4">
+                <Link href={`/betslips/${slip.id}`} className="block rounded-t-2xl p-4 hover:bg-card-raised">
                   <div className="flex items-start justify-between gap-3">
                     <p className="min-w-0 truncate font-semibold text-text">{slip.name}</p>
                     <p className="shrink-0 text-lg font-semibold tabular-nums text-gold">{formatOdds(slip.combinedOdds)}</p>

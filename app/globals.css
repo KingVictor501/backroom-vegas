@@ -120,3 +120,42 @@ input[type="search"] {
   -webkit-appearance: none;
   appearance: none;
 }
+
+/*
+  HOVER HIGHLIGHT (mouse users): anything you can click should react when the mouse rolls over it.
+  - "@media (hover: hover)" means this only applies on devices with a real mouse. Phones and
+    tablets have no "hover", so nothing sticks highlighted after a tap.
+  - cursor: pointer turns the arrow into a hand over buttons, links, section headers
+    (summary), checkboxes, radio buttons, and drop-downs. Disabled buttons keep the plain arrow.
+  - A DEFAULT highlight is given to clickable things that don't already have their own hover look.
+    [class*="hover:"] means "the element's classes include a hover style", so those are skipped
+    and keep their own (a gold border, a gold fill, and so on). Buttons and section headers get
+    brighter, and plain text links get an underline. Links that wrap a whole card (class "group") or
+    mark the current page (aria-current) are left alone, since they highlight their own way.
+  "@layer base" makes these only defaults: a class on an element can always override them.
+*/
+@layer base {
+  @media (hover: hover) {
+    button:not(:disabled),
+    [role="button"],
+    summary,
+    select,
+    input[type="checkbox"],
+    input[type="radio"],
+    label:has(input[type="checkbox"], input[type="radio"]) {
+      cursor: pointer;
+    }
+
+    button:not(:disabled):not([class*="hover:"]):hover,
+    [role="button"]:not([class*="hover:"]):hover,
+    summary:not([class*="hover:"]):hover {
+      filter: brightness(1.3);
+    }
+
+    a[href]:not([class*="hover:"]):not(.group):not([aria-current]):hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      filter: brightness(1.2);
+    }
+  }
+}

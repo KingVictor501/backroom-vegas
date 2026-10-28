@@ -48,7 +48,7 @@ export default function OddsButton({
       className={`flex min-h-12 w-full flex-col items-center justify-center rounded-xl border px-1 py-1 text-sm font-semibold tabular-nums transition-colors ${
         selected
           ? "border-gold bg-gold text-bg"
-          : "border-line bg-card-raised text-text hover:border-gold/60"
+          : "border-line bg-card-raised text-text hover:border-gold hover:bg-gold/15"
       }`}
     >
       {/* On a gold (selected) button the small text turns dark, so it stays readable. */}
