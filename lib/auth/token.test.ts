@@ -14,6 +14,8 @@ import { randomBytes } from "node:crypto";
 import { SignJWT } from "jose";
 import { describe, expect, it } from "vitest";
 import { createSessionToken, readSessionToken, SESSION_DURATION_SECONDS } from "./token";
+// tamperToken: edits one character of a token's signature, like an attacker would.
+import { tamperToken } from "../../tests/support/factories";
 
 /* A valid-looking MongoDB user ID (24 characters of 0-9 and a-f). */
 const USER_ID = "64b7f0c2a1b2c3d4e5f60718";
@@ -36,10 +38,8 @@ describe("login token", () => {
 
   it("rejects a token with one character changed (tampered)", async () => {
     const token = await createSessionToken(USER_ID);
-    // Change the last character of the signature part.
-    const last = token.slice(-1);
-    const tampered = token.slice(0, -1) + (last === "A" ? "B" : "A");
-    expect(await readSessionToken(tampered)).toBeNull();
+    // Change one character in the middle of the signature part.
+    expect(await readSessionToken(tamperToken(token))).toBeNull();
   });
 
   it("rejects a token whose middle part was swapped for another user's", async () => {

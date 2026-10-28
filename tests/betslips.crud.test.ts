@@ -16,6 +16,8 @@
   test database. It ends in .ts because it shows nothing on screen.
 */
 
+// Types.ObjectId: MongoDB's ID type, needed to find a record directly in the database.
+import { Types } from "mongoose";
 import { beforeEach, describe, expect, it } from "vitest";
 import { PUT as activePut, GET as activeGet } from "@/app/api/betslips/active/route";
 import { DELETE as slipDelete, GET as slipGet, PATCH as slipPatch } from "@/app/api/betslips/[id]/route";
@@ -143,8 +145,14 @@ describe("create", () => {
 
 describe("read", () => {
   it("lists only the logged-in user's slips, newest change first", async () => {
-    await createdSlip({ name: "Older" });
+    const older = await createdSlip({ name: "Older" });
     await createdSlip({ name: "Newer" });
+    // Two slips made back to back can get the very same millisecond, which would make "newest first"
+    // a coin flip. So set the older slip's last-changed time to a day ago, directly in the database.
+    await BetSlipModel.collection.updateOne(
+      { _id: new Types.ObjectId(older.id) },
+      { $set: { updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+    );
     const slips = (await (await slipsGet()).json()) as BetSlip[];
     expect(slips.map((slip) => slip.name)).toEqual(["Newer", "Older"]);
   });

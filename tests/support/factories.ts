@@ -64,6 +64,19 @@ export function jsonRequest(
   });
 }
 
+/*
+  tamperToken: changes ONE character in the middle of a login token's signature,
+  like an attacker editing the cookie. It must be the middle: the very last
+  character of a signature partly holds padding bits that get thrown away when
+  the signature is read, so changing it can leave the token identical.
+*/
+export function tamperToken(token: string): string {
+  const [header, payload, signature] = token.split(".");
+  const index = 10;
+  const swapped = signature[index] === "A" ? "B" : "A";
+  return `${header}.${payload}.${signature.slice(0, index)}${swapped}${signature.slice(index + 1)}`;
+}
+
 /* slipContext: what Next.js passes to /api/betslips/[id] routes: the ID from the address, wrapped in a promise. */
 export function slipContext(id: string): { params: Promise<{ id: string }> } {
   return { params: Promise.resolve({ id }) };

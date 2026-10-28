@@ -25,7 +25,7 @@ import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/token";
 import { UserModel } from "@/lib/db/models/User";
 import { cookieJar } from "./support/cookies";
 import { createTestUser, logInAs, resetDatabase } from "./support/db";
-import { jsonRequest, slipContext } from "./support/factories";
+import { jsonRequest, slipContext, tamperToken } from "./support/factories";
 
 /* A valid-looking slip ID, for routes that need one in the address. */
 const SOME_ID = "64b7f0c2a1b2c3d4e5f60718";
@@ -63,9 +63,8 @@ describe("API routes with no login", () => {
   it("refuses a tampered cookie", async () => {
     const user = await createTestUser("member@example.com");
     const token = await createSessionToken(user.id);
-    // Change one character in the signature.
-    const last = token.slice(-1);
-    cookieJar.set(SESSION_COOKIE_NAME, token.slice(0, -1) + (last === "A" ? "B" : "A"));
+    // Change one character in the middle of the signature.
+    cookieJar.set(SESSION_COOKIE_NAME, tamperToken(token));
 
     for (const { call } of protectedCalls) {
       expect((await call()).status).toBe(401);
@@ -133,8 +132,7 @@ describe("proxy.ts (the guard that runs before pages)", () => {
 
   it("treats a tampered cookie as logged out", async () => {
     const token = await createSessionToken(SOME_ID);
-    const last = token.slice(-1);
-    const response = await proxy(pageRequest("/betslips", token.slice(0, -1) + (last === "A" ? "B" : "A")));
+    const response = await proxy(pageRequest("/betslips", tamperToken(token)));
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/login");
   });
