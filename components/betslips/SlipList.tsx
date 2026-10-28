@@ -7,7 +7,8 @@
   search and filter update instantly, with no page reload.
   Each slip shows its name, its type (Straight, Parlay, or SGP), how many
   picks, the combined odds, and when it was last changed, and links to its page.
-  Each also has a "Copy slip" button.
+  Each also has a "Copy slip" button, and (unless it's already your active slip) a "Make Active"
+  button on the right.
   WHO USES IT: app/(main)/betslips/page.tsx.
   WHY THIS NAME: It's the list of slips. It ends in .tsx because it shows something on screen.
 */
@@ -25,7 +26,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 // The sentence shown after a copy, from lib/betting/copyMessages.ts.
 import { copyAnnouncement } from "@/lib/betting/copyMessages";
 // copySlip: the browser's request to the copy route, from lib/betting/slipRequests.ts.
-import { copySlip } from "@/lib/betting/slipRequests";
+import { copySlip, setActiveSlip } from "@/lib/betting/slipRequests";
 // formatOdds, pickCount, and the type words, from lib/betting/picks.ts.
 import { formatOdds, pickCount, SLIP_TYPE_LABELS } from "@/lib/betting/picks";
 // shortDate ("Oct 23"), from lib/format/gameTime.ts.
@@ -49,6 +50,8 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
   // Which slip is being copied right now (its ID), and the red message if a copy fails.
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
+  // Which slip is being made active right now (its ID). Null = none (missing on purpose).
+  const [activatingId, setActivatingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const searchId = useId();
@@ -85,6 +88,25 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
       setCopyError(error instanceof Error ? error.message : "That didn't copy. Please try again.");
     } finally {
       setCopyingId(null);
+    }
+  }
+
+  /*
+    onMakeActive: the server makes this your active slip (the one your taps add to), then the
+    slip bar and this list switch to it right away.
+  */
+  async function onMakeActive(slip: BetSlip) {
+    setActivatingId(slip.id);
+    setCopyError(null);
+    try {
+      const saved = await setActiveSlip(slip.id);
+      replaceActiveSlip(saved);
+      announce(`"${saved.name}" is now your active slip.`);
+      router.refresh();
+    } catch (error) {
+      setCopyError(error instanceof Error ? error.message : "That didn't change your active slip. Please try again.");
+    } finally {
+      setActivatingId(null);
     }
   }
 
@@ -164,16 +186,28 @@ export default function SlipList({ slips }: { slips: BetSlip[] }) {
                     <span className="text-muted">· Updated {shortDate(slip.updatedAt)}</span>
                   </div>
                 </Link>
-                <div className="border-t border-line px-4 py-2">
+                <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2">
                   <button
                     type="button"
                     onClick={() => void onCopy(slip)}
-                    disabled={copyingId !== null}
+                    disabled={copyingId !== null || activatingId !== null}
                     aria-label={`Copy slip ${slip.name}`}
                     className="min-h-11 rounded-lg px-1 text-sm font-semibold text-gold hover:text-gold-bright disabled:cursor-wait disabled:opacity-50"
                   >
                     {copyingId === slip.id ? "Copying…" : "Copy slip"}
                   </button>
+                  {/* The active slip already shows the gold Active badge, so it has no button. */}
+                  {!isActive && (
+                    <button
+                      type="button"
+                      onClick={() => void onMakeActive(slip)}
+                      disabled={copyingId !== null || activatingId !== null}
+                      aria-label={`Make ${slip.name} your active slip`}
+                      className="min-h-11 rounded-lg px-1 text-sm font-semibold text-gold hover:text-gold-bright disabled:cursor-wait disabled:opacity-50"
+                    >
+                      {activatingId === slip.id ? "Switching…" : "Make Active"}
+                    </button>
+                  )}
                 </div>
               </li>
             );
