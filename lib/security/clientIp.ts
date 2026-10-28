@@ -9,15 +9,16 @@
   "x-forwarded-for" header (and overwrites any fake one the visitor sends).
   If the header lists several addresses, the first is the visitor. When there is
   no header at all (running on your own computer), everyone shares the bucket "unknown".
-  WHO USES IT: app/actions/invite.ts. The login lockout (Section 4) will use it too.
+  WHO USES IT: app/actions/invite.ts (the invite page) and lib/auth/loginAttempt.ts (the login lockout).
   WHY THIS NAME: It's about the client's (visitor's) IP. It lives in lib/security. It
   ends in .ts because it shows nothing on screen.
 */
 
 import "server-only";
-import { createHmac } from "node:crypto";
-// headers(): the request's headers, from Next.js. Allowed in Server Actions.
+// headers(): the request's headers, from Next.js. Allowed in Server Actions and route handlers.
 import { headers } from "next/headers";
+// scrambledKey from lib/security/keys.ts: the one-way scramble that turns an address into a database key.
+import { scrambledKey } from "./keys";
 
 /*
   getClientKey: a scrambled, stable ID for this visitor, safe to save in the database.
@@ -25,13 +26,8 @@ import { headers } from "next/headers";
   counts against the login page. Example result: "invite:3f9a...".
 */
 export async function getClientKey(purpose: string): Promise<string> {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error("AUTH_SECRET is missing or shorter than 32 characters.");
-  }
   const requestHeaders = await headers();
   const forwarded = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim();
   const address = forwarded || requestHeaders.get("x-real-ip")?.trim() || "unknown";
-  const scrambled = createHmac("sha256", secret).update(`${purpose}|${address}`).digest("hex");
-  return `${purpose}:${scrambled}`;
+  return scrambledKey(purpose, address);
 }

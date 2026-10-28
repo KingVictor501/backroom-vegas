@@ -1,0 +1,382 @@
+{
+  "info": {
+    "name": "Vegas Backroom \u2013 Login Lockout (Section 4)",
+    "description": "FILE: postman/login-lockout.postman_collection.json\nWHAT IT IS FOR: Tests the login lockout through POST /api/auth/login. Run folder 1 top to bottom: five wrong passwords get 401, the sixth gets 429 with a Retry-After header, and even the right password is refused. Folder 2 sends bad input. Folder 3 is a normal login.\nHOW TO USE: Import this file AND postman/login-lockout.postman_environment.json, pick that environment, and fill in the four variables (use a THROWAWAY account in the dev database, never a real one; do not paste passwords into chat). To run folder 1 again, wait 15 minutes or use a different lockout_email.\nIMPORTANT: use the dev database / local server, or the week-7 preview. Never the live site.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 \u2013 Lockout (run in order)",
+      "item": [
+        {
+          "name": "1. Wrong password (try 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 401 'Invalid email or password.' (wrong try number 1 of 5).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "2. Wrong password (try 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 401 'Invalid email or password.' (wrong try number 2 of 5).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "3. Wrong password (try 3)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 401 'Invalid email or password.' (wrong try number 3 of 5).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "4. Wrong password (try 4)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 401 'Invalid email or password.' (wrong try number 4 of 5).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "5. Wrong password (try 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 401 'Invalid email or password.' (wrong try number 5 of 5).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "6. Wrong password (try 6): LOCKED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 429\", () => pm.response.to.have.status(429));",
+                  "pm.test(\"Lockout message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Too many attempts. Try again in a few minutes.\"));",
+                  "pm.test(\"Retry-After is about 15 minutes\", () => { const s = Number(pm.response.headers.get(\"Retry-After\")); pm.expect(s).to.be.within(840, 900); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 429 and a Retry-After header (seconds to wait).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
+            }
+          }
+        },
+        {
+          "name": "7. RIGHT password during the lockout: still refused",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 429 even with the right password\", () => pm.response.to.have.status(429));",
+                  "pm.test(\"No login cookie was set\", () => pm.expect(pm.cookies.has(\"bv_session\")).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Needs lockout_password set to the account's real password. Expect 429 and NO Set-Cookie.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"{{lockout_password}}\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 \u2013 Bad input",
+      "item": [
+        {
+          "name": "8. Bad input: empty object",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 400. Does not count as a try.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "9. Injection: {\"$gt\":\"\"} as email and password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 400. MongoDB-style injection never reaches the database.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":{\"$gt\":\"\"},\"password\":{\"$gt\":\"\"}}"
+            }
+          }
+        },
+        {
+          "name": "10. Not marked as JSON",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"415\", () => pm.response.to.have.status(415));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 415.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"a@b.com\",\"password\":\"x\"}"
+            }
+          }
+        },
+        {
+          "name": "11. Huge body (replace the long text first)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400 or 413, not a crash\", () => pm.expect([400,413]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 400 (password over 128 characters). To try 413, paste over 100,000 characters.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"a@b.com\",\"password\":\"PASTE_A_VERY_LONG_TEXT_HERE\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 \u2013 Good login",
+      "item": [
+        {
+          "name": "12. Good login (a fresh account that is NOT locked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"No password hash in the answer\", () => pm.expect(pm.response.text()).to.not.match(/passwordHash|\\$2[aby]\\$/));",
+                  "pm.test(\"Cookie set\", () => pm.expect(pm.cookies.has(\"bv_session\")).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Expect 200 and a bv_session cookie (Postman keeps it).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{good_email}}\",\"password\":\"{{good_password}}\"}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -93,10 +93,15 @@ export const signupSchema = z
 */
 export const loginSchema = z.object({
   email: emailRule,
-  password: z.string().min(1, { error: "Enter your password." }),
+  // max(128): no real password is this long (sign up allows 72), so a longer one is refused up front.
+  // It is a form mistake, not a guess, so it doesn't count toward the lockout.
+  password: z.string().min(1, { error: "Enter your password." }).max(128, { error: "That password is too long." }),
 });
 
 /** The form fields that can show an error message under them. */
+/** The one message for any failed login, so we never reveal which part was wrong. */
+export const INVALID_LOGIN_MESSAGE = "Invalid email or password.";
+
 export type AuthField = "email" | "password" | "confirmPassword";
 
 /*

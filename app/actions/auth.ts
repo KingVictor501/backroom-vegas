@@ -32,10 +32,15 @@ import { logServerError } from "@/lib/logging/safeLog";
 // sign up must hold a valid invite, and it uses up one spot on the code when the account is created.
 import { deleteInviteCookie, getInviteCodeId } from "@/lib/auth/inviteCookie";
 import { claimInviteUse, releaseInviteUse } from "@/lib/db/inviteCodes";
+// attemptLogin from lib/auth/loginAttempt.ts: the shared login check, with the too-many-tries lockout.
+import { attemptLogin, type LoginResult } from "@/lib/auth/loginAttempt";
+// The lockout message, from lib/security/attempts.ts.
+import { TOO_MANY_ATTEMPTS_MESSAGE } from "@/lib/security/attempts";
 // The form rules, friendly messages, and helpers from lib/auth/validation.ts.
 import {
   firstFieldErrors,
   formText,
+  INVALID_LOGIN_MESSAGE,
   loginSchema,
   safeNextPath,
   signupSchema,
@@ -48,19 +53,6 @@ import {
   guessing millions of passwords far too slow.
 */
 const HASH_COST = 12;
-
-/*
-  DUMMY_HASH: the hash of a random password nobody knows. When someone tries to log
-  in with an email that DOESN'T exist, we still check their password against
-  this. That way a wrong email takes just as long as a wrong password, so an
-  attacker can't time the answers to find out which emails have accounts.
-  It's not a secret. It's the hash of throwaway random text.
-*/
-const DUMMY_HASH =
-  "$2b$12$Y2ap8NfuhLOkQzJV4VVZ0uNRBomosG3GEF7SEEthGUcqEurTgDlzK";
-
-/** The one message for any failed login, so we never reveal which part was wrong. */
-const INVALID_LOGIN_MESSAGE = "Invalid email or password.";
 
 /*
   signup: creates an account, logs the user in, and sends them on.
@@ -168,6 +160,9 @@ export async function signup(
 /*
   login: checks the email and password, logs the user in, and sends them on.
   Any problem with the email or password gets the same message: "Invalid email or password."
+  After 5 wrong passwords for an email (or 20 from one address), logging in is
+  blocked for 15 minutes with "Too many attempts. Try again in a few minutes."
+  (the rules live in lib/auth/loginAttempt.ts and lib/security/attempts.ts).
 */
 export async function login(
   previousState: AuthFormState,
@@ -188,24 +183,10 @@ export async function login(
   }
   const { email, password } = parsed.data;
 
-  let userId: string;
+  // One shared login check (lib/auth/loginAttempt.ts): the lockout, then the password.
+  let result: LoginResult;
   try {
-    await connectToDatabase();
-    // .select("+passwordHash"): the hash is hidden by default (see the User
-    // model). This is the ONE place that asks for it, to check the password.
-    const user = await UserModel.findOne({ email })
-      .select("+passwordHash")
-      .lean();
-
-    // Compare against the real hash, or the dummy hash if there's no such user (same timing either way).
-    const passwordMatches = await bcrypt.compare(
-      password,
-      user?.passwordHash ?? DUMMY_HASH,
-    );
-    if (!user || !passwordMatches) {
-      return { message: INVALID_LOGIN_MESSAGE, fieldErrors: {}, email: typedEmail };
-    }
-    userId = user._id.toString();
+    result = await attemptLogin(email, password);
   } catch (error) {
     logServerError("Login failed:", error);
     return {
@@ -215,7 +196,18 @@ export async function login(
     };
   }
 
-  await createSession(userId);
+  if (!result.ok) {
+    // Locked out: too many wrong tries. Otherwise the one vague message, whatever was wrong.
+    return {
+      message: result.reason === "locked" ? TOO_MANY_ATTEMPTS_MESSAGE : INVALID_LOGIN_MESSAGE,
+      fieldErrors: {},
+      email: typedEmail,
+    };
+  }
+
+  // Logged in: set the cookie and go. redirect() must be outside the try/catch,
+  // because it works by throwing a special signal.
+  await createSession(result.user.id);
   redirect(safeNextPath(formData.get("next")));
 }
 

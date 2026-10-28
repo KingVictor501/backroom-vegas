@@ -16,6 +16,7 @@ export type ApiErrorCode =
   | "not-found" // That ID doesn't exist, or it isn't yours (status 404)
   | "invalid-input" // The data sent was missing or wrong (status 400)
   | "conflict" // Clashes with something that already exists, like a taken email (status 409)
+  | "too-many-requests" // Too many wrong tries; wait before trying again (status 429)
   | "upstream-error" // An outside API (NFL, Odds, ESPN) failed (status 502)
   | "server-error"; // Something unexpected broke on our side (status 500)
 
