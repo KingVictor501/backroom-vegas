@@ -21,6 +21,9 @@ import Link from "next/link";
 import { useState } from "react";
 // isToday from lib/format/gameTime.ts: what "Today" means (Eastern time).
 import { isToday } from "@/lib/format/gameTime";
+// Live scores: the refresh hook and the "Scores delayed" note, from components/live.
+import ScoresDelayed from "@/components/live/ScoresDelayed";
+import { useLiveScores } from "@/components/live/useLiveScores";
 // The shared types: a game with odds, a team, and a sportsbook ID.
 import type { GameWithLines, SportsbookId, TeamSummary } from "@/types";
 // The pieces of the page, from the files next to this one.
@@ -86,6 +89,9 @@ export default function GameBrowser({
     if (dateFilter === "week" && !thisWeek.has(game.id)) return false;
     return words === "" || teamMatches(game.awayTeam, words) || teamMatches(game.homeTeam, words);
   });
+
+  // Live scores for the games shown (refreshed about every 30 seconds, only while one is live and the tab is open).
+  const { live, delayed } = useLiveScores(leagueSlug, shown);
 
   // Any bet type other than the first (Game Lines) adds a "See ___ props" link to each card.
   const propsLink: PropsLink | null = betType === betTypes[0] ? null : { label: betType, slug: toSlug(betType) };
@@ -155,6 +161,8 @@ export default function GameBrowser({
         </p>
       )}
 
+      <ScoresDelayed show={delayed} />
+
       {/* aria-live: screen readers hear how many games match after each change. */}
       <p aria-live="polite" className="sr-only">
         {shown.length} {shown.length === 1 ? "game" : "games"} shown
@@ -164,7 +172,7 @@ export default function GameBrowser({
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {shown.map((game) => (
             <li key={game.id}>
-              <GameCard game={game} sportsbook={sportsbook} propsLink={propsLink} />
+              <GameCard game={game} sportsbook={sportsbook} propsLink={propsLink} live={live.get(game.id)} />
             </li>
           ))}
         </ul>

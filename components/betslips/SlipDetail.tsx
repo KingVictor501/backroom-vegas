@@ -2,7 +2,7 @@
   FILE: components/betslips/SlipDetail.tsx
   WHAT IT'S FOR: Everything you can DO on one slip's page:
   - rename it (1 to 50 characters; a name you already used is refused, in red)
-  - see every pick, with games that already started marked "Started"
+  - see every pick, with its live score and a Winning / Losing / Push badge once its game starts (Won / Lost when final)
   - remove picks (removing the last one asks "Delete this slip?", like the slip bar)
   - set it as your active slip (the one your taps add to)
   - change the pretend wager and see the estimated payout (profit, total return, sportsbook)
@@ -19,12 +19,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useId, useMemo, useState, type FormEvent } from "react";
 // The bet slip provider (slip bar) and the shared popup, from components/betslip.
 import { useBetSlip } from "@/components/betslip/BetSlipProvider";
 import ChoiceDialog from "@/components/betslip/ChoiceDialog";
 // The red error styles, from components/ErrorMessage.tsx.
 import ErrorMessage, { FieldError } from "@/components/ErrorMessage";
+// Live scores: the refresh hook, a pick's Winning/Losing badge, and the "Scores delayed" note, from components/live.
+import PickGradeBadge from "@/components/live/PickGradeBadge";
+import ScoresDelayed from "@/components/live/ScoresDelayed";
+import { useLiveScores, type WatchedGame } from "@/components/live/useLiveScores";
+// gradePick (is a pick winning or losing?) from lib/betting/grading.ts; getLeague (how many periods a game has) from config/leagues.ts.
+import { gradePick } from "@/lib/betting/grading";
+import { getLeague } from "@/config/leagues";
 // The wager box and estimated payout, shared with the slip bar and the desktop panel.
 import PayoutBox from "@/components/betslip/PayoutBox";
 // The sentences shown after a slip is copied (shared with the slip list).
@@ -58,6 +65,17 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
   // Which popup is open: "delete" (Delete button), "last-pick" (removing the last pick, with the pick's ID), or none.
   const [popup, setPopup] = useState<{ kind: "delete" } | { kind: "last-pick"; pickId: string } | null>(null);
   const nameId = useId();
+
+  // Live scores for the games on this slip. Player props also need the live box score.
+  const league = slip.picks[0]?.league ?? "nfl";
+  const regulation = getLeague(league)?.periods?.regulation ?? 4;
+  const needsBoxScore = slip.picks.some((pick) => pick.marketCategory === "player-props");
+  const watched = useMemo<WatchedGame[]>(() => {
+    const seen = new Map<string, WatchedGame>();
+    for (const pick of slip.picks) seen.set(pick.gameId, { id: pick.gameId, startsAt: pick.gameStartsAt, status: "scheduled" });
+    return [...seen.values()];
+  }, [slip.picks]);
+  const { live, delayed } = useLiveScores(league, watched, needsBoxScore);
   const isActive = activeSlip?.id === slip.id;
 
   /* afterSave: show the server's version here, and in the slip bar if it's the active slip. */
@@ -264,6 +282,9 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
         <h2 id="picks-heading" className="text-xl text-text">
           Picks
         </h2>
+        <div className="mt-1">
+          <ScoresDelayed show={delayed} />
+        </div>
         {slip.picks.length === 0 ? (
           <p className="mt-3 text-sm text-muted">
             No picks yet. {isActive ? "Tap any odds to add one." : "Set this as your active slip, then tap any odds to add picks."}
@@ -272,6 +293,10 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
           <ul className="mt-3 divide-y divide-line">
             {slip.picks.map((pick) => {
               const started = Date.parse(pick.gameStartsAt) <= now;
+              const liveGame = live.get(pick.gameId);
+              const grade = gradePick(pick, liveGame ?? null, regulation, now);
+              // "KC @ SEA" → "KC" and "SEA", to write the score as "KC 24 – SEA 20".
+              const [awayName, homeName] = pick.gameLabel.split(" @ ");
               return (
                 <li key={pick.id} className="flex items-start gap-3 py-3">
                   <div className="min-w-0 flex-1">
@@ -298,9 +323,20 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
                         </p>
                       );
                     })()}
-                    <p className="mt-1 text-xs">
-                      {started ? (
-                        <span className="rounded-full border border-danger/60 px-2 py-0.5 font-semibold text-danger">Started</span>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                      {started || liveGame?.status === "in-progress" || liveGame?.status === "final" ? (
+                        <>
+                          <PickGradeBadge grade={grade} />
+                          {liveGame && liveGame.status !== "scheduled" && (
+                            <span className="text-muted">
+                              <span className="font-semibold tabular-nums text-text">
+                                {awayName} {liveGame.awayScore ?? 0} – {homeName} {liveGame.homeScore ?? 0}
+                              </span>{" "}
+                              · {liveGame.label}
+                            </span>
+                          )}
+                          {!liveGame && <span className="text-muted">Started</span>}
+                        </>
                       ) : (
                         <span className="text-muted">
                           {gameDayLabel(pick.gameStartsAt, new Date(now))} · {gameTimeLabel(pick.gameStartsAt)}

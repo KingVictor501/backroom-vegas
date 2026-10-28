@@ -3,7 +3,7 @@
   WHAT IT'S FOR: One game card on the Feed and league page, like a real
   sportsbook. Tapping anywhere on the card opens the matchup page, EXCEPT the
   parts with their own job: team names open the team page, odds buttons add to
-  your slip, and SGP starts Build your own SGP. The card shows: the day and time (or "Live" with the score), both teams with
+  your slip, and SGP starts Build your own SGP. The card shows: the day and time (or the live score and quarter, or "Final"), both teams with
   their logos and records, and a three-column odds table (Spread, Total,
   Winner) where each price is a tappable odds button. A missing price shows a
   dash instead of crashing (the table is components/feed/GameLinesTable.tsx).
@@ -21,8 +21,11 @@ import StartSgpButton from "@/components/betslip/StartSgpButton";
 import { gameLabel } from "@/lib/betting/gameLinePicks";
 // The "Today · 4:25 PM ET" words, from lib/format/gameTime.ts.
 import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
+// The live status line ("● Q3 7:32  KC 24 – SEA 20") and how to decide what to show.
+import LiveScoreLine from "@/components/live/LiveScoreLine";
+import { liveView } from "@/components/live/liveView";
 // The shared types for a game with odds and a sportsbook.
-import type { GameWithLines, SportsbookId } from "@/types";
+import type { GameWithLines, LiveGame, SportsbookId } from "@/types";
 // The Spread / Total / Winner table, from the file next to this one.
 import GameLinesTable from "./GameLinesTable";
 
@@ -42,12 +45,16 @@ export default function GameCard({
   game,
   sportsbook,
   propsLink,
+  live,
 }: {
   game: GameWithLines;
   sportsbook: SportsbookId;
   propsLink: PropsLink | null;
+  /** The latest live information for this game, if the browser has fetched any. */
+  live?: LiveGame;
 }) {
   const label = gameLabel(game);
+  const status = liveView(game, live).status;
   const headingId = `game-${game.id}`;
 
   return (
@@ -64,9 +71,7 @@ export default function GameCard({
           */}
           <Link href={`/matchup/${game.id}`} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">
             <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
-            {game.status === "in-progress" && <span className="font-semibold text-danger">● Live</span>}
-            {game.status === "postponed" && <span className="font-semibold text-danger">Postponed</span>}
-            {game.status === "scheduled" && `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}`}
+            {status === "scheduled" ? `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}` : <LiveScoreLine game={game} live={live} />}
           </Link>
         </h3>
         {/* relative z-10: sits on top of the card's link, so it starts an SGP instead of opening the matchup. */}
