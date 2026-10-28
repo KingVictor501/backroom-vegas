@@ -42,13 +42,15 @@ type SampleBookmaker = { key: string; markets: { key: string }[] } & Record<stri
 
 /* samplesFolder: where the saved files live (api-samples by default; tests point it at their own folder). */
 function samplesFolder(): string {
-  return process.env.SAMPLE_ODDS_DIR ?? path.join(process.cwd(), "api-samples");
+  return process.env.SAMPLE_ODDS_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), "api-samples");
 }
 
 /* readJson: reads one saved file, with a friendly error if it's missing. */
 async function readJson(file: string): Promise<unknown> {
   try {
-    return JSON.parse(await readFile(path.join(samplesFolder(), file), "utf8"));
+    // turbopackIgnore: this only runs in sample mode on your own computer (never in production), so Next.js
+    // must not copy the whole project into the deployment just because the folder is chosen at run time.
+    return JSON.parse(await readFile(path.join(/*turbopackIgnore: true*/ samplesFolder(), file), "utf8"));
   } catch {
     throw new UpstreamError("The Odds API", null, `sample odds mode is on, but ${file} could not be read from the api-samples folder`);
   }
