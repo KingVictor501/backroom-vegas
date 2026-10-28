@@ -48,6 +48,16 @@ export function BetSlipIcon() {
   );
 }
 
+/* ProfileIcon: a person (head and shoulders). */
+export function ProfileIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20.5c0-3.6 3.6-6 8-6s8 2.4 8 6" />
+    </svg>
+  );
+}
+
 /* SettingsIcon: a gear. */
 export function SettingsIcon() {
   return (

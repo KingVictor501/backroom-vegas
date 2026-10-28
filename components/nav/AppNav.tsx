@@ -1,6 +1,6 @@
 /*
   FILE: components/nav/AppNav.tsx
-  WHAT IT'S FOR: The main menu (Home, Bet Slips, Settings).
+  WHAT IT'S FOR: The main menu (Home, Bet Slips, Profile, Settings).
   - On phones and tablets it's a floating, rounded bar fixed to the bottom of the screen.
   - On desktop (1024px wide and up) it becomes a sidebar on the left.
   The page the user is on is highlighted in gold.
@@ -19,11 +19,11 @@
 import Link from "next/link";
 // usePathname: tells us the current address, like "/betslips", so we know what to highlight.
 import { usePathname } from "next/navigation";
-// The three menu pictures, from the file next to this one.
-import { BetSlipIcon, HomeIcon, SettingsIcon } from "./NavIcons";
+// The menu pictures, from the file next to this one.
+import { BetSlipIcon, HomeIcon, ProfileIcon, SettingsIcon } from "./NavIcons";
 
 /*
-  NAV_ITEMS: the three menu links. To add a fourth link later, add it here.
+  NAV_ITEMS: the menu links. To add another link later, add it here.
   "matches" decides when a link counts as "the page you're on". Home stays
   highlighted on the league, matchup, team, and player pages, because those are
   all part of browsing games.
@@ -44,6 +44,12 @@ const NAV_ITEMS = [
     label: "Bet Slips",
     Icon: BetSlipIcon,
     matches: (path: string) => path.startsWith("/betslips"),
+  },
+  {
+    href: "/profile",
+    label: "Profile",
+    Icon: ProfileIcon,
+    matches: (path: string) => path.startsWith("/profile"),
   },
   {
     href: "/settings",

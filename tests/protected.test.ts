@@ -115,7 +115,7 @@ function pageRequest(path: string, cookies: { session?: string; invite?: string 
 }
 
 /* The pages that need a login. */
-const PROTECTED_PAGES = ["/", "/settings", "/betslips", "/betslips/new", "/betslips/abc", "/league/nfl", "/matchup/1", "/team/1", "/player/1"];
+const PROTECTED_PAGES = ["/", "/settings", "/profile", "/betslips", "/betslips/new", "/betslips/abc", "/league/nfl", "/matchup/1", "/team/1", "/player/1"];
 
 describe("proxy.ts, a visitor with NO invite cookie (the invite page comes first)", () => {
   it("sends every page, including /login and /signup, to /invite", async () => {

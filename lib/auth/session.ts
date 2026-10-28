@@ -46,10 +46,10 @@ export async function createSession(userId: string): Promise<void> {
 }
 
 /*
-  getSession: who is logged in? Gives back { userId } or null if nobody (or the
+  getSession: who is logged in? Gives back { userId, issuedAt } or null if nobody (or the
   cookie is fake or expired). null is missing on purpose: it means "logged out".
 */
-export async function getSession(): Promise<{ userId: string } | null> {
+export async function getSession(): Promise<{ userId: string; issuedAt: number } | null> {
   const cookieStore = await cookies();
   return readSessionToken(cookieStore.get(SESSION_COOKIE_NAME)?.value);
 }

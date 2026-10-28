@@ -56,6 +56,14 @@ export const LOGIN_EMAIL_RULE: AttemptRule = { maxFailures: 5, windowMs: 15 * 60
 */
 export const LOGIN_IP_RULE: AttemptRule = { maxFailures: 20, windowMs: 15 * 60 * 1000 };
 
+/*
+  PROFILE_PASSWORD_RULE: 5 wrong "current password" answers on the Profile page
+  (change email, change password, delete account), then 15 minutes. Without it,
+  someone holding a stolen login cookie could guess the password unlimited times
+  there. Counted per account; one shared counter for all three actions.
+*/
+export const PROFILE_PASSWORD_RULE: AttemptRule = { maxFailures: 5, windowMs: 15 * 60 * 1000 };
+
 /** The message shown during a time-out. It never says how long, or which part failed. */
 export const TOO_MANY_ATTEMPTS_MESSAGE = "Too many attempts. Try again in a few minutes.";
 

@@ -52,6 +52,13 @@ vi.mock("next/headers", async () => {
   return { cookies: async () => cookieJar, headers: async () => requestHeaders };
 });
 
+// refresh() redraws the page the user is on, which only makes sense inside a real request. Tests don't need it.
+// Only refresh is replaced; everything else in next/cache (like unstable_cache) stays real.
+vi.mock("next/cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/cache")>()),
+  refresh: (): void => undefined,
+}));
+
 // redirect() normally ends the request. Here it throws "REDIRECT:/where" so tests can see where it went.
 vi.mock("next/navigation", () => ({
   redirect: (url: string): never => {

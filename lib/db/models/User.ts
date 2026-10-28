@@ -43,6 +43,12 @@ export type UserRecord = {
    * collection), or null for accounts made before invite codes existed (missing on purpose).
    */
   inviteCodeId: Types.ObjectId | null;
+  /**
+   * When the password was last changed on the Profile page, or null if it never was
+   * (missing on purpose). Logins made BEFORE this moment stop working, so changing the
+   * password logs out every other device. See lib/auth/dal.ts.
+   */
+  passwordChangedAt: Date | null;
   /** When the account was created. Mongoose fills this in automatically. */
   createdAt: Date;
   /** When the account was last changed. Mongoose fills this in automatically. */
@@ -94,6 +100,11 @@ const userSchema = new Schema<UserRecord>(
       ref: "InviteCode",
       default: null,
     },
+    passwordChangedAt: {
+      type: Date,
+      // null = "never changed" (missing on purpose).
+      default: null,
+    },
   },
   // timestamps: Mongoose adds and updates createdAt and updatedAt automatically.
   { timestamps: true },
@@ -122,6 +133,7 @@ export function toUser(record: Omit<UserRecord, "passwordHash">): User {
     preferredSportsbook: record.preferredSportsbook,
     activeBetSlipId: record.activeBetSlipId?.toString() ?? null,
     inviteCodeId: record.inviteCodeId?.toString() ?? null,
+    passwordChangedAt: record.passwordChangedAt?.toISOString() ?? null,
     createdAt: record.createdAt.toISOString(),
   };
 }

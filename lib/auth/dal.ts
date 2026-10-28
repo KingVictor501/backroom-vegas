@@ -27,7 +27,8 @@ import type { User } from "@/types";
 /*
   getCurrentUser: the logged-in user, or null if nobody is logged in (null is
   missing on purpose). It also checks the user still exists in the database, so
-  a valid cookie for a deleted account doesn't count.
+  a valid cookie for a deleted account doesn't count, and that the password
+  wasn't changed after this login was made.
   The passwordHash is never loaded (the User model hides it), and toUser()
   copies only safe fields.
 */
@@ -37,7 +38,14 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 
   await connectToDatabase();
   const record = await UserModel.findById(session.userId).lean();
-  return record ? toUser(record) : null;
+  if (!record) return null;
+  // A login made BEFORE the password was last changed no longer counts. Changing the
+  // password therefore logs out every other device (and anyone who stole a cookie).
+  // Both sides are whole seconds, because a token's issue time has no milliseconds.
+  if (record.passwordChangedAt && session.issuedAt < Math.floor(record.passwordChangedAt.getTime() / 1000)) {
+    return null;
+  }
+  return toUser(record);
 });
 
 /*

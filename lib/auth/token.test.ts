@@ -37,7 +37,7 @@ function secretBytes(): Uint8Array {
 describe("login token", () => {
   it("a token we just made is accepted and gives back the user ID", async () => {
     const token = await createSessionToken(USER_ID);
-    expect(await readSessionToken(token)).toEqual({ userId: USER_ID });
+    expect(await readSessionToken(token)).toMatchObject({ userId: USER_ID });
   });
 
   it("a missing token means not logged in", async () => {

@@ -43,11 +43,11 @@ export function hasAcceptedEnding(email: string): boolean {
 }
 
 /*
-  emailRule: trims spaces, lowercases it, checks it looks like an email, checks
+  emailRule (also used by the Profile page): trims spaces, lowercases it, checks it looks like an email, checks
   its ending is on the EMAIL_ENDINGS list, and caps the length at 254 characters
   (the longest real email address). Used by BOTH sign up and login.
 */
-const emailRule = z
+export const emailRule = z
   .string()
   .trim()
   .toLowerCase()
@@ -64,7 +64,7 @@ const emailRule = z
   - at least one letter and one number
   Spaces are allowed, and we don't trim passwords: " pass" and "pass" are different.
 */
-const newPasswordRule = z
+export const newPasswordRule = z
   .string()
   .min(8, { error: "Use at least 8 characters." })
   .max(72, { error: "Use 72 characters or fewer." })

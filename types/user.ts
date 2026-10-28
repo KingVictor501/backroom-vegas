@@ -35,6 +35,11 @@ export type User = {
    * before invite codes existed (missing on purpose).
    */
   inviteCodeId: string | null;
+  /**
+   * When they last changed their password on the Profile page (ISO date-time text), or null
+   * if they never did (missing on purpose). Older logins stop working after this moment.
+   */
+  passwordChangedAt: string | null;
   /** When the account was created (ISO date-time text). */
   createdAt: string;
 };

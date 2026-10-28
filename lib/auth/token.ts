@@ -53,13 +53,16 @@ export async function createSessionToken(userId: string): Promise<string> {
 }
 
 /*
-  readSessionToken: checks a token and gives back the user ID inside it, or null
+  readSessionToken: checks a token and gives back the user ID inside it, plus
+  when the token was made ("issuedAt", in whole seconds since 1970), or null
   if it's missing, fake, changed, or expired (missing on purpose: null means
   "not logged in"). It never throws, so a bad cookie can't crash a page.
+  issuedAt lets lib/auth/dal.ts log out sessions that were made BEFORE the
+  password was last changed.
 */
 export async function readSessionToken(
   token: string | undefined,
-): Promise<{ userId: string } | null> {
+): Promise<{ userId: string; issuedAt: number } | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecretKey(), {
@@ -75,7 +78,9 @@ export async function readSessionToken(
     if (typeof payload.sub !== "string" || !/^[a-f0-9]{24}$/.test(payload.sub)) {
       return null;
     }
-    return { userId: payload.sub };
+    // Every token we make has an issue time. One without it is not ours, so it is refused.
+    if (typeof payload.iat !== "number") return null;
+    return { userId: payload.sub, issuedAt: payload.iat };
   } catch {
     return null;
   }

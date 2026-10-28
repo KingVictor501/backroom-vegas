@@ -4,7 +4,7 @@
   - three big cards to pick your sportsbook (Hard Rock Bet, BetMGM, Caesars).
     The chosen one has a gold outline and is saved to your account with a
     Server Action, so the odds on every page switch to that book.
-  - your email and the Log out button
+  - your email, a button to the Profile page (change email or password, delete account), and the Log out button
   WHO USES IT: Next.js shows it when someone visits /settings. The "Settings"
   menu link and every "Change" / "Try another sportsbook" link point here.
   WHY THIS NAME: The folder "settings" becomes the web address, and Next.js requires
@@ -12,6 +12,7 @@
 */
 
 import type { Metadata } from "next";
+import Link from "next/link";
 // The Log out button (calls the logout Server Action) from components/auth/LogoutButton.tsx.
 import LogoutButton from "@/components/auth/LogoutButton";
 // The sportsbook cards, from components/settings.
@@ -73,7 +74,14 @@ export default async function SettingsPage() {
         <p className="mt-3 text-sm text-muted">Logged in as</p>
         {/* React shows the email as plain text, so it can't be used to inject code. */}
         <p className="mt-1 break-all font-medium text-text">{user.email}</p>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-3">
+          {/* Next.js's Link switches pages without reloading the whole site. */}
+          <Link
+            href="/profile"
+            className="rounded-full bg-gold px-6 py-2.5 font-semibold text-bg transition-colors hover:bg-gold-bright"
+          >
+            Manage profile
+          </Link>
           <LogoutButton />
         </div>
       </section>

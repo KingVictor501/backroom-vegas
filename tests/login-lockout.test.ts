@@ -102,7 +102,7 @@ describe("lockout after 5 wrong passwords (login form)", () => {
     await failTimes(member.email, 6);
     await endTheWait();
     expect(await tryLogin(member.email, member.password)).toBe("LOGGED IN");
-    expect(await readSessionToken(cookieJar.get(SESSION_COOKIE_NAME)?.value)).toEqual({ userId: member.id });
+    expect(await readSessionToken(cookieJar.get(SESSION_COOKIE_NAME)?.value)).toMatchObject({ userId: member.id });
   });
 
   it("after the wait the count starts fresh (5 more wrong tries before the next lock)", async () => {
@@ -270,7 +270,7 @@ describe("POST /api/auth/login (the JSON route Postman uses)", () => {
     const body = await response.json();
     expect(body.user.email).toBe(member.email);
     expect(JSON.stringify(body)).not.toMatch(/passwordHash|\$2[aby]\$/);
-    expect(await readSessionToken(cookieJar.get(SESSION_COOKIE_NAME)?.value)).toEqual({ userId: member.id });
+    expect(await readSessionToken(cookieJar.get(SESSION_COOKIE_NAME)?.value)).toMatchObject({ userId: member.id });
   });
 
   it("401 with one vague message for a wrong password and for an unknown email", async () => {
