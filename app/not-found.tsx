@@ -12,7 +12,7 @@ import Link from "next/link";
 /* NotFound: a centered message with a gold button back to the Feed. */
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
+    <main className="flex min-h-[calc(100vh-var(--notice-h))] flex-col items-center justify-center px-4 text-center">
       <p className="font-display text-5xl text-gold">404</p>
       <h1 className="mt-4 text-2xl">We couldn&apos;t find that page</h1>
       <p className="mt-2 text-muted">

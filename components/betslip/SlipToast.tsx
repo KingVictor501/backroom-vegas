@@ -36,7 +36,7 @@ export default function SlipToast({
     <div
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-4 top-4 z-50 flex justify-center lg:left-64"
+      className="pointer-events-none fixed inset-x-4 top-[calc(var(--notice-h)+1rem)] z-50 flex justify-center lg:left-64"
     >
       {message && (
         <div

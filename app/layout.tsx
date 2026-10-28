@@ -1,6 +1,8 @@
 /*
   FILE: app/layout.tsx
   WHAT IT'S FOR: The "root layout", the outer frame around every page in the app.
+  It also draws the yellow site notice bar (components/SiteNotice.tsx) above every page,
+  including login and sign up, when config/siteNotice.ts has a notice.
   It sets up the <html> and <body> tags, loads the two fonts, and loads globals.css.
   WHO USES IT: Next.js wraps every page with this automatically, including the
   login pages and the app pages.
@@ -14,6 +16,9 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 // The shared colors and fonts from app/globals.css. Loading them here applies them to every page.
 import "./globals.css";
+// The yellow notice bar and its text setting (config/siteNotice.ts), shown on every page.
+import SiteNotice from "@/components/SiteNotice";
+import { SITE_NOTICE } from "@/config/siteNotice";
 
 /*
   The fancy heading font. Playfair Display is an elegant serif font with a
@@ -56,9 +61,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // lang="en" tells screen readers to read the page in English.
     <html
       lang="en"
+      // data-notice makes globals.css give the page room for the yellow notice bar (see components/SiteNotice.tsx).
+      data-notice={SITE_NOTICE === null ? undefined : ""}
       className={`${playfair.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      {/* pt-(--notice-h): start the page below the notice bar. */}
+      <body className="min-h-full pt-(--notice-h)">
+        <SiteNotice />
+        {children}
+      </body>
     </html>
   );
 }

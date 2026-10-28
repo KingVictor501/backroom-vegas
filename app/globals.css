@@ -53,6 +53,29 @@
   --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
+/*
+  --notice-h: how tall the yellow notice bar at the top is (components/SiteNotice.tsx).
+  It is 0 when there is no notice (data-notice is only set on <html> when there is one), so
+  the page uses no extra room. The bar is taller on phones because its text wraps onto more lines.
+  Everything fixed to the top of the screen (page, sidebar, slip panel, messages) starts below it.
+*/
+:root {
+  --notice-h: 0px;
+}
+html[data-notice] {
+  --notice-h: 4rem;
+}
+@media (min-width: 640px) {
+  html[data-notice] {
+    --notice-h: 3rem;
+  }
+}
+@media (min-width: 1024px) {
+  html[data-notice] {
+    --notice-h: 2.5rem;
+  }
+}
+
 /* The whole page: dark background, light text, readable font. */
 body {
   background: var(--color-bg);

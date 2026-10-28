@@ -73,7 +73,7 @@ export default function AppNav() {
     <nav
       aria-label="Main menu"
       className="fixed inset-x-4 bottom-4 z-40 rounded-3xl border border-line bg-card/95 shadow-lg shadow-black/50 backdrop-blur
-                 lg:inset-x-auto lg:bottom-0 lg:left-0 lg:top-0 lg:w-60 lg:rounded-none lg:border-y-0 lg:border-l-0 lg:shadow-none"
+                 lg:inset-x-auto lg:bottom-0 lg:left-0 lg:top-(--notice-h) lg:w-60 lg:rounded-none lg:border-y-0 lg:border-l-0 lg:shadow-none"
     >
       {/* The app name, only on the desktop sidebar. On phones each page shows it at the top instead. */}
       <p className="hidden px-6 pb-6 pt-8 font-display text-2xl text-gold lg:block">

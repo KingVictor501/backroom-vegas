@@ -31,7 +31,7 @@ export default function SlipPanel() {
   return (
     <aside
       aria-label="Your active bet slip"
-      className="fixed inset-y-0 right-0 z-30 hidden w-80 flex-col border-l border-line bg-card xl:flex"
+      className="fixed bottom-0 right-0 top-(--notice-h) z-30 hidden w-80 flex-col border-l border-line bg-card xl:flex"
     >
       <div className="border-b border-line px-5 pb-4 pt-8">
         <h2 className="text-xl text-gold">Your slip</h2>

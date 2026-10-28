@@ -48,7 +48,7 @@ export default async function MainLayout({ children }: LayoutProps<"/">) {
       <AppNav />
       <main
         id="main-content"
-        className="min-h-screen px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pl-66 lg:pr-10 xl:pr-86"
+        className="min-h-[calc(100vh-var(--notice-h))] px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pl-66 lg:pr-10 xl:pr-86"
       >
         {children}
       </main>
