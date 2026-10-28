@@ -40,6 +40,13 @@ export type LeagueConfig = {
   readonly espn: { readonly sport: string; readonly league: string };
   /** The small outlined bet-type buttons under the league tabs on the Feed. */
   readonly betTypes: readonly string[];
+  /**
+   * How the league splits a game, used for live scores ("Q3 7:32"). short is the label
+   * prefix ("Q" = quarter, "P" = period, "Inn" = inning) and regulation is how many there
+   * are before overtime. null for leagues with no timed periods, like fights (missing on
+   * purpose: the live score screens then use ESPN's own wording instead).
+   */
+  readonly periods: { readonly short: string; readonly regulation: number } | null;
 };
 
 /*
@@ -57,6 +64,7 @@ export const LEAGUES = [
     oddsApiSportKey: "americanfootball_nfl",
     espn: { sport: "football", league: "nfl" },
     betTypes: ["Game Lines", "Passing", "Rushing", "Receiving", "Touchdowns"],
+    periods: { short: "Q", regulation: 4 },
   },
   {
     slug: "nba",
@@ -67,6 +75,7 @@ export const LEAGUES = [
     oddsApiSportKey: "basketball_nba",
     espn: { sport: "basketball", league: "nba" },
     betTypes: ["Game Lines"],
+    periods: { short: "Q", regulation: 4 },
   },
   {
     slug: "nhl",
@@ -77,6 +86,7 @@ export const LEAGUES = [
     oddsApiSportKey: "icehockey_nhl",
     espn: { sport: "hockey", league: "nhl" },
     betTypes: ["Game Lines"],
+    periods: { short: "P", regulation: 3 },
   },
   {
     slug: "mlb",
@@ -87,6 +97,7 @@ export const LEAGUES = [
     oddsApiSportKey: "baseball_mlb",
     espn: { sport: "baseball", league: "mlb" },
     betTypes: ["Game Lines"],
+    periods: { short: "Inn", regulation: 9 },
   },
   {
     slug: "ncaaf",
@@ -97,6 +108,7 @@ export const LEAGUES = [
     oddsApiSportKey: "americanfootball_ncaaf",
     espn: { sport: "football", league: "college-football" },
     betTypes: ["Game Lines"],
+    periods: { short: "Q", regulation: 4 },
   },
   {
     slug: "ncaabb",
@@ -107,6 +119,7 @@ export const LEAGUES = [
     oddsApiSportKey: "basketball_ncaab",
     espn: { sport: "basketball", league: "mens-college-basketball" },
     betTypes: ["Game Lines"],
+    periods: { short: "H", regulation: 2 },
   },
   {
     slug: "wnba",
@@ -117,6 +130,7 @@ export const LEAGUES = [
     oddsApiSportKey: "basketball_wnba",
     espn: { sport: "basketball", league: "wnba" },
     betTypes: ["Game Lines"],
+    periods: { short: "Q", regulation: 4 },
   },
   /*
     UFC and Boxing: "coming soon" tabs for now. Their names in The Odds API and
@@ -131,6 +145,7 @@ export const LEAGUES = [
     oddsApiSportKey: "mma_mixed_martial_arts",
     espn: { sport: "mma", league: "ufc" },
     betTypes: ["Fight Lines"],
+    periods: null,
   },
   {
     slug: "boxing",
@@ -141,6 +156,7 @@ export const LEAGUES = [
     oddsApiSportKey: "boxing_boxing",
     espn: { sport: "boxing", league: "boxing" },
     betTypes: ["Fight Lines"],
+    periods: null,
   },
 ] as const satisfies readonly LeagueConfig[];
 

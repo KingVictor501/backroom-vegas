@@ -27,6 +27,10 @@ export const CACHE_SECONDS = {
   oddsEventMarkets: 60 * 60,
   /** ESPN games and scores. These change on game day, so 5 minutes. */
   espnScoreboard: 5 * 60,
+  /** ESPN live scores (the scoreboard, refreshed by the browser about every 30 seconds). 15 seconds. */
+  espnLive: 15,
+  /** ESPN one game's box score for live prop grading. 15 seconds. */
+  espnLiveBoxScore: 15,
   /** ESPN one game's details (win chance, venue, box score). 10 minutes. */
   espnGameSummary: 10 * 60,
   /** ESPN team list and logos. These barely change. 24 hours. */
