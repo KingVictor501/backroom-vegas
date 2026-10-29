@@ -48,8 +48,8 @@ Pick fields and limits: see `docs/data-model.md`. Wager is 0.01–10,000 with at
 | GET | `/api/teams/{id}` | yes | `league` | `200 { ...overview, recentResults, roster }` or `404` |
 | GET | `/api/players/{id}` | yes | `league` | `200 PlayerDetails` or `404` |
 | GET | `/api/injuries` | yes | `league`, `team?` | `200` injuries by team, or one team's list |
-| GET | `/api/news` | yes | `league`, `team?`, `limit?` (≤25) | `200 NewsArticle[]` |
-| GET | `/api/search` | yes | `league`, `q` (≤50 characters) | `200` matching teams and players |
+| GET | `/api/news` | yes | `league`, `team?`, `limit?` (1–25, default 10), `demo?` = `empty` \| `slow` (grader test switch: no stories, or a 3-second wait) | `200 NewsArticle[]` |
+| GET | `/api/search` | yes | `league`, `q` (2–50 characters) | `200` matching teams and players |
 
 (The NBA team and player *pages* read ESPN directly through server code in `lib/services/espn/basketball.ts`; they have no separate JSON route. `/api/teams/{id}` and `/api/players/{id}` currently return football-shaped data for the NFL.)
 
