@@ -53,7 +53,7 @@ export default function SlipToast({
             type="button"
             onClick={onDismiss}
             aria-label="Close message"
-            className="-m-1 rounded p-1 text-muted hover:text-text"
+            className="-my-3 -mr-2 flex min-h-11 min-w-11 items-center justify-center rounded text-muted hover:text-text"
           >
             ✕
           </button>
