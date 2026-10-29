@@ -12,7 +12,6 @@ erDiagram
   BETSLIP ||--o{ PICK : "contains (up to 25)"
   BETSLIP ||--o| COPYINFO : "copiedFrom"
   PICK ||--o| PICKREFRESH : "refresh"
-  ATTEMPTCOUNTER }o--|| USER : "keyed by email text, not an ID"
 
   USER {
     ObjectId _id
@@ -90,7 +89,7 @@ Indexes: `{userId, updatedAt: -1}` (list newest first) and `{userId, name}` uniq
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `id` | string | yes | max 300; unique inside the slip |
+| `id` | string | yes | max 300. Must be unique inside the slip: the API check (`lib/betting/validation.ts`) refuses duplicates, the database itself does not |
 | `gameId` | string | yes | ESPN game ID, max 100 |
 | `league` | string | yes | a slug from `config/leagues.ts` (`nfl`, `nba`, ...) |
 | `gameLabel` | string | yes | like "KC @ SEA", max 100 |
@@ -121,7 +120,7 @@ Indexes: `{userId, updatedAt: -1}` (list newest first) and `{userId, name}` uniq
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `_id` | ObjectId | auto | |
-| `code` | string | yes | unique, must match the code pattern (like `BRV-7K2M-Q9XD`) |
+| `code` | string | yes | unique. Pattern: `BRV-` + 4 characters + `-` + 4 characters, capitals only, using the letters and digits `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no 0, O, 1, I, or L). Like `BRV-7K2M-Q9XD` |
 | `maxUses` | number | yes | whole number, 1–1000 |
 | `usedCount` | number | yes | default 0. Goes up only when an account is created |
 | `expiresAt` | Date | no | `null` = never expires |
@@ -135,7 +134,7 @@ Powers login protection, the invite-code guess limit, and the profile page's cur
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `key` | string | yes | unique, max 200. A scrambled fingerprint (a keyed hash, `lib/security/keys.ts`) of what is being counted: a login email, an IP address, an invite-code guesser, or a profile password check. The raw email or IP is not stored |
+| `key` | string | yes | unique, max 200. A scrambled fingerprint (a keyed hash, `lib/security/keys.ts`), written `purpose:hash`, of what is being counted. Purposes in use: `login-email` (a login email), `profile-password` (a user ID on the Profile page), `login-address` (a login IP address), and `invite` (an invite-code guesser's IP address). The raw email or IP is not stored. It has no link to the User collection, so deleting an account does not delete these (they expire on their own) |
 | `count` | number | yes | default 0 |
 | `expiresAt` | Date | yes | MongoDB deletes the record automatically after this time (TTL index) |
 
