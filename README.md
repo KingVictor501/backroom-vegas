@@ -1,17 +1,25 @@
 # The Vegas Backroom
 
-An NFL odds comparison, news, and bet slip app with a high-end Las Vegas look.
-Compare live odds from **Hard Rock Bet and BetMGM**, read NFL news,
-look up team and player stats, and build bet slips: **Straight**, **Parlay**,
+An NFL and NBA odds comparison, news, and bet slip app with a high-end Las Vegas look.
+Compare live odds from **Hard Rock Bet and BetMGM**, read injuries and news,
+look up team and player stats, watch live scores, and build bet slips: **Straight**, **Parlay**,
 and **Same Game Parlay (SGP)**.
 
-**Live app: https://backroom-vegas.vercel.app** (sign up with any email that has a common ending, like .com, .org, or .edu; no verification email)
+**Live app: https://backroom-vegas.vercel.app**
 
-> **Reference tool only.** Nobody places real bets or spends money in this app.
+> **Reference tool only.** Nobody places real bets or spends money in this app. For adults 21 and over.
 
-## Why it's valuable
+### Grader access
 
-The Vegas Backroom puts everything you need to plan a football bet in one place, so you don't have to bounce between a betting app, a news site, and a stats site. The biggest difference is injuries. Most betting apps show you the odds but not who's hurt, and that matters a lot. For example, if a team's starting cornerback and safety are both out, the other team's best receiver is suddenly being covered by backups, and their quarterback has a much easier day throwing the ball, so bets on those two players having a big game start to look a lot better. In this app, both teams' injury reports sit right next to the odds, along with each player's recent games, news about that specific game, and prices from three different sportsbooks, and you can save your picks to a bet slip without ever leaving the app.
+The app starts with an **invite code** page, so you need a code before you can sign up (logging in does not need one).
+
+- **Grader invite code:** `PASTE-THE-GRADER-CODE-HERE` (replace this text with the real code before submitting; it is created in the live database, see `docs/qa-checklist.md`)
+- Then **sign up** with any email that has a common ending, like .com, .org, or .edu (no verification email is sent), and a password with at least 8 characters, a letter, and a number.
+- Please use a throwaway email. Deleting your account (Profile page) removes your data.
+
+## Value statement
+
+The Vegas Backroom will be a research tool for weekend sport bettors like me who want to check the facts before building a bet. Today, researching one bet means jumping between sportsbook sites for odds, news sites for injuries, stats sites for player trends, and a notes app to track picks. The app will put odds from multiple sportsbooks, injury news, stats, and live scores on one screen, and let users save bet slips that flag picks that can’t both win. The value is less time hunting across tabs, fewer mistakes on a slip, and an easy way to spot the best price. It’s a reference tool only; no real bets are placed.
 
 Applied AI capstone project. Built with Next.js (App Router), TypeScript,
 Tailwind CSS, and MongoDB Atlas, and hosted on Vercel.
@@ -22,14 +30,17 @@ Tailwind CSS, and MongoDB Atlas, and hosted on Vercel.
 
 | Page | What you can do |
 |---|---|
+| **Invite** (`/invite`) | The first page a new visitor sees. Enter an invite code to reach sign up. |
 | **Sign up / Log in** | Email and password only (no email verification). Emails must end in a common ending (.com, .org, .net, .edu, .gov, .mil, .io, .us, country endings like .uk or .ca, and a few more; the list is `EMAIL_ENDINGS` in `lib/auth/validation.ts`), which also catches typos like `.con`. You stay logged in for 7 days. Every page needs you to be logged in. |
-| **Feed** (`/`) | Search teams and players; league tabs (NFL works, the others say "Coming soon"); bet-type buttons; this week's and next week's games with **Spread / Total / Winner** odds buttons; filters (All, Today, This Week); and an **NFL news** box. |
+| **Feed** (`/`) | Search teams and players; league tabs (NFL and NBA work, the others say "Coming soon"); bet-type buttons; this week's and next week's games with **Spread / Total / Winner** odds buttons; filters (All, Today, This Week); and an **NFL news** box. |
 | **League** (`/league/nfl`) | Every upcoming NFL matchup, soonest first. |
 | **Matchup** (`/matchup/<id>`) | Both teams, records, date and time, an Odds / Insights switch (Insights is "coming soon"), **Build your own SGP**, and tabs: Game Lines (+ each team's chance of winning and both teams' injury reports), Player Props, Team Props, Halves, Quarters, D/ST, and Game Specials. Plus news about the matchup. |
-| **Team** (`/team/<id>`) | Record, standing, season stats, last 5 games with stats, key players' last 5 games (collapsible), injuries, and team news. |
+| **Team** (`/team/<id>`) | Record, standing, season stats, last 5 games with stats, the remaining schedule (collapsible, closed at first), key players' last 5 games (collapsible), injuries, and team news. NBA teams: add `?league=nba`. |
 | **Player** (`/player/<id>`) | Photo, position, team, injury status, season stats, last 10 games with averages, news, and the next game's live props. |
-| **Bet Slips** (`/betslips`) | All your slips with search and a type filter; **New slip**; each slip's page to rename it, remove picks, set it as your active slip, or delete it. |
+| **Bet Slips** (`/betslips`) | All your slips with search and a type filter; **New slip**; each slip's page to rename it, remove picks, set a pretend **wager** and see the **estimated payout**, **copy** it, set it as your active slip, or delete it. |
+| **Profile** (`/profile`) | Change your email, change your password, or delete your account. Each needs your current password. |
 | **Settings** (`/settings`) | Pick your sportsbook (the odds everywhere switch to it); log out. |
+| **Privacy and Terms** (`/privacy`, `/terms`) | Template pages (not legal advice), linked from the footer with the responsible-gambling help line. |
 
 **Bet slip rules.** Your first tap on any odds starts a slip. Tapping a gold
 (selected) price again removes it. Picks that can't go together (both sides of
@@ -43,22 +54,20 @@ itself and checks the same rules, so they can't be faked.
 
 ## How the app connects to the APIs
 
-> **Diagrams:** see [`docs/week6-capstone-diagrams.md`](docs/week6-capstone-diagrams.md)
-> for the database model (users, bet slips, picks) and a diagram of where the
-> data comes from. Picture versions: `docs/week6-capstone-database-diagram.png`
-> and `docs/week6-capstone-data-sources-diagram.png`.
+> **Diagrams:** see [`docs/system-diagram.md`](docs/system-diagram.md) for the picture of how the browser, the guard (`proxy.ts`), the app, the database, and the outside APIs connect, and [`docs/data-model.md`](docs/data-model.md) for the database.
 
 ```
-Your browser ──► The Vegas Backroom server (Next.js on Vercel) ──► ESPN (stats, news, injuries, logos)
-                 · pages built on the server                    ──► The Odds API (live odds and props)
-                 · API routes in app/api                        ──► MongoDB Atlas (users and bet slips)
-                 · Server Actions (login, sign up, settings)
+Your browser ──► The Vegas Backroom server (Next.js on Vercel) ──► ESPN (stats, news, injuries, logos, live scores)
+                 · proxy.ts (the guard)                         ──► The Odds API (live odds and props)
+                 · pages built on the server                    ──► MongoDB Atlas (users, bet slips, invite codes)
+                 · API routes in app/api
+                 · Server Actions (login, sign up, profile, settings)
 ```
 
 - **The browser never talks to an outside API directly.** Every request to ESPN, The Odds API, or MongoDB happens on the server, so the API keys never reach the browser.
 - **ESPN** (its public, unofficial API; no key): games, scores, team and player stats, injuries, news, and logos. Stats only: the app never reads ESPN's betting lines and never shows old (historical) odds.
 - **The Odds API** (`ODDS_API_KEY`): live game lines and props for Hard Rock Bet (`hardrockbet`), and BetMGM (`betmgm`). Games are matched between ESPN and The Odds API by team names and kickoff time.
-- **Saving credits:** answers are cached (saved for a while) on the server. Game lines for every game cost 3 credits per hour. Props, halves, and the other tabs only load when someone opens them, and are saved for 60 minutes.
+- **Saving credits:** answers are cached (saved for a while) on the server. Game lines for every game cost 3 credits per refresh and are saved for 6 hours. Props, halves, and the other tabs only load when someone opens them. Live scores come from ESPN, not The Odds API, so they cost no credits.
 - **Schema checks:** every outside answer is checked with zod before it's used, so an unexpected change shows a friendly message instead of crashing.
 
 ---
@@ -86,10 +95,13 @@ Other commands:
 | Command | What it does |
 |---|---|
 | `npm run dev` | Runs the app at http://localhost:3000 |
-| `npm test` | Runs the automatic tests (Vitest): bet slip conflict rules, SGP rules, parlay math, odds → picks, game times, the after-login redirect guard, and the path traversal lock |
+| `npm test` | Runs all 639 automatic tests (Vitest) on a throwaway in-memory database |
 | `npm run typecheck` | Checks every TypeScript type |
 | `npm run lint` | Checks the code style and React rules |
 | `npm run build` | Builds the app the way Vercel does |
+| `npm run invite:create -- --db <name>` | Makes an invite code in the database you name (see the script's help for uses and expiry) |
+| `npm run invite:check -- --db <name>` | Checks an invite code without printing it (read-only) |
+| `npm run pentest -- --base <address> --db <name>-dev` | Runs the 101 attack checks from `docs/penetration-test.md` against a running copy of the app (dev database only) |
 
 ### Environment variables
 
@@ -98,15 +110,57 @@ These go in `.env.local` on your computer (never committed to GitHub; `.gitignor
 | Name | What it's for |
 |---|---|
 | `MONGODB_URI` | Your MongoDB Atlas connection string |
-| `MONGODB_DB` | The database name (`backroom-vegas`) |
+| `MONGODB_DB` | The database name. `backroom-vegas` for the live site (Vercel **Production** only), `backroom-vegas-dev` for Preview and your computer. If it is missing outside the live site, the app refuses to start instead of guessing. |
 | `AUTH_SECRET` | A long random secret (32+ characters) that signs the login cookie |
 | `APP_URL` | The app's own address (`http://localhost:3000` locally, your live URL on Vercel) |
 | `ALLOWED_ORIGINS` | The websites allowed to call the API from a browser (CORS), comma-separated. Your own address. Never `*`. |
 | `ODDS_API_KEY` | Your The Odds API key |
+| `SAMPLE_ODDS` | Optional, `true` on your computer only: uses saved sample odds so no credits are spent |
+| `DUMMY_ODDS` | Optional, `true` in Vercel **Preview** only: shows clearly labeled practice odds. The live site ignores it. |
 
 None of these start with `NEXT_PUBLIC_`, so Next.js never sends them to the browser.
 
 **On Vercel**, also allow Vercel to reach your database: in MongoDB Atlas → Network Access, add `0.0.0.0/0` (Vercel's addresses change).
+
+---
+
+## What's new in Week 7
+
+- **Invite codes.** A new visitor must enter a valid code before reaching sign up. Codes are hard to guess, counted only when an account is created, and limited to a few wrong tries in a row.
+- **Login protection.** After 5 wrong passwords for an email (or 20 for a network address), login waits 15 minutes. Counts are saved in the database, and the message is the same whether or not the account exists.
+- **Profile page.** Change email, change password (this logs out other devices), or delete the account and all its slips.
+- **Copy a slip.** Starts a new slip from an old one. Picks for games that already started are skipped (and you are told), odds are refreshed to your sportsbook's current lines, and the copy becomes your active slip.
+- **Estimated payout.** A pretend wager (default $10, from $0.01 to $10,000) shows profit and total return from each pick's saved odds. Parlay and SGP odds are multiplied, and SGPs are labeled "Estimated".
+- **Live scores.** Score, quarter, and clock on game cards, matchup pages, and slips, refreshed about every 30 seconds while a game is on. Each pick shows Winning, Losing, Push, or Pending. If scores can't load, the last score stays with a "Scores delayed" note.
+- **NBA.** Odds, matchup, team, and player pages work for the NBA as well as the NFL. Matchups also show a collapsible box of live or final game stats.
+- **Product basics.** A "for reference only" notice, a 21+ notice, a responsible-gambling link (1-800-GAMBLER), and template Privacy and Terms pages.
+- **Security hardening.** A Content-Security-Policy, size limits on every request, safe logging, a lockout, and a full audit and penetration test (see below).
+- **Automated tests.** `npm test` runs 639 tests: conflict rules, parlay and payout math, auth, invite codes, lockout, profile, slip CRUD and ownership, live-score grading, and the attack tests.
+
+### How to run the tests
+
+```bash
+npm test            # all 639 tests, about 15 seconds, on a throwaway in-memory database
+npm run typecheck   # TypeScript
+npm run lint        # code style
+npm run build       # the same build Vercel does
+```
+
+The tests never touch `backroom-vegas-dev` or the live database.
+
+### Documentation (the `docs` folder)
+
+| Document | What it covers |
+|---|---|
+| [`docs/value-statement.md`](docs/value-statement.md) | What the app does, who it's for, the problem, and the value |
+| [`docs/system-diagram.md`](docs/system-diagram.md) | How the browser, guard, app, database, and outside APIs connect |
+| [`docs/data-model.md`](docs/data-model.md) | Every database collection, field, and relationship |
+| [`docs/api-design.md`](docs/api-design.md) | Every API route and Server Action: method, address, body, response, and whether login is needed |
+| [`docs/component-tree.md`](docs/component-tree.md) | The page and component hierarchy, where state lives, and where data is fetched |
+| [`docs/security-audit.md`](docs/security-audit.md) | The pre-ship security checklist, checked against the code |
+| [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results |
+| [`docs/security-review.md`](docs/security-review.md) | What I checked, what I tried to break, what I found and fixed, and the risks that remain |
+| [`docs/qa-checklist.md`](docs/qa-checklist.md) | The manual walk-through of the whole app on a phone and a computer |
 
 ---
 
@@ -119,6 +173,8 @@ In the `postman/` folder. Drag each file onto the Postman window to import it.
 | `external-apis.postman_collection.json` | The outside APIs the app uses: The Odds API (events, game lines, markets, props, halves) and ESPN (scoreboard, teams, rosters, injuries, news, game summaries, players). Uses an `{{odds_api_key}}` variable you set in your own Postman environment. |
 | `internal-routes.postman_collection.json` | The app's own API routes: games, one game, props, teams, injuries, news, search, and players. Includes "not found", "bad input", "logged out", and CORS tests. |
 | `betslips.postman_collection.json` | The bet slip API: create, list, get, rename, change picks, and delete, plus conflict and SGP checks and the active slip. Each request checks its own result (see the Test Results tab). |
+| `login-lockout.postman_collection.json` | The login lockout: 5 wrong passwords, then `429` for 15 minutes even with the right password. Use `login-lockout.postman_environment.json`. |
+| `penetration-test.postman_collection.json` | The five attacks (no token, tampered token, another user's data, bad input, oversized requests). Fill `emailA`, `emailB`, and `password` with two throwaway dev accounts. Never run it against the live site. |
 | `internal-local.postman_environment.json` | The settings the two internal collections use: `baseUrl` and an **empty** `session_cookie`. |
 
 **Staying logged in for the internal collections:** log in to the app in your
