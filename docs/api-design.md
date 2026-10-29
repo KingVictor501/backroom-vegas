@@ -72,6 +72,20 @@ These are called by forms in the browser, run on the server, validate everything
 
 Public: `/invite`, `/login`, `/signup` (needs invite cookie), `/privacy`, `/terms`. Protected (logged-out visitors are redirected to `/login`): `/` (Feed), `/league/{league}`, `/matchup/{gameId}?league=`, `/team/{teamId}?league=`, `/player/{playerId}?league=`, `/betslips`, `/betslips/new`, `/betslips/{id}`, `/profile`, `/settings`.
 
+## Auth round trip
+
+What happens when a visitor meets a protected route, and where a new signup lands. `proxy.ts` runs first on every request; the real checks sit next to the data (`lib/auth/dal.ts` for pages, `withUser` for API routes).
+
+| Visitor does this | What happens |
+|---|---|
+| Logged out, opens a **protected page** (for example `/betslips`) | `proxy.ts` redirects to `/login?next=/betslips`. After logging in, they land back on `/betslips`. For `/` there is no `next`, so they land on the Feed. |
+| Logged out, calls a **protected API route** (for example `GET /api/betslips`) | `401` JSON error `{ "error": { "code": "unauthorized", ... } }`, not a redirect |
+| Logged out, opens `/signup` **without an invite cookie** | Redirected to `/invite` first (the `next` address is kept) |
+| **Signs up** with a valid invite | The account is created, the `bv_session` cookie is set, and they land on the **Feed (`/`)**, or on the `next` page if there was one |
+| **Logs in** with the right password | The `bv_session` cookie is set and they land on the Feed (or the `next` page) |
+| Logged in, opens `/login`, `/signup`, or `/invite` | Redirected to the Feed |
+| Has a bad, edited, or expired `bv_session` cookie | Treated as logged out (same as the first two rows) |
+
 ## Testing every route in Postman
 
 Import `docs/backroom-vegas.postman_collection.json` (Postman → Import → drag the file in). Set the collection variable `baseUrl` (default `http://localhost:3000`) and run **Login** first. Use a throwaway account on the dev database, never the live one.
