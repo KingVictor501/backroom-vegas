@@ -18,12 +18,12 @@ import type { Game } from "@/types";
 
 /*
   StatsShell: the box and heading around the section. It is a collapsible box (the browser's built-in <details>),
-  open at first; tap the heading to close or open it. It works with a keyboard (Tab, then Enter or Space) and
+  closed at first; tap the heading to open or close it. It works with a keyboard (Tab, then Enter or Space) and
   with JavaScript off. The 30-second refresh keeps whatever you chose.
 */
 function StatsShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details open className="group rounded-2xl border border-line bg-card">
+    <details className="group rounded-2xl border border-line bg-card">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <h2 className="font-display text-lg text-text">{title}</h2>
         <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="currentColor">
