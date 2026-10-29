@@ -13,6 +13,8 @@
 */
 
 import "server-only";
+// getLeague from config/leagues.ts: whether this league has betting features built yet.
+import { getLeague } from "@/config/leagues";
 import { getGameSummary, getUpcomingGames, getWeekGames, type GameSummary } from "@/lib/services/espn/games";
 import { getLeagueGameLines, toGameLines } from "@/lib/services/odds/lines";
 import { findOddsEvent, teamIdLookup } from "@/lib/services/odds/match";
@@ -24,6 +26,9 @@ import type { Game, GameWithLines, LeagueSlug, SportsbookId } from "@/types";
   (missing on purpose: the games still show, with dashes for odds).
 */
 async function safeGameLines(leagueSlug: LeagueSlug): Promise<OddsEvent[] | null> {
+  // A scores-only league (config/leagues.ts: bettingEnabled false) never asks The Odds API, so it uses no credits.
+  // An empty list means "no odds for any game", which is different from null ("the odds service failed").
+  if (getLeague(leagueSlug)?.bettingEnabled !== true) return [];
   try {
     return await getLeagueGameLines(leagueSlug);
   } catch (error) {

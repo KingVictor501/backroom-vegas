@@ -235,7 +235,7 @@ describe("GET /api/live", () => {
     ["too many games", `?games=${Array.from({ length: 26 }, (_, i) => i + 1).join(",")}`],
     ["a huge list", `?games=${"1,".repeat(400)}`],
     ["a bad stats flag", "?games=1&stats=maybe"],
-    ["a league that is turned off", "?games=1&league=nba"],
+    ["a league that is turned off", "?games=1&league=nhl"],
     ["a made-up league", "?games=1&league=../x"],
   ])("refuses %s with a 400 and never asks ESPN", async (_name, query) => {
     const response = await call(query);

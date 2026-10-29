@@ -51,6 +51,7 @@ export default async function LeagueGames({ league, user }: { league: LeagueConf
       sportsbook={user.preferredSportsbook}
       sportsbookName={SPORTSBOOKS[user.preferredSportsbook].name}
       oddsUnavailable={data.oddsUnavailable}
+      scoresOnly={!league.bettingEnabled}
     />
   );
 }

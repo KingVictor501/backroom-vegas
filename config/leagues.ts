@@ -1,7 +1,7 @@
 /*
   FILE: config/leagues.ts
   WHAT IT'S FOR: The one place that lists every league the app knows about and
-  whether it's turned on. To add the NBA later, flip "enabled" to true here
+  whether it's turned on. To add a league, flip "enabled" to true here (the NBA is on, scores only)
   (and add its data code) instead of rewriting pages.
   WHO USES IT: app/(main)/league/[league]/page.tsx uses it now to check that a
   league in the address bar is real. Later the Feed's league tabs and the
@@ -23,6 +23,12 @@ export type LeagueConfig = {
   readonly fullName: string;
   /** true = the tab works. false = grayed out with a "Coming soon" tooltip. */
   readonly enabled: boolean;
+  /**
+   * true = the betting parts are built for this league: odds, the matchup, team and player pages,
+   * and picks on bet slips. false = the league shows schedules and live scores only (no odds, no picks,
+   * and its cards don't link to pages that only know football). Turn this on once those parts exist.
+   */
+  readonly bettingEnabled: boolean;
   /**
    * A small picture for the tab. It's an emoji for now so we don't need image files.
    * The tab will hide it from screen readers, because the label already says the league name.
@@ -60,6 +66,7 @@ export const LEAGUES = [
     label: "NFL",
     fullName: "National Football League",
     enabled: true,
+    bettingEnabled: true,
     icon: "🏈",
     oddsApiSportKey: "americanfootball_nfl",
     espn: { sport: "football", league: "nfl" },
@@ -70,7 +77,9 @@ export const LEAGUES = [
     slug: "nba",
     label: "NBA",
     fullName: "National Basketball Association",
-    enabled: false,
+    enabled: true,
+    // Scores and schedule only for now: no odds, matchup, team, or player pages yet.
+    bettingEnabled: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_nba",
     espn: { sport: "basketball", league: "nba" },
@@ -82,6 +91,7 @@ export const LEAGUES = [
     label: "NHL",
     fullName: "National Hockey League",
     enabled: false,
+    bettingEnabled: false,
     icon: "🏒",
     oddsApiSportKey: "icehockey_nhl",
     espn: { sport: "hockey", league: "nhl" },
@@ -93,6 +103,7 @@ export const LEAGUES = [
     label: "MLB",
     fullName: "Major League Baseball",
     enabled: false,
+    bettingEnabled: false,
     icon: "⚾",
     oddsApiSportKey: "baseball_mlb",
     espn: { sport: "baseball", league: "mlb" },
@@ -104,6 +115,7 @@ export const LEAGUES = [
     label: "NCAAF",
     fullName: "NCAA Football",
     enabled: false,
+    bettingEnabled: false,
     icon: "🏈",
     oddsApiSportKey: "americanfootball_ncaaf",
     espn: { sport: "football", league: "college-football" },
@@ -115,6 +127,7 @@ export const LEAGUES = [
     label: "NCAABB",
     fullName: "NCAA Men's Basketball",
     enabled: false,
+    bettingEnabled: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_ncaab",
     espn: { sport: "basketball", league: "mens-college-basketball" },
@@ -126,6 +139,7 @@ export const LEAGUES = [
     label: "WNBA",
     fullName: "Women's National Basketball Association",
     enabled: false,
+    bettingEnabled: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_wnba",
     espn: { sport: "basketball", league: "wnba" },
@@ -141,6 +155,7 @@ export const LEAGUES = [
     label: "UFC",
     fullName: "Ultimate Fighting Championship",
     enabled: false,
+    bettingEnabled: false,
     icon: "🥋",
     oddsApiSportKey: "mma_mixed_martial_arts",
     espn: { sport: "mma", league: "ufc" },
@@ -152,6 +167,7 @@ export const LEAGUES = [
     label: "Boxing",
     fullName: "Boxing",
     enabled: false,
+    bettingEnabled: false,
     icon: "🥊",
     oddsApiSportKey: "boxing_boxing",
     espn: { sport: "boxing", league: "boxing" },

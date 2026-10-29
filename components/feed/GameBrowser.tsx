@@ -57,6 +57,7 @@ function toSlug(label: string): string {
   - thisWeekGameIds: which of them are this week's (for "This Week")
   - sportsbook / sportsbookName: the user's book (from Settings)
   - oddsUnavailable: true if The Odds API couldn't be reached
+  - scoresOnly: true for a league with schedules and live scores but no betting features yet (like the NBA)
 */
 export default function GameBrowser({
   leagueSlug,
@@ -67,6 +68,7 @@ export default function GameBrowser({
   sportsbook,
   sportsbookName,
   oddsUnavailable,
+  scoresOnly,
 }: {
   leagueSlug: string;
   leagueLabel: string;
@@ -76,6 +78,7 @@ export default function GameBrowser({
   sportsbook: SportsbookId;
   sportsbookName: string;
   oddsUnavailable: boolean;
+  scoresOnly: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
@@ -130,13 +133,22 @@ export default function GameBrowser({
             </button>
           ))}
         </div>
-        <p className="text-xs text-muted">
-          Odds from <span className="font-semibold text-text">{sportsbookName}</span> ·{" "}
-          <Link href="/settings" className="text-gold underline-offset-4 hover:underline">
-            Change
-          </Link>
-        </p>
+        {!scoresOnly && (
+          <p className="text-xs text-muted">
+            Odds from <span className="font-semibold text-text">{sportsbookName}</span> ·{" "}
+            <Link href="/settings" className="text-gold underline-offset-4 hover:underline">
+              Change
+            </Link>
+          </p>
+        )}
       </div>
+
+      {/* A scores-only league (the NBA): say so plainly instead of showing empty odds. */}
+      {scoresOnly && (
+        <p role="status" className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
+          {leagueLabel} odds and betting are coming soon. For now you can follow today&apos;s games and live scores.
+        </p>
+      )}
 
       {propsLink && (
         <p className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
@@ -145,7 +157,7 @@ export default function GameBrowser({
       )}
 
       {/* The chosen book has no odds on ANY game (Caesars did this in Section 5), so say so instead of showing only dashes. */}
-      {!oddsUnavailable && games.length > 0 && games.every((game) => game.lines === null) && (
+      {!scoresOnly && !oddsUnavailable && games.length > 0 && games.every((game) => game.lines === null) && (
         <p role="status" className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
           {sportsbookName} hasn&apos;t posted odds for these games yet.{" "}
           <Link href="/settings" className="font-semibold text-gold underline-offset-4 hover:underline">
@@ -172,7 +184,7 @@ export default function GameBrowser({
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {shown.map((game) => (
             <li key={game.id}>
-              <GameCard game={game} sportsbook={sportsbook} propsLink={propsLink} live={live.get(game.id)} />
+              <GameCard game={game} sportsbook={sportsbook} propsLink={propsLink} live={live.get(game.id)} scoresOnly={scoresOnly} />
             </li>
           ))}
         </ul>

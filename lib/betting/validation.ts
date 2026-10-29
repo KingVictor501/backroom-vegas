@@ -37,8 +37,8 @@ import {
   type LeagueSlug,
 } from "@/types";
 
-/* ENABLED_LEAGUES: the slugs of leagues that are turned on (just "nfl" for now). */
-const ENABLED_LEAGUES = LEAGUES.filter((l) => l.enabled).map((l) => l.slug);
+/* ENABLED_LEAGUES: the leagues whose games can be picked on a slip (just "nfl" for now). Scores-only leagues are left out. */
+const ENABLED_LEAGUES = LEAGUES.filter((l) => l.enabled && l.bettingEnabled).map((l) => l.slug);
 
 /*
   dateTimeText: a date and time written as text, like "2026-10-26T00:20Z".

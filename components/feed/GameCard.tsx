@@ -14,6 +14,7 @@
   WHY THIS NAME: It's a card for one game. It ends in .tsx because it shows something on screen.
 */
 
+import Image from "next/image";
 import Link from "next/link";
 // The SGP link from Section 8 (components/betslip).
 import StartSgpButton from "@/components/betslip/StartSgpButton";
@@ -25,9 +26,31 @@ import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
 import LiveScoreLine from "@/components/live/LiveScoreLine";
 import { liveView } from "@/components/live/liveView";
 // The shared types for a game with odds and a sportsbook.
-import type { GameWithLines, LiveGame, SportsbookId } from "@/types";
+import type { GameWithLines, LiveGame, SportsbookId, TeamSummary } from "@/types";
 // The Spread / Total / Winner table, from the file next to this one.
 import GameLinesTable from "./GameLinesTable";
+
+/*
+  ScoreTeamRow: one team on a scores-only card (a league with no betting features yet): logo, name,
+  record, and the score once the game has started. No links, because the team and matchup pages only
+  know football so far.
+*/
+function ScoreTeamRow({ team, score }: { team: TeamSummary; score: number | null }) {
+  return (
+    <li className="flex items-center gap-3">
+      {team.logoUrl ? (
+        <Image src={team.logoUrl} alt="" width={40} height={40} className="size-10 shrink-0" />
+      ) : (
+        <span aria-hidden className="size-10 shrink-0 rounded-full bg-card-raised" />
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold text-text">{team.displayName}</span>
+        <span className="block text-xs tabular-nums text-muted">{team.record ?? ""}</span>
+      </span>
+      {score !== null && <span className="text-2xl font-semibold tabular-nums text-text">{score}</span>}
+    </li>
+  );
+}
 
 /*
   PropsLink: when a bet type other than Game Lines is picked, which one.
@@ -46,16 +69,35 @@ export default function GameCard({
   sportsbook,
   propsLink,
   live,
+  scoresOnly = false,
 }: {
   game: GameWithLines;
   sportsbook: SportsbookId;
   propsLink: PropsLink | null;
   /** The latest live information for this game, if the browser has fetched any. */
   live?: LiveGame;
+  /** true for a league with schedules and live scores only (no betting pages yet): no links, no odds. */
+  scoresOnly?: boolean;
 }) {
   const label = gameLabel(game);
   const status = liveView(game, live).status;
   const headingId = `game-${game.id}`;
+
+  if (scoresOnly) {
+    const view = liveView(game, live);
+    return (
+      <article aria-labelledby={headingId} className="rounded-2xl border border-line bg-card p-4">
+        <h3 id={headingId} className="font-sans text-xs font-medium text-gold" suppressHydrationWarning>
+          <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
+          {status === "scheduled" ? `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}` : <LiveScoreLine game={game} live={live} />}
+        </h3>
+        <ul className="mt-3 space-y-3">
+          <ScoreTeamRow team={game.awayTeam} score={view.awayScore} />
+          <ScoreTeamRow team={game.homeTeam} score={view.homeScore} />
+        </ul>
+      </article>
+    );
+  }
 
   return (
     // relative: the matchup link below stretches over this whole card.
