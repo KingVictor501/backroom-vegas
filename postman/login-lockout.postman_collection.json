@@ -1,23 +1,45 @@
 {
   "info": {
-    "name": "Vegas Backroom \u2013 Login Lockout (Section 4)",
-    "description": "FILE: postman/login-lockout.postman_collection.json\nWHAT IT IS FOR: Tests the login lockout through POST /api/auth/login. Run folder 1 top to bottom: five wrong passwords get 401, the sixth gets 429 with a Retry-After header, and even the right password is refused. Folder 2 sends bad input. Folder 3 is a normal login.\nHOW TO USE: Import this file AND postman/login-lockout.postman_environment.json, pick that environment, and fill in the four variables (use a THROWAWAY account in the dev database, never a real one; do not paste passwords into chat). To run folder 1 again, wait 15 minutes or use a different lockout_email.\nIMPORTANT: use the dev database / local server, or the week-7 preview. Never the live site.\nWHO USES IT: You, for testing. The app does not read this file.\nWHY THIS NAME: .postman_collection.json is the ending Postman uses for collections.",
+    "name": "Login lockout (Section 4)",
+    "description": "Proves the lockout: 5 wrong passwords, then 429 for 15 minutes, even with the right password, and the same for emails that have no account. Run with the Collection Runner (Run collection) in order, once. Use a THROWAWAY account on the dev database, because the real account is locked for 15 minutes afterward.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "realEmail",
+      "value": "throwaway@example.com"
+    },
+    {
+      "key": "realPassword",
+      "value": "ChangeMe123"
+    },
+    {
+      "key": "wrongPassword",
+      "value": "definitely-wrong-1"
+    },
+    {
+      "key": "fakeEmail",
+      "value": "nobody-has-this@example.com"
+    }
+  ],
   "item": [
     {
-      "name": "1 \u2013 Lockout (run in order)",
+      "name": "1. Real account",
       "item": [
         {
-          "name": "1. Wrong password (try 1)",
+          "name": "Wrong password #1",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -30,24 +52,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 401 'Invalid email or password.' (wrong try number 1 of 5).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A wrong password. Counts as a failed try."
           }
         },
         {
-          "name": "2. Wrong password (try 2)",
+          "name": "Wrong password #2",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -60,24 +97,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 401 'Invalid email or password.' (wrong try number 2 of 5).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A wrong password. Counts as a failed try."
           }
         },
         {
-          "name": "3. Wrong password (try 3)",
+          "name": "Wrong password #3",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -90,24 +142,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 401 'Invalid email or password.' (wrong try number 3 of 5).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A wrong password. Counts as a failed try."
           }
         },
         {
-          "name": "4. Wrong password (try 4)",
+          "name": "Wrong password #4",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -120,24 +187,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 401 'Invalid email or password.' (wrong try number 4 of 5).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A wrong password. Counts as a failed try."
           }
         },
         {
-          "name": "5. Wrong password (try 5)",
+          "name": "Wrong password #5",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 401\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"One vague message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Invalid email or password.\"));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -150,25 +232,41 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 401 'Invalid email or password.' (wrong try number 5 of 5).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "A wrong password. Counts as a failed try."
           }
         },
         {
-          "name": "6. Wrong password (try 6): LOCKED",
+          "name": "Wrong password #6 (locked)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 429\", () => pm.response.to.have.status(429));",
-                  "pm.test(\"Lockout message\", () => pm.expect(pm.response.json().error.message).to.eql(\"Too many attempts. Try again in a few minutes.\"));",
-                  "pm.test(\"Retry-After is about 15 minutes\", () => { const s = Number(pm.response.headers.get(\"Retry-After\")); pm.expect(s).to.be.within(840, 900); });"
+                  "pm.test('Status is 429', function () { pm.response.to.have.status(429); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });",
+                  "pm.test('Has a Retry-After header', function () { pm.expect(pm.response.headers.has('Retry-After')).to.eql(true); });",
+                  "pm.test('Message says to wait', function () { pm.expect(pm.response.json().error.message).to.include('Too many attempts'); });"
                 ]
               }
             }
@@ -181,24 +279,41 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 429 and a Retry-After header (seconds to wait).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"definitely-Wrong-1\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "The 6th try. Now you are locked out for 15 minutes."
           }
         },
         {
-          "name": "7. RIGHT password during the lockout: still refused",
+          "name": "RIGHT password during lockout (still refused)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 429 even with the right password\", () => pm.response.to.have.status(429));",
-                  "pm.test(\"No login cookie was set\", () => pm.expect(pm.cookies.has(\"bv_session\")).to.be.false);"
+                  "pm.test('Status is 429', function () { pm.response.to.have.status(429); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });",
+                  "pm.test('Has a Retry-After header', function () { pm.expect(pm.response.headers.has('Retry-After')).to.eql(true); });",
+                  "pm.test('Message says to wait', function () { pm.expect(pm.response.json().error.message).to.include('Too many attempts'); });"
                 ]
               }
             }
@@ -211,28 +326,44 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Needs lockout_password set to the account's real password. Expect 429 and NO Set-Cookie.",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{lockout_email}}\",\"password\":\"{{lockout_password}}\"}"
-            }
+              "raw": "{\n  \"email\": \"{{realEmail}}\",\n  \"password\": \"{{realPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Even the correct password is refused while locked out."
           }
         }
       ]
     },
     {
-      "name": "2 \u2013 Bad input",
+      "name": "2. Email with no account",
       "item": [
         {
-          "name": "8. Bad input: empty object",
+          "name": "Unknown email, wrong password #1",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"400\", () => pm.response.to.have.status(400));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -245,23 +376,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 400. Does not count as a try.",
             "body": {
               "mode": "raw",
-              "raw": "{}"
-            }
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "An email with no account. Counted exactly the same, so the lockout never reveals which emails have accounts."
           }
         },
         {
-          "name": "9. Injection: {\"$gt\":\"\"} as email and password",
+          "name": "Unknown email, wrong password #2",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"400\", () => pm.response.to.have.status(400));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -274,23 +421,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 400. MongoDB-style injection never reaches the database.",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":{\"$gt\":\"\"},\"password\":{\"$gt\":\"\"}}"
-            }
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "An email with no account. Counted exactly the same, so the lockout never reveals which emails have accounts."
           }
         },
         {
-          "name": "10. Not marked as JSON",
+          "name": "Unknown email, wrong password #3",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"415\", () => pm.response.to.have.status(415));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -300,26 +463,42 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "text/plain"
+                "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 415.",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"a@b.com\",\"password\":\"x\"}"
-            }
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "An email with no account. Counted exactly the same, so the lockout never reveals which emails have accounts."
           }
         },
         {
-          "name": "11. Huge body (replace the long text first)",
+          "name": "Unknown email, wrong password #4",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"400 or 413, not a crash\", () => pm.expect([400,413]).to.include(pm.response.code));"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -332,30 +511,39 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 400 (password over 128 characters). To try 413, paste over 100,000 characters.",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"a@b.com\",\"password\":\"PASTE_A_VERY_LONG_TEXT_HERE\"}"
-            }
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "An email with no account. Counted exactly the same, so the lockout never reveals which emails have accounts."
           }
-        }
-      ]
-    },
-    {
-      "name": "3 \u2013 Good login",
-      "item": [
+        },
         {
-          "name": "12. Good login (a fresh account that is NOT locked)",
+          "name": "Unknown email, wrong password #5",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"No password hash in the answer\", () => pm.expect(pm.response.text()).to.not.match(/passwordHash|\\$2[aby]\\$/));",
-                  "pm.test(\"Cookie set\", () => pm.expect(pm.cookies.has(\"bv_session\")).to.be.true);"
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });"
                 ]
               }
             }
@@ -368,12 +556,74 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "description": "Expect 200 and a bv_session cookie (Postman keeps it).",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{good_email}}\",\"password\":\"{{good_password}}\"}"
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "An email with no account. Counted exactly the same, so the lockout never reveals which emails have accounts."
+          }
+        },
+        {
+          "name": "Unknown email #6 (locked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 429', function () { pm.response.to.have.status(429); });",
+                  "pm.test('Never contains a password hash', function () { pm.expect(pm.response.text()).to.not.include('passwordHash'); });",
+                  "pm.test('Has a Retry-After header', function () { pm.expect(pm.response.headers.has('Retry-After')).to.eql(true); });",
+                  "pm.test('Message says to wait', function () { pm.expect(pm.response.json().error.message).to.include('Too many attempts'); });"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{fakeEmail}}\",\n  \"password\": \"{{wrongPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Locks out the same way as a real account."
           }
         }
       ]
