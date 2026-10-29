@@ -234,6 +234,11 @@ Here's how none of it can ever run as code:
 - **No secrets on GitHub.** `.env*` files are ignored (except `.env.example`,
   which has names only), and so are the saved sample API answers in `api-samples/`.
 
+### Security checks I ran
+
+- [`docs/security-audit.md`](docs/security-audit.md): the pre-ship checklist, checked against the code.
+- [`docs/penetration-test.md`](docs/penetration-test.md): five attacks on my own app (no token, tampered token, another user's data, bad or injection input, oversized requests), with the exact requests and results. Re-run them with `npm run pentest` (see the file's header) and `npm test`, or import `postman/penetration-test.postman_collection.json`.
+
 ### Known limits
 
 - **The CSP allows `style="..."` attributes** (`style-src-attr 'unsafe-inline'`),
