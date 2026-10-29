@@ -29,14 +29,14 @@ import { SPORTSBOOK_IDS, type SportsbookId } from "@/types";
 const ODDS_API_BASE = "https://api.the-odds-api.com/v4";
 
 /*
-  ALL_BOOKMAKER_KEYS: "hardrockbet,betmgm,williamhill_us". We always ask for all
-  three books in ONE call. Up to 10 books cost the same as one, so this is free,
+  ALL_BOOKMAKER_KEYS: "hardrockbet,betmgm". We always ask for all
+  our books in ONE call. Up to 10 books cost the same as one, so this is free,
   and one saved answer then serves every user, whichever book they picked.
 */
 const ALL_BOOKMAKER_KEYS = SPORTSBOOK_IDS.map((id) => SPORTSBOOKS[id].providerKeys.theOddsApi).join(",");
 
 /*
-  toSportsbookId: The Odds API's book name ("williamhill_us") → our ID ("caesars").
+  toSportsbookId: The Odds API's book name ("hardrockbet") → our ID ("hardrock").
   null for books we don't support (missing on purpose: they're skipped).
 */
 export function toSportsbookId(oddsApiKey: string): SportsbookId | null {

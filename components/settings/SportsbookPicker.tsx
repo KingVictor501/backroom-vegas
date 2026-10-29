@@ -1,7 +1,7 @@
 /*
   FILE: components/settings/SportsbookPicker.tsx
-  WHAT IT'S FOR: The three big sportsbook cards on Settings (Hard Rock Bet,
-  BetMGM, Caesars). Tap one and it gets a gold outline and is saved to your
+  WHAT IT'S FOR: The big sportsbook cards on Settings (Hard Rock Bet
+  and BetMGM). Tap one and it gets a gold outline and is saved to your
   account right away by the saveSportsbook Server Action. Each card also says
   how many of this week's games that book has odds for, so you can see if a
   book has nothing posted yet.
@@ -53,7 +53,7 @@ export default function SportsbookPicker({
     <form ref={formRef} action={formAction} className="space-y-3">
       <fieldset disabled={pending}>
         <legend className="mb-3 text-sm text-muted">Choose the sportsbook whose odds you want to see everywhere.</legend>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {SPORTSBOOK_IDS.map((id) => {
             const isChosen = id === chosen;
             const count = gameCounts?.[id];

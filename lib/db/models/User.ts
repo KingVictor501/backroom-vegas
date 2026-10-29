@@ -130,7 +130,8 @@ export function toUser(record: Omit<UserRecord, "passwordHash">): User {
   return {
     id: record._id.toString(),
     email: record.email,
-    preferredSportsbook: record.preferredSportsbook,
+    // An old record might still hold a sportsbook that was removed (Caesars). Show the default instead of crashing.
+    preferredSportsbook: SPORTSBOOK_IDS.includes(record.preferredSportsbook) ? record.preferredSportsbook : DEFAULT_SPORTSBOOK,
     activeBetSlipId: record.activeBetSlipId?.toString() ?? null,
     inviteCodeId: record.inviteCodeId?.toString() ?? null,
     passwordChangedAt: record.passwordChangedAt?.toISOString() ?? null,

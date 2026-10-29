@@ -37,11 +37,11 @@ describe("dummyOddsEnabled", () => {
 });
 
 describe("dummyGameLines", () => {
-  it("makes lines for all three books that match the ESPN game, the same way every time", () => {
+  it("makes lines for both books that match the ESPN game, the same way every time", () => {
     const games = [game("nba", "401909001")];
     const first = dummyGameLines(games);
     expect(JSON.stringify(dummyGameLines(games))).toBe(JSON.stringify(first));
-    expect(first[0].bookmakers).toHaveLength(3);
+    expect(first[0].bookmakers).toHaveLength(2);
     expect(first[0].bookmakers?.[0].markets.map((m) => m.key)).toEqual(["h2h", "spreads", "totals"]);
     expect(findOddsEvent(games[0], first)).not.toBeNull();
   });

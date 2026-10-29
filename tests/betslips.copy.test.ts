@@ -186,7 +186,7 @@ describe("refreshing to the user's sportsbook", () => {
 
   it("a bet the book has no odds for keeps its old price and says so", async () => {
     const pick = makePick({ gameStartsAt: inDays(2) });
-    const original = await makeSlip("Caesars gap", [pick]);
+    const original = await makeSlip("BetMGM gap", [pick]);
     serveOdds({ [pick.id]: { state: "none" } });
     const [p] = ((await (await copy(original.id)).json()) as BetSlip).picks;
     expect(p).toMatchObject({ odds: -110, line: -3, sportsbook: "hardrock" });

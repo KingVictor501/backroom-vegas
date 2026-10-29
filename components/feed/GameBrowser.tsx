@@ -156,7 +156,7 @@ export default function GameBrowser({
         </p>
       )}
 
-      {/* The chosen book has no odds on ANY game (Caesars did this in Section 5), so say so instead of showing only dashes. */}
+      {/* The chosen book has no odds on ANY game (a book with no odds in The Odds API, like Caesars did before it was removed), so say so instead of showing only dashes. */}
       {!scoresOnly && !oddsUnavailable && games.length > 0 && games.every((game) => game.lines === null) && (
         <p role="status" className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
           {sportsbookName} hasn&apos;t posted odds for these games yet.{" "}

@@ -1,7 +1,7 @@
 /*
   FILE: app/actions/settings.ts
   WHAT IT'S FOR: The Server Action that saves your sportsbook choice (Hard
-  Rock Bet, BetMGM, or Caesars) to your account. After saving, it refreshes
+  Rock Bet or BetMGM) to your account. After saving, it refreshes
   the page, so odds everywhere come from the new book. Picks already on your
   slips keep the book they came from (each pick saved its own sportsbook).
   Server Actions for login, sign up, and settings are the rubric's "advanced feature".
@@ -36,7 +36,7 @@ export type SettingsFormState = {
 };
 
 /* The rule: the form must send one of the three sportsbook IDs. Anything else is refused. */
-const sportsbookRule = z.enum(SPORTSBOOK_IDS, { error: "Choose Hard Rock Bet, BetMGM, or Caesars." });
+const sportsbookRule = z.enum(SPORTSBOOK_IDS, { error: "Choose Hard Rock Bet or BetMGM." });
 
 /*
   saveSportsbook: saves the chosen book to the logged-in user's account.

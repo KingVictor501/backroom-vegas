@@ -212,7 +212,7 @@ describe("refreshing prices", () => {
   });
 
   it("sets addedAt to now and drops any old refresh note", () => {
-    const old = { ...chiefs, addedAt: "2020-01-01T00:00:00Z", refresh: { status: "updated" as const, previousOdds: 999, previousLine: 1, previousSportsbook: "caesars" as const } };
+    const old = { ...chiefs, addedAt: "2020-01-01T00:00:00Z", refresh: { status: "updated" as const, previousOdds: 999, previousLine: 1, previousSportsbook: "betmgm" as const } };
     const result = plan([old], { [old.id]: { state: "outcomes", outcomes: [outcome("away", KC, -3, -110)] } });
     expect(result.picks[0].addedAt).toBe(NOW.toISOString());
     expect(result.picks[0].refresh).toMatchObject({ status: "unchanged", previousOdds: -110, previousSportsbook: "hardrock" });

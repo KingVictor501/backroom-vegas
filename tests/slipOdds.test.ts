@@ -94,15 +94,15 @@ describe("game lines (free: no extra Odds API request)", () => {
 
   it("asks the games service once per league, for the user's sportsbook", async () => {
     serve([makeGame("1"), makeGame("2")]);
-    await getCurrentOddsForPicks([spread("1"), spread("2")], "caesars", NOW);
+    await getCurrentOddsForPicks([spread("1"), spread("2")], "betmgm", NOW);
     expect(games.getUpcomingGamesWithLines).toHaveBeenCalledTimes(1);
-    expect(games.getUpcomingGamesWithLines).toHaveBeenCalledWith("nfl", "caesars");
+    expect(games.getUpcomingGamesWithLines).toHaveBeenCalledWith("nfl", "betmgm");
   });
 
-  it("a game with no lines from this book (like Caesars) → 'none'", async () => {
+  it("a game with no lines from this book (a book with nothing posted) → 'none'", async () => {
     serve([makeGame("1", { lines: null })]);
     const s = spread("1");
-    expect((await getCurrentOddsForPicks([s], "caesars", NOW)).odds.get(s.id)).toEqual({ state: "none" });
+    expect((await getCurrentOddsForPicks([s], "betmgm", NOW)).odds.get(s.id)).toEqual({ state: "none" });
   });
 
   it("reports ESPN's game statuses so the copy can skip finished or live games", async () => {

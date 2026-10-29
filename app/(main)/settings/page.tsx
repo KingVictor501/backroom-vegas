@@ -1,7 +1,7 @@
 /*
   FILE: app/(main)/settings/page.tsx
   WHAT IT'S FOR: The Settings page, at /settings:
-  - three big cards to pick your sportsbook (Hard Rock Bet, BetMGM, Caesars).
+  - big cards to pick your sportsbook (Hard Rock Bet, BetMGM).
     The chosen one has a gold outline and is saved to your account with a
     Server Action, so the odds on every page switch to that book.
   - your email, a button to the Profile page (change email or password, delete account), and the Log out button

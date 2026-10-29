@@ -3,7 +3,7 @@
   WHAT IT'S FOR: "Practice odds" for the Vercel PREVIEW site, so testing there uses no Odds API credits.
   When DUMMY_ODDS=true is set in Vercel's Preview environment, the league game lines are made up here
   from ESPN's real schedule: every upcoming game gets a spread, a total, and a winner price from each of
-  the three books. The numbers are invented (but always the same for the same game), so they are NOT real
+  each book. The numbers are invented (but always the same for the same game), so they are NOT real
   prices, and the Feed and matchup page say so in a banner (components/PracticeOddsNotice.tsx).
   SAFETY: it can NEVER turn on for the live site. It needs DUMMY_ODDS to be exactly "true" AND either
   Vercel's environment to be "preview" or the app to not be a production build (your own computer).

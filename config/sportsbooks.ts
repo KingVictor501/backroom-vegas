@@ -35,8 +35,8 @@ type SportsbookConfig = {
 
 /*
   SPORTSBOOKS: the details for each sportsbook ID.
-  "Record<SportsbookId, ...>" means TypeScript makes us fill in all three books,
-  so adding a fourth book later without its details would be an error.
+  "Record<SportsbookId, ...>" means TypeScript makes us fill in every book,
+  so adding another book later without its details would be an error.
 */
 export const SPORTSBOOKS: Record<SportsbookId, SportsbookConfig> = {
   hardrock: {
@@ -46,11 +46,6 @@ export const SPORTSBOOKS: Record<SportsbookId, SportsbookConfig> = {
   betmgm: {
     name: "BetMGM",
     providerKeys: { theOddsApi: "betmgm", parlayApi: "betmgm" },
-  },
-  caesars: {
-    name: "Caesars",
-    // The Odds API still uses William Hill's old name, because Caesars bought William Hill.
-    providerKeys: { theOddsApi: "williamhill_us", parlayApi: "caesars" },
   },
 };
 

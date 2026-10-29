@@ -1,7 +1,7 @@
 # The Vegas Backroom
 
 An NFL odds comparison, news, and bet slip app with a high-end Las Vegas look.
-Compare live odds from **Hard Rock Bet, BetMGM, and Caesars**, read NFL news,
+Compare live odds from **Hard Rock Bet and BetMGM**, read NFL news,
 look up team and player stats, and build bet slips: **Straight**, **Parlay**,
 and **Same Game Parlay (SGP)**.
 
@@ -57,7 +57,7 @@ Your browser ──► The Vegas Backroom server (Next.js on Vercel) ──► E
 
 - **The browser never talks to an outside API directly.** Every request to ESPN, The Odds API, or MongoDB happens on the server, so the API keys never reach the browser.
 - **ESPN** (its public, unofficial API; no key): games, scores, team and player stats, injuries, news, and logos. Stats only: the app never reads ESPN's betting lines and never shows old (historical) odds.
-- **The Odds API** (`ODDS_API_KEY`): live game lines and props for Hard Rock Bet (`hardrockbet`), BetMGM (`betmgm`), and Caesars (`williamhill_us`). Games are matched between ESPN and The Odds API by team names and kickoff time.
+- **The Odds API** (`ODDS_API_KEY`): live game lines and props for Hard Rock Bet (`hardrockbet`), and BetMGM (`betmgm`). Games are matched between ESPN and The Odds API by team names and kickoff time.
 - **Saving credits:** answers are cached (saved for a while) on the server. Game lines for every game cost 3 credits per hour. Props, halves, and the other tabs only load when someone opens them, and are saved for 60 minutes.
 - **Schema checks:** every outside answer is checked with zod before it's used, so an unexpected change shows a friendly message instead of crashing.
 
@@ -136,7 +136,7 @@ functions that run only on the server but are called straight from a form.
 | Action | File | What it does |
 |---|---|---|
 | `signup`, `login`, `logout` | `app/actions/auth.ts` | Checks the form with zod, hashes passwords with bcrypt, and sets or clears the 7-day login cookie |
-| `saveSportsbook` | `app/actions/settings.ts` | Checks the choice (only Hard Rock Bet, BetMGM, or Caesars), saves it to *your* account (your ID comes from your login cookie, never from the form), then refreshes the page |
+| `saveSportsbook` | `app/actions/settings.ts` | Checks the choice (only Hard Rock Bet or BetMGM), saves it to *your* account (your ID comes from your login cookie, never from the form), then refreshes the page |
 
 The forms use React's `useActionState` to show "Logging in…" or "Saving…" and
 the server's error messages. They also work with JavaScript turned off.
@@ -243,7 +243,7 @@ Here's how none of it can ever run as code:
   inside Next.js's lint rules. It's only used while coding (never on the live
   site), and the only offered "fix" downgrades the lint setup. Production
   packages have 0 known vulnerabilities.
-- **Caesars** currently has no odds posted in The Odds API; the app says so
+- **Caesars** was removed (it had no odds in The Odds API). `npm run caesars:remove -- --db <database>` moves anyone still on it to Hard Rock Bet
   instead of showing a page of dashes.
 
 ### When an AI tool suggested something unsafe
@@ -274,4 +274,4 @@ unsafe, and what was done instead:
 
 - **ESPN**: stats, scores, injuries, news, logos, and photos, through ESPN's public, unofficial API. This is a non-commercial school project; ESPN content belongs to ESPN.
 - **The Odds API**: live odds and props.
-- Made for learning. Not affiliated with ESPN, the NFL, Hard Rock Bet, BetMGM, or Caesars.
+- Made for learning. Not affiliated with ESPN, the NFL, Hard Rock Bet, or BetMGM.

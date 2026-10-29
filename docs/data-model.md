@@ -61,7 +61,7 @@ erDiagram
 | `_id` | ObjectId | auto | |
 | `email` | string | yes | unique, lowercased, trimmed, max 254, must look like an email |
 | `passwordHash` | string | yes | bcrypt hash only. `select: false`, so queries don't return it unless asked. Never sent to the browser |
-| `preferredSportsbook` | string | no | `hardrock` \| `betmgm` \| `caesars`; default `hardrock` |
+| `preferredSportsbook` | string | no | `hardrock` \| `betmgm`; default `hardrock` |
 | `activeBetSlipId` | ObjectId → BetSlip | no | `null` = no active slip |
 | `inviteCodeId` | ObjectId → InviteCode | no | `null` = created before invite codes existed |
 | `passwordChangedAt` | Date | no | `null` = never changed. Used to sign out other devices after a password change |

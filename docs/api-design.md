@@ -63,7 +63,7 @@ These are called by forms in the browser, run on the server, validate everything
 | `signup` (`actions/auth.ts`) | needs `bv_invite` cookie | `email`, `password`, `confirmPassword` | Validates (password ≥8 chars with a letter and a number), re-checks the invite, takes one use atomically, saves a bcrypt hash, logs the user in |
 | `login` (`actions/auth.ts`) | public | `email`, `password` | Lockout check (5 per email, 20 per IP, 15 minutes), bcrypt compare, sets `bv_session`. A good login resets the email's count |
 | `logout` (`actions/auth.ts`) | logged in | none | Deletes `bv_session` |
-| `saveSportsbook` (`actions/settings.ts`) | logged in | `sportsbook` = `hardrock` \| `betmgm` \| `caesars` | Saves the user's preferred book |
+| `saveSportsbook` (`actions/settings.ts`) | logged in | `sportsbook` = `hardrock` \| `betmgm` | Saves the user's preferred book |
 | `changeEmail` (`actions/profile.ts`) | logged in | `newEmail`, `currentPassword` | Checks the current password (rate-limited), checks the new email is free, saves it |
 | `changePassword` (`actions/profile.ts`) | logged in | `currentPassword`, `newPassword`, `confirmNewPassword` | Same rules as sign up, saves a new hash, signs out other devices, keeps this one logged in |
 | `deleteAccount` (`actions/profile.ts`) | logged in | `confirmText` = `DELETE`, `currentPassword` | Deletes the user **and all their slips**, clears `bv_session`, goes to `/invite` |

@@ -98,11 +98,11 @@ describe("pickRefreshText", () => {
     expect(pickRefreshText(withRefresh({ status: "unchanged", ...OLD }))).toEqual({ tone: "same", text: "Odds unchanged" });
   });
 
-  it("names the sportsbook that has no odds (like Caesars) and says the old price was kept", () => {
-    const pick = withRefresh({ status: "no-odds", ...OLD }, { sportsbook: "caesars" });
+  it("names the sportsbook that has no odds (like BetMGM) and says the old price was kept", () => {
+    const pick = withRefresh({ status: "no-odds", ...OLD }, { sportsbook: "betmgm" });
     expect(pickRefreshText(pick)).toEqual({
       tone: "warning",
-      text: "Caesars has no odds for this bet right now, so it kept its old price.",
+      text: "BetMGM has no odds for this bet right now, so it kept its old price.",
     });
   });
 

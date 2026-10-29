@@ -32,8 +32,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=h2h,spreads,totals&oddsFormat=american",
-            "description": "Spread, total, winner for every game from Hard Rock, BetMGM, Caesars (williamhill_us)."
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm&markets=h2h,spreads,totals&oddsFormat=american",
+            "description": "Spread, total, winner for every game from Hard Rock and BetMGM."
           }
         },
         {
@@ -41,7 +41,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/markets?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us",
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/markets?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm",
             "description": "Which markets each book offers for KC @ SEA (10/25/2026). Replace the event ID for other games."
           }
         },
@@ -50,7 +50,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=player_anytime_td,player_pass_yds,player_tds_over&oddsFormat=american",
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm&markets=player_anytime_td,player_pass_yds,player_tds_over&oddsFormat=american",
             "description": "Anytime TD, passing yards, 2+ TDs for KC @ SEA."
           }
         },
@@ -59,7 +59,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm,williamhill_us&markets=spreads_h1,totals_h1,h2h_q1&oddsFormat=american",
+            "url": "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/176d474ed8b2bbf1eb4d7e9c56b4bf22/odds?apiKey={{odds_api_key}}&bookmakers=hardrockbet,betmgm&markets=spreads_h1,totals_h1,h2h_q1&oddsFormat=american",
             "description": "1st half spread and total, 1st quarter winner for KC @ SEA."
           }
         }

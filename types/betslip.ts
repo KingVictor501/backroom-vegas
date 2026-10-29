@@ -55,8 +55,8 @@ export type BetSlipType = (typeof BET_SLIP_TYPES)[number];
   PICK_REFRESH_STATUSES / PickRefreshStatus: what happened to a pick when its slip was COPIED.
   - "updated": the sportsbook's current price (or line) is different from the old one
   - "unchanged": the current price and line are the same as before
-  - "no-odds": the sportsbook has no odds for this bet right now (like Caesars, which has
-    had none in The Odds API), so the pick kept its OLD price
+  - "no-odds": the sportsbook has no odds for this bet right now (for example, a book The Odds API
+    has not posted yet), so the pick kept its OLD price
   - "not-checked": we couldn't look up current odds (The Odds API was down or out of
     requests), so the pick kept its OLD price
 */
