@@ -16,11 +16,11 @@ The folder structure mirrors the tree: `app/` holds the pages (server components
 
 - **Server components and server code** call ESPN, The Odds API, and MongoDB directly (`lib/services/**`, `lib/db/**`). The browser never calls an outside API.
 - **The browser calls only our own API:**
-  - `BetSlipProvider` → `/api/betslips`, `/api/betslips/{id}`, `/api/betslips/active`
-  - `SlipList` / `SlipDetail` → `/api/betslips/{id}` (rename, wager, delete) and `/api/betslips/{id}/copy`
+  - Slip changes go through one helper file, `lib/betting/slipRequests.ts` (create, save picks, rename, wager, make active, copy, delete, clear active). It is used by `BetSlipProvider`, `NewSlipForm`, `SlipList`, and `SlipDetail`, and calls `/api/betslips`, `/api/betslips/{id}`, `/api/betslips/{id}/copy`, and `/api/betslips/active`
+  - The Bet Slips list page (`app/(main)/betslips/page.tsx`) loads `GET /api/betslips` **on the server** through `lib/api/ownApi.ts` (using `APP_URL` and the user's cookie), so the list is in the page source with JavaScript off
   - `useLiveScores` → `/api/live`
   - `SearchBar` → `/api/search`
-  - `NewsWidget` → `/api/news`
+  - `NewsWidget` (`components/feed/NewsWidget.tsx`) → `/api/news`
 - **Forms use Server Actions** (`app/actions/*.ts`): invite, sign up, log in, log out, settings, and the three profile forms.
 - `components/matchup/AutoRefresh.tsx` calls `router.refresh()`, which re-runs the server-rendered stats section; it makes no API call of its own.
 
