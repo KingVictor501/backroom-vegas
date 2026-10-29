@@ -236,6 +236,7 @@ Here's how none of it can ever run as code:
 
 ### Security checks I ran
 
+- [`docs/security-review.md`](docs/security-review.md): **the Security Review**, one document that combines everything below: what I checked, what I tried to break, what I found and fixed, the AI-suggestion table, and the risks that remain.
 - [`docs/security-audit.md`](docs/security-audit.md): the pre-ship checklist, checked against the code.
 - [`docs/penetration-test.md`](docs/penetration-test.md): five attacks on my own app (no token, tampered token, another user's data, bad or injection input, oversized requests), with the exact requests and results. Re-run them with `npm run pentest` (see the file's header) and `npm test`, or import `postman/penetration-test.postman_collection.json`.
 
@@ -246,10 +247,8 @@ Here's how none of it can ever run as code:
 - **ESPN's API is unofficial** and not meant for commercial use, which is fine
   for a non-commercial school project. It can change without warning, and the
   app checks every answer with zod for that reason.
-- **Development-only tool warning:** `npm audit` reports an issue in `braces`,
-  inside Next.js's lint rules. It's only used while coding (never on the live
-  site), and the only offered "fix" downgrades the lint setup. Production
-  packages have 0 known vulnerabilities.
+- **`npm audit` is clean today** (0 known vulnerabilities), but new ones are found
+  all the time, so it is re-run before every release.
 - **Caesars** was removed (it had no odds in The Odds API). `npm run caesars:remove -- --db <database>` moves anyone still on it to Hard Rock Bet
   instead of showing a page of dashes.
 
@@ -272,7 +271,9 @@ unsafe, and what was done instead:
 | The first after-login redirect guard only blocked `//` and `/\` at the start | A hidden tab or line break (`/%09/evil.com`) slipped through, and the browser turned it into `//evil.com`: an open redirect to a fake site | The guard refuses all hidden characters and backslashes and checks the final address stays on this site, with tests |
 | The public database health check (`/api/health/db`) answered "Check MONGODB_URI and MongoDB Atlas Network Access" when the database was down | It told any stranger which database the app uses and the name of a secret setting | It now says only "The database isn't available right now."; the details go to the server log |
 | The ESPN address builder trusted that callers had checked IDs | If a future page forgot to check, an ID like `..` could make the server fetch a different ESPN address (path traversal) | Every address is checked for `.`, `..`, and hidden slashes before it's used, with tests |
-
+| `process.env.MONGODB_DB ?? "backroom-vegas"`: if the database name setting was missing, quietly use the live database | A forgotten setting on a Preview or on a laptop would point testing and tests at real users' data | Only Vercel's production environment may fall back; anywhere else a missing name is an error, with a test |
+| News pictures allowed from any `https` website (the first `isSafeImage`) | A story could make visitors' browsers load a picture from any server (tracking, or content we never chose) | Only `*.espncdn.com` pictures are shown, matching the Content-Security-Policy |
+| Logging whole error objects when ESPN or the Odds API failed (`console.error("...", error)`) | An error object can carry the request address (with the API key) or a connection string into the logs | Seven places now use `logServerError`, which prints one cleaned-up line and hides connection strings |
 <!-- Add any other time an AI tool suggested something unsafe that you rejected: -->
 
 ---
