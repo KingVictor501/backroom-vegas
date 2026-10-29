@@ -119,11 +119,14 @@ export default function GameBrowser({
   const [betType, setBetType] = useState(betTypes[0]);
   // Which page of cards is showing. Changing the search or filter goes back to page 1 (see goToFirstPage).
   const [page, setPage] = useState(1);
+  // The "Show live games" tick box. Unchecked when the page opens, so games in progress are hidden until it is ticked.
+  const [showLive, setShowLive] = useState(false);
   const columns = useColumns();
 
   const words = search.trim().toLowerCase();
   const thisWeek = new Set(thisWeekGameIds);
   const matching = games.filter((game) => {
+    if (!showLive && game.status === "in-progress") return false;
     if (dateFilter === "today" && !isToday(game.startsAt)) return false;
     if (dateFilter === "week" && !thisWeek.has(game.id)) return false;
     return (
@@ -160,6 +163,20 @@ export default function GameBrowser({
 
   return (
     <div className="space-y-4">
+      {/* The tick box at the top: live games (in progress) stay hidden until it is checked. */}
+      <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 text-sm font-medium text-text">
+        <input
+          type="checkbox"
+          checked={showLive}
+          onChange={(event) => {
+            setShowLive(event.target.checked);
+            goToFirstPage();
+          }}
+          className="size-5 accent-gold"
+        />
+        Show live games
+      </label>
+
       <SearchBar
         value={search}
         onChange={(value) => {
