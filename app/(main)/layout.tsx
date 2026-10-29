@@ -15,6 +15,7 @@
 // The menu (bottom bar on phones, sidebar on desktop) from the components folder.
 import AppNav from "@/components/nav/AppNav";
 // The bet slip "brain" from components/betslip: odds buttons, slip bar, panel, and conflict popup.
+import SiteFooter from "@/components/SiteFooter";
 import BetSlipProvider from "@/components/betslip/BetSlipProvider";
 // getCurrentUser from lib/auth/dal.ts: who's logged in (shared with the page, so it's only looked up once).
 import { getCurrentUser } from "@/lib/auth/dal";
@@ -51,6 +52,7 @@ export default async function MainLayout({ children }: LayoutProps<"/">) {
         className="min-h-[calc(100vh-var(--notice-h))] px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pl-66 lg:pr-10 xl:pr-86"
       >
         {children}
+        <SiteFooter />
       </main>
     </BetSlipProvider>
   );

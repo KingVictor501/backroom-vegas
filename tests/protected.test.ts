@@ -212,6 +212,27 @@ describe("proxy.ts, a logged-in visitor", () => {
   });
 });
 
+describe("proxy.ts, the legal pages are public", () => {
+  it("lets anyone read /privacy and /terms, logged in or not", async () => {
+    const session = await createSessionToken(SOME_ID);
+    for (const path of ["/privacy", "/terms"]) {
+      for (const cookies of [{}, { session }]) {
+        const response = await proxy(pageRequest(path, cookies));
+        expect(response.headers.get("location"), path).toBeNull();
+        expect(response.status, path).toBe(200);
+      }
+    }
+  });
+
+  it("does not open look-alike addresses (they still need a login)", async () => {
+    for (const path of ["/privacy/x", "/terms2", "/privacy-admin"]) {
+      const response = await proxy(pageRequest(path));
+      expect(response.status, path).toBe(307);
+      expect(response.headers.get("location"), path).toContain("/login");
+    }
+  });
+});
+
 describe("proxy.ts CORS (which websites may use the API)", () => {
   it("blocks another website's browser request with 403", async () => {
     const request = new NextRequest("http://localhost:3000/api/betslips", { headers: { origin: "https://evil.example" } });

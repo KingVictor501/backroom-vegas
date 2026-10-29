@@ -8,6 +8,7 @@
   2. Pages:
      - The invite code is only needed to CREATE AN ACCOUNT. Not logged in, and opening
        /signup without a valid invite cookie → go to /invite first.
+     - /privacy and /terms (Privacy Policy, Terms of Use) are open to everyone.
      - /login and /invite are always open to logged-out visitors. Anyone who already has an
        account can log in on any device without a code. (Whether an email is allowed in is
        decided at login: an email that isn't in the database can't log in.)
@@ -32,6 +33,9 @@ import { corsHeaders, isAllowedOrigin } from "@/lib/api/cors";
 
 /** Pages only for visitors who are NOT logged in (a logged-in visitor is sent to the Feed). */
 const LOGGED_OUT_ONLY_PATHS = ["/login", "/signup", "/invite"];
+
+/** Pages anyone can read, logged in or not (the legal pages, linked from the footer). */
+const PUBLIC_PATHS = ["/privacy", "/terms"];
 
 /** Where a visitor enters an invite code (needed only before creating an account). */
 const INVITE_PATH = "/invite";
@@ -93,6 +97,9 @@ export async function proxy(request: NextRequest) {
   if (!session) {
     // The invite page and the login page are always open to logged-out visitors.
     if (pathname === INVITE_PATH || pathname === "/login") return NextResponse.next();
+
+    // The Privacy Policy and Terms of Use are public: people read them before they sign up.
+    if (PUBLIC_PATHS.includes(pathname)) return NextResponse.next();
 
     // Sign up is the ONE page that needs an invite. No valid invite cookie → enter a code first
     // (keeping ?next=, so they still end up in the right place afterwards).

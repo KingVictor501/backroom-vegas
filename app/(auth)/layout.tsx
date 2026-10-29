@@ -10,6 +10,9 @@
   It ends in .tsx because it shows something on screen.
 */
 
+// The site-wide notices (reference only, 21+, help line, Privacy and Terms links).
+import SiteFooter from "@/components/SiteFooter";
+
 /*
   AuthLayout: the app name in gold, with the login or sign up page centered below it.
   "main" marks the most important part of the page for screen readers.
@@ -19,6 +22,9 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
     <main className="flex min-h-[calc(100vh-var(--notice-h))] flex-col items-center justify-center px-4 py-10">
       <p className="mb-8 font-display text-4xl text-gold">The Vegas Backroom</p>
       <div className="w-full max-w-md">{children}</div>
+      <div className="mt-10 w-full max-w-md">
+        <SiteFooter />
+      </div>
     </main>
   );
 }
