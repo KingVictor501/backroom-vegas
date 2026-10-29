@@ -48,9 +48,10 @@ Example: a logged-in user taps an odds button, then the slip is saved with `PATC
 2. **`proxy.ts`**: sees a path starting with `/api/`, applies the CORS rule (own site only, never `*`), and lets it through.
 3. **Route** `app/api/betslips/[id]/route.ts` (`PATCH`): `withUser` reads the cookie, checks the signed token (`lib/auth/token.ts`), and loads the user from MongoDB. No cookie or a bad token gets `401`.
 4. **Validation**: the body is size-limited (`413` if too big) and checked against `updateBetSlipRule` (`lib/betting/validation.ts`): allowed leagues, odds are real American odds, at most 25 picks, name at most 50 characters. A bad body gets `400` and nothing is saved.
-5. **Database** `lib/db/betslips.ts`: the query asks for the slip with **both** that `_id` **and** `userId = the logged-in user`. If the slip belongs to someone else it simply isn't found, so the answer is `404`.
-6. **MongoDB** saves the slip, recalculating the combined odds.
-7. **Response**: the route returns the updated slip as JSON (`200`). The provider updates the slip bar and panel, and the estimated payout recalculates instantly.
+5. **Conflict check again on the server**: `updateBetSlip` re-runs the pick rules (`checkPicks`: the conflict rules and the same-game rule for SGP slips). The browser already warned the user, but the server never trusts that. Picks that can't go together, or a slip name that is already taken, get `409` and nothing is saved.
+6. **Database** `lib/db/betslips.ts`: the queries ask for the slip with **both** that `_id` **and** `userId = the logged-in user`, both when checking the picks and when saving. If the slip belongs to someone else it simply isn't found, so the answer is `404`.
+7. **MongoDB** saves the slip. The server works out the slip type (straight, parlay, or SGP), the combined odds, and whether they are estimated itself (`getSlipPricing`), instead of trusting the browser's numbers.
+8. **Response**: the route returns the updated slip as JSON (`200`). The provider updates the slip bar and panel, and the estimated payout recalculates instantly.
 
 ## Other flows in one line each
 

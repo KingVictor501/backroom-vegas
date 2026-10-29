@@ -8,7 +8,7 @@ Two kinds of server entry points exist: **API routes** (`app/api/**/route.ts`, p
 - **Auth** = the signed `bv_session` cookie (a JWT that expires in 7 days). Protected routes answer `401` without a good cookie. In Postman, call **Login** first; Postman stores the cookie.
 - **CORS**: only origins listed in `ALLOWED_ORIGINS` may call `/api` from a browser (never `*`). Others get `403`. Requests with no `Origin` header (Postman, servers) are not affected.
 - **Body size**: JSON bodies over 100,000 characters get `413`.
-- **Common statuses**: `400` bad or missing input, `401` not logged in, `404` not found (including "someone else's record"), `413` too big, `429`/lockout message for too many attempts, `500` generic server error, `503` upstream/database down.
+- **Common statuses**: `400` bad or missing input, `401` not logged in, `404` not found (including "someone else's record"), `413` too big, `409` conflict (a slip name already taken, or picks that can't go together), `429` too many attempts (login), `500` generic server error, `502` ESPN or The Odds API isn't responding, `503` database down (health check only).
 - `league` is `nfl` (default) or `nba`. Game, team, and player IDs are ESPN IDs: digits only, up to 12 (`401873022`).
 
 ## API routes
@@ -26,9 +26,9 @@ Two kinds of server entry points exist: **API routes** (`app/api/**/route.ts`, p
 | Method | URL | Auth | Body / query | Success response |
 |---|---|---|---|---|
 | GET | `/api/betslips` | yes | none | `200 BetSlip[]`, your slips only, newest first |
-| POST | `/api/betslips` | yes | `{ name?, picks? (≤25), sgpGameId?, setActive?, numberIfTaken?, wager? }` | `201 BetSlip` + `Location` header. Duplicate name `400`/conflict message |
+| POST | `/api/betslips` | yes | `{ name?, picks? (≤25), sgpGameId?, setActive?, numberIfTaken?, wager? }` | `201 BetSlip` + `Location` header. `400` bad input, `409` name taken or picks conflict |
 | GET | `/api/betslips/{id}` | yes | none | `200 BetSlip`, or `404` if it isn't yours or doesn't exist |
-| PATCH | `/api/betslips/{id}` | yes | at least one of `{ name, picks, wager }` | `200 BetSlip`, or `400` / `404` |
+| PATCH | `/api/betslips/{id}` | yes | at least one of `{ name, picks, wager }` | `200 BetSlip`, or `400` / `404` / `409` (name taken or picks conflict) |
 | DELETE | `/api/betslips/{id}` | yes | none | `200 { deleted: true, id }`, or `404` |
 | POST | `/api/betslips/{id}/copy` | yes | none | `201 BetSlip` (name "Copy of …", ≤50 chars, old games skipped, odds refreshed, becomes active) + `Location`, or `404` |
 | GET | `/api/betslips/active` | yes | none | `200 BetSlip` or `200 null` (no active slip) |
