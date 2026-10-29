@@ -8,7 +8,7 @@ The folder structure mirrors the tree: `app/` holds the pages (server components
 |---|---|---|
 | Logged-in user | The `bv_session` cookie, read on the server (`lib/auth/dal.ts`) | The server decides; the browser never holds the user's identity |
 | The active bet slip, pending conflict popup, delete popup, toast | `components/betslip/BetSlipProvider.tsx` (React context, client). It is handed the saved slip by the server layout, so the slip bar is there with no flicker | Every page's odds buttons, the slip bar, the desktop panel, and the slip page share one slip |
-| Live scores | `components/live/useLiveScores.ts` (client hook; timing rules in `livePoller.ts`) | Only needs to live in the screen showing the games |
+| Live scores | `components/live/useLiveScores.ts` (client hook; timing rules in `livePoller.ts`). Used by `GameBrowser`, `MatchupHeader`, and `SlipDetail` | Only needs to live in the screen showing the games |
 | Search text, date filter, bet-type filter on the Feed | `useState` inside `components/feed/GameBrowser.tsx` | Filters the already-loaded list instantly |
 | Everything else (games, odds, stats, slips lists) | Not kept in browser state. Server components load it per request, with short server-side caches | Pages stay fast and work with JavaScript off |
 
@@ -27,46 +27,53 @@ The folder structure mirrors the tree: `app/` holds the pages (server components
 ## The tree
 
 ```
-app/layout.tsx                     root: fonts, site notice banner
+app/layout.tsx                     root: fonts, site notice banner; renders per visit (needed for the CSP nonce)
 ├── app/(auth)/layout.tsx          logged-out frame + footer
 │   ├── invite/page.tsx            └ components/auth/InviteForm
 │   ├── login/page.tsx             └ components/auth/LoginForm
 │   └── signup/page.tsx            └ components/auth/SignupForm
-├── app/(legal)/layout.tsx         "Back to login" breadcrumb
-│   ├── privacy/page.tsx
-│   └── terms/page.tsx
+├── app/(legal)/layout.tsx         "Back to login" breadcrumb + footer
+│   ├── privacy/page.tsx           └ legal/TemplateNotice
+│   └── terms/page.tsx             └ legal/TemplateNotice
 └── app/(main)/layout.tsx          logged-in frame (server: loads the active slip)
     └── BetSlipProvider            ← slip state lives here (client)
         ├── components/nav/AppNav            menu: bottom bar on phones, sidebar on desktop
         ├── <main> pages …
-        │   ├── page.tsx (Feed) and league/[league]/page.tsx
-        │   │   └ components/feed/LeagueGames (server) → GameBrowser (client)
-        │   │       ├ SearchBar, LeagueTabs
-        │   │       └ GameCard → GameLinesTable → OddsButton, StartSgpButton, LiveScoreLine
+        │   ├── page.tsx (Feed)
+        │   │   ├ components/feed/LeagueGames (server) → PracticeOddsNotice, GameBrowser (client)
+        │   │   │   ├ SearchBar, LeagueTabs, ScoresDelayed
+        │   │   │   └ GameCard → LiveScoreLine, StartSgpButton, GameLinesTable → OddsButton
+        │   │   └ components/feed/NewsWidget (client, calls /api/news, shows all four states)
+        │   ├── league/[league]/page.tsx      └ LeagueGames (a league that is on) or PagePlaceholder ("Coming soon")
         │   ├── matchup/[gameId]/page.tsx
-        │   │   ├ matchup/MatchupHeader (client, live score)
-        │   │   ├ matchup/MatchupTabs, MarketSections → OddsButton
-        │   │   ├ feed/GameLinesTable, matchup/WinProbability
+        │   │   ├ PracticeOddsNotice
+        │   │   ├ matchup/MatchupHeader (client, live score, ScoresDelayed)
+        │   │   ├ matchup/MatchupTabs (+ StartSgpButton), MarketSections → OddsButton
+        │   │   ├ feed/GameLinesTable → OddsButton, matchup/WinProbability
         │   │   ├ matchup/GameStats (+ AutoRefresh)      live / final stats, collapsible
-        │   │   └ matchup/MatchupNews (injuries, stories)
+        │   │   └ matchup/MatchupNews (MatchupInjuries, MatchupStories, each behind Suspense)
         │   ├── team/[teamId]/page.tsx        NFL: team/TeamHeader + TeamSections
-        │   │                                 NBA: basketball/NbaTeamView
+        │   │                                   (RecentGames, UpcomingSchedule, KeyPlayers, InjuriesAndNews)
+        │   │                                 NBA: basketball/NbaTeamView (reuses UpcomingSchedule)
         │   ├── player/[playerId]/page.tsx    NFL: player/PlayerHeader + NextGameCard (+ stats/StatTable)
         │   │                                 NBA: basketball/NbaPlayerView
         │   ├── betslips/page.tsx             └ betslips/SlipList (client filter/sort, copy)
         │   ├── betslips/new/page.tsx         └ betslips/NewSlipForm
-        │   ├── betslips/[id]/page.tsx        └ betslips/SlipDetail, betslip/PayoutBox, live/PickGradeBadge
-        │   ├── profile/page.tsx              └ profile/ChangeEmailForm, ChangePasswordForm, DeleteAccountDialog
-        │   └── settings/page.tsx             └ settings/SportsbookPicker
-        ├── components/betslip/SlipBar        phones and tablets
-        ├── components/betslip/SlipPanel      desktop right panel
+        │   ├── betslips/[id]/page.tsx        └ betslips/SlipDetail, betslip/PayoutBox, live/PickGradeBadge, ScoresDelayed
+        │   ├── profile/page.tsx              └ profile/ChangeEmailForm, ChangePasswordForm, DeleteAccountDialog, SuccessMessage
+        │   └── settings/page.tsx             └ settings/SportsbookPicker, auth/LogoutButton
+        ├── components/betslip/SlipBar        phones and tablets (+ PayoutBox)
+        ├── components/betslip/SlipPanel      desktop right panel (+ PayoutBox)
         ├── components/betslip/ConflictDialog, ChoiceDialog, SlipToast
+        │   (the provider itself renders the bar, panel, dialogs and toast)
         └── components/SiteFooter
 app/error.tsx, app/(main)/error.tsx, app/(main)/loading.tsx, app/not-found.tsx     friendly error / loading / not-found screens
+Route-level versions too: error.tsx for betslips, betslips/[id], matchup, player, team; loading.tsx for betslips/[id], matchup, player;
+not-found.tsx for betslips/[id], matchup, player, team
 ```
 
-**Shared pieces:** `components/ErrorMessage.tsx` (loud red errors), `ErrorScreen`, `NotFoundCard`, `InjuryList`, `NewsList`, `PracticeOddsNotice`, `SiteNotice`, `CollapseButton`.
+**Shared pieces:** `components/ErrorMessage.tsx` (loud red errors), `ErrorScreen`, `NotFoundCard`, `InjuryList`, `NewsList`, `PracticeOddsNotice`, `SiteNotice`, `CollapseButton`, `stats/StatTable` (the stat tables on team, player, and matchup pages), `auth/AuthField` (the labeled input every form uses), `nav/NavIcons`, `live/ScoresDelayed`, and `live/PickGradeBadge`.
 
-**The four states** (loading, error, empty, data): each data page either streams its sections behind `<Suspense>` skeletons (team, matchup, stats) or has a route `loading.tsx`/`error.tsx`; each section shows its own friendly "not available" and "nothing yet" messages. The News widget (`components/feed/NewsWidget.tsx`) shows all four on demand.
+**The four states** (loading, error, empty, data): each data page either streams its sections behind `<Suspense>` skeletons (team, matchup, stats) or has a route `loading.tsx`/`error.tsx`; each section shows its own friendly "not available" and "nothing yet" messages. The News widget (`components/feed/NewsWidget.tsx`) shows all four on demand, and the live-score pieces keep the last score with a "Scores delayed" note if scores can't load.
 
-**Server vs. client:** pages are server components. Only interactive pieces use `"use client"`: `BetSlipProvider` and the slip UI, `GameBrowser`, `SearchBar`, `MatchupHeader`, `useLiveScores`, `AutoRefresh`, `SlipList`/`SlipDetail`, and the forms.
+**Server vs. client:** pages are server components. Only interactive pieces use `"use client"`: `BetSlipProvider` and the slip UI (`SlipBar`, `SlipPanel`, the dialogs, `OddsButton`, `StartSgpButton`, `PayoutBox`), `AppNav`, `GameBrowser`, `SearchBar`, `NewsWidget`, `MatchupHeader`, `useLiveScores`, `AutoRefresh`, `CollapseButton`, `SlipList`/`SlipDetail`/`NewSlipForm`, the forms (`InviteForm`, `LoginForm`, `SignupForm`, the three profile forms, `SportsbookPicker`), and the error screens (`ErrorScreen` and each `error.tsx`).
