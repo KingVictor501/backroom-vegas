@@ -277,7 +277,7 @@ describe("bad input is refused with the right status and saves nothing", () => {
   });
 
   it("a league that isn't available, or a made-up sportsbook (400)", async () => {
-    expect((await createSlip({ picks: [makePick({ league: "nba" })] })).status).toBe(400);
+    expect((await createSlip({ picks: [makePick({ league: "nhl" })] })).status).toBe(400);
     expect((await createSlip({ picks: [{ ...makePick(), sportsbook: "madeup" }] })).status).toBe(400);
   });
 

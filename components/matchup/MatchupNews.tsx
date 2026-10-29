@@ -84,7 +84,7 @@ export async function MatchupInjuries({ game }: { game: Game }) {
               {injuries === null ? (
                 <p className="text-sm text-muted">Injuries aren&apos;t available right now.</p>
               ) : (
-                <InjuryList injuries={injuries} />
+                <InjuryList injuries={injuries} league={game.league} />
               )}
             </div>
           </div>

@@ -30,8 +30,9 @@ import { MatchupInjuries, MatchupStories, SectionSkeleton } from "@/components/m
 import MatchupHeader from "@/components/matchup/MatchupHeader";
 import MatchupTabs from "@/components/matchup/MatchupTabs";
 import WinProbability from "@/components/matchup/WinProbability";
-// The league (only NFL for now) and the sportsbook names, from the config folder.
-import { DEFAULT_LEAGUE_SLUG } from "@/config/leagues";
+// The sportsbook names, from the config folder.
+// parseMatchupLeague (reads ?league=) and hasMoreMarkets (does the league have tabs beyond Game Lines?).
+import { hasMoreMarkets, parseMatchupLeague } from "@/lib/leagues/links";
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 // requireUser from lib/auth/dal.ts: the logged-in user (for their sportsbook).
 import { requireUser } from "@/lib/auth/dal";
@@ -44,13 +45,13 @@ import { getGameWithLines } from "@/lib/services/games";
 import { getMatchupSections } from "@/lib/services/matchup";
 import { getGameSummary } from "@/lib/services/espn/games";
 import { UpstreamError } from "@/lib/services/http";
-import type { LeagueSlug, MarketSection } from "@/types";
+import type { MarketSection } from "@/types";
 
 /*
-  LEAGUE: matchup addresses don't include the league yet, because only the NFL
-  is on. When another league is turned on, the address can become /matchup/<league>/<id>.
+  The league comes from the address's ?league= setting (lib/leagues/links.ts: parseMatchupLeague).
+  No setting means the NFL, so every older NFL address works as before. ESPN game numbers are only
+  unique inside one sport, which is why the address has to say which league.
 */
-const LEAGUE = DEFAULT_LEAGUE_SLUG as LeagueSlug;
 
 /* isGameId: ESPN game IDs are only digits. Anything else can't be a real game. */
 function isGameId(id: string): boolean {
@@ -59,8 +60,9 @@ function isGameId(id: string): boolean {
 
 /* generateMetadata: the browser tab title, like "KC @ SEA | The Vegas Backroom". */
 export async function generateMetadata(props: PageProps<"/matchup/[gameId]">): Promise<Metadata> {
-  const { gameId } = await props.params;
-  const summary = isGameId(gameId) ? await getGameSummary(LEAGUE, gameId).catch(() => null) : null;
+  const [{ gameId }, search] = await Promise.all([props.params, props.searchParams]);
+  const league = parseMatchupLeague(search.league);
+  const summary = league && isGameId(gameId) ? await getGameSummary(league, gameId).catch(() => null) : null;
   return { title: summary ? gameLabel(summary.game) : "Matchup" };
 }
 
@@ -88,11 +90,15 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
   if (!isGameId(gameId)) notFound();
 
   const [user, search] = await Promise.all([requireUser(), props.searchParams]);
-  const data = await getGameWithLines(LEAGUE, gameId, user.preferredSportsbook);
+  // A league that doesn't exist, is off, or has no matchup pages is "not found" (null = not a valid league).
+  const league = parseMatchupLeague(search.league);
+  if (!league) notFound();
+  const data = await getGameWithLines(league, gameId, user.preferredSportsbook);
   if (!data) notFound();
 
   const { game } = data;
-  const view = parseView(search);
+  // Leagues with only Game Lines ignore any other ?props= or ?market= setting.
+  const view = hasMoreMarkets(league) ? parseView(search) : ({ kind: "game-lines" } as const);
   const bookName = SPORTSBOOKS[user.preferredSportsbook].name;
 
   // Both teams' injury reports. It loads in after the odds (inside <Suspense>), wherever it's placed below.
@@ -120,7 +126,7 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <MatchupHeader game={game} />
-      <MatchupTabs gameId={game.id} gameLabel={label} view={view} />
+      <MatchupTabs gameId={game.id} gameLabel={label} view={view} league={league} />
 
       <p className="text-xs text-muted">
         Odds from <span className="font-semibold text-text">{bookName}</span> ·{" "}

@@ -60,7 +60,8 @@ export function statTotal(stats: Record<string, number>, keys: readonly string[]
   ("keys") and, for each player, the matching values as text.
 */
 export type BoxScoreGroup = {
-  name: string;
+  /** Football groups have names ("passing"); basketball's single group has none (missing on purpose). */
+  name?: string;
   keys?: string[];
   athletes: { athlete: { id: string; displayName: string }; stats: string[] }[];
 };
@@ -75,6 +76,8 @@ export function toLiveStats(groups: readonly BoxScoreGroup[]): Record<string, { 
   const players: Record<string, { name: string; stats: Record<string, number> }> = {};
   for (const group of groups) {
     const keys = group.keys ?? [];
+    // An unnamed group (basketball) uses "stats" as its prefix: "stats.points", "stats.rebounds".
+    const prefix = group.name ?? "stats";
     for (const entry of group.athletes) {
       const player = (players[entry.athlete.id] ??= { name: entry.athlete.displayName, stats: {} });
       keys.forEach((key, index) => {
@@ -85,12 +88,12 @@ export function toLiveStats(groups: readonly BoxScoreGroup[]): Record<string, { 
           const values = raw.split("/");
           names.forEach((name, part) => {
             const value = Number(values[part]);
-            if (Number.isFinite(value) && values[part] !== undefined && values[part] !== "") player.stats[`${group.name}.${name}`] = value;
+            if (Number.isFinite(value) && values[part] !== undefined && values[part] !== "") player.stats[`${prefix}.${name}`] = value;
           });
           return;
         }
         if (!/^-?\d+(\.\d+)?$/.test(raw.trim())) return;
-        player.stats[`${group.name}.${key}`] = Number(raw);
+        player.stats[`${prefix}.${key}`] = Number(raw);
       });
     }
   }

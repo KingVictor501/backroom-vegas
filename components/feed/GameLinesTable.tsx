@@ -11,6 +11,8 @@
 */
 
 import Image from "next/image";
+// teamHref (lib/leagues/links.ts): the team page address, or null for leagues without team pages.
+import { teamHref } from "@/lib/leagues/links";
 import Link from "next/link";
 // The odds button from Section 8 (components/betslip).
 import OddsButton from "@/components/betslip/OddsButton";
@@ -56,7 +58,9 @@ function OddsCell({
 /*
   TeamCell: a team's logo, nickname (linking to the team page), and record (or score once the game starts).
 */
-function TeamCell({ team, score }: { team: TeamSummary; score: number | null }) {
+function TeamCell({ team, score, league }: { team: TeamSummary; score: number | null; league: string }) {
+  // null when this league has no team pages: the name is then plain text.
+  const href = teamHref(league, team.id);
   return (
     <div className="flex min-w-0 items-center gap-2">
       {team.logoUrl ? (
@@ -65,9 +69,13 @@ function TeamCell({ team, score }: { team: TeamSummary; score: number | null }) 
         <span aria-hidden className="size-7 shrink-0 rounded-full bg-card-raised" />
       )}
       <div className="min-w-0">
-        <Link href={`/team/${team.id}`} className="relative z-10 block truncate text-sm font-semibold text-text hover:text-gold">
-          {team.name}
-        </Link>
+        {href ? (
+          <Link href={href} className="relative z-10 block truncate text-sm font-semibold text-text hover:text-gold">
+            {team.name}
+          </Link>
+        ) : (
+          <span className="block truncate text-sm font-semibold text-text">{team.name}</span>
+        )}
         <p className="text-xs tabular-nums text-gold">{score !== null ? `Score ${score}` : (team.record ?? "")}</p>
       </div>
     </div>
@@ -96,12 +104,12 @@ export default function GameLinesTable({
         </span>
       ))}
 
-      <TeamCell team={game.awayTeam} score={game.awayScore} />
+      <TeamCell team={game.awayTeam} score={game.awayScore} league={game.league} />
       <OddsCell game={game} kind="spread" outcome={lines?.spread.away ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="total" outcome={lines?.total.over ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.away ?? null} sportsbook={sportsbook} />
 
-      <TeamCell team={game.homeTeam} score={game.homeScore} />
+      <TeamCell team={game.homeTeam} score={game.homeScore} league={game.league} />
       <OddsCell game={game} kind="spread" outcome={lines?.spread.home ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="total" outcome={lines?.total.under ?? null} sportsbook={sportsbook} />
       <OddsCell game={game} kind="moneyline" outcome={lines?.moneyline.home ?? null} sportsbook={sportsbook} />

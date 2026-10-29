@@ -22,6 +22,8 @@ import StartSgpButton from "@/components/betslip/StartSgpButton";
 import { gameLabel } from "@/lib/betting/gameLinePicks";
 // The "Today · 4:25 PM ET" words, from lib/format/gameTime.ts.
 import { gameDayLabel, gameTimeLabel } from "@/lib/format/gameTime";
+// matchupHref (lib/leagues/links.ts): the matchup address, with ?league= for leagues other than the NFL.
+import { matchupHref } from "@/lib/leagues/links";
 // The live status line ("● Q3 7:32  KC 24 – SEA 20") and how to decide what to show.
 import LiveScoreLine from "@/components/live/LiveScoreLine";
 import { liveView } from "@/components/live/liveView";
@@ -111,7 +113,7 @@ export default function GameCard({
             so tapping anywhere on the card opens the matchup. It's one link, so screen
             readers hear it once: "New England Patriots at Chicago Bears, Sunday 9:30 AM ET".
           */}
-          <Link href={`/matchup/${game.id}`} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">
+          <Link href={matchupHref(game.id, game.league)} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">
             <span className="sr-only">{game.awayTeam.displayName} at {game.homeTeam.displayName}, </span>
             {status === "scheduled" ? `${gameDayLabel(game.startsAt)} · ${gameTimeLabel(game.startsAt)}` : <LiveScoreLine game={game} live={live} />}
           </Link>
@@ -130,14 +132,14 @@ export default function GameCard({
       <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         {propsLink ? (
           <Link
-            href={`/matchup/${game.id}?props=${propsLink.slug}`}
+            href={matchupHref(game.id, game.league, `props=${propsLink.slug}`)}
             className="relative z-10 inline-flex min-h-11 items-center rounded-xl border border-gold px-3 font-semibold text-gold hover:bg-gold hover:text-bg"
           >
             See {propsLink.label} props
             <span className="sr-only"> for {label}</span>
           </Link>
         ) : (
-          <Link href={`/matchup/${game.id}`} className="relative z-10 inline-flex min-h-11 items-center text-money underline-offset-4 hover:underline">
+          <Link href={matchupHref(game.id, game.league)} className="relative z-10 inline-flex min-h-11 items-center text-money underline-offset-4 hover:underline">
             More bets ›<span className="sr-only"> for {label}</span>
           </Link>
         )}

@@ -25,6 +25,8 @@ import { useBetSlip } from "@/components/betslip/BetSlipProvider";
 import ChoiceDialog from "@/components/betslip/ChoiceDialog";
 // The red error styles, from components/ErrorMessage.tsx.
 import ErrorMessage, { FieldError } from "@/components/ErrorMessage";
+// matchupHref (lib/leagues/links.ts): the matchup address, with ?league= for leagues other than the NFL.
+import { matchupHref } from "@/lib/leagues/links";
 // Live scores: the refresh hook, a pick's Winning/Losing badge, and the "Scores delayed" note, from components/live.
 import PickGradeBadge from "@/components/live/PickGradeBadge";
 import ScoresDelayed from "@/components/live/ScoresDelayed";
@@ -67,15 +69,13 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
   const nameId = useId();
 
   // Live scores for the games on this slip. Player props also need the live box score.
-  const league = slip.picks[0]?.league ?? "nfl";
-  const regulation = getLeague(league)?.periods?.regulation ?? 4;
   const needsBoxScore = slip.picks.some((pick) => pick.marketCategory === "player-props");
   const watched = useMemo<WatchedGame[]>(() => {
     const seen = new Map<string, WatchedGame>();
-    for (const pick of slip.picks) seen.set(pick.gameId, { id: pick.gameId, startsAt: pick.gameStartsAt, status: "scheduled" });
+    for (const pick of slip.picks) seen.set(pick.gameId, { id: pick.gameId, league: pick.league, startsAt: pick.gameStartsAt, status: "scheduled" });
     return [...seen.values()];
   }, [slip.picks]);
-  const { live, delayed } = useLiveScores(league, watched, needsBoxScore);
+  const { live, delayed } = useLiveScores(watched, needsBoxScore);
   const isActive = activeSlip?.id === slip.id;
 
   /* afterSave: show the server's version here, and in the slip bar if it's the active slip. */
@@ -294,7 +294,8 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
             {slip.picks.map((pick) => {
               const started = Date.parse(pick.gameStartsAt) <= now;
               const liveGame = live.get(pick.gameId);
-              const grade = gradePick(pick, liveGame ?? null, regulation, now);
+              // How many periods a regulation game has depends on the pick's league (4 quarters in both the NFL and NBA).
+              const grade = gradePick(pick, liveGame ?? null, getLeague(pick.league)?.periods?.regulation ?? 4, now);
               // "KC @ SEA" → "KC" and "SEA", to write the score as "KC 24 – SEA 20".
               const [awayName, homeName] = pick.gameLabel.split(" @ ");
               return (
@@ -303,7 +304,7 @@ export default function SlipDetail({ initialSlip, now }: { initialSlip: BetSlip;
                     <p className="font-semibold text-text">{pick.label}</p>
                     <p className="mt-0.5 text-xs text-muted">
                       {pick.marketLabel} ·{" "}
-                      <Link href={`/matchup/${pick.gameId}`} className="hover:text-gold">
+                      <Link href={matchupHref(pick.gameId, pick.league)} className="hover:text-gold">
                         {pick.gameLabel}
                       </Link>{" "}
                       · {SPORTSBOOKS[pick.sportsbook].name}

@@ -14,6 +14,9 @@
   it shows nothing on screen. It's safe to use in the browser.
 */
 
+// The default league (so NFL addresses stay as they were) and the league-aware matchup address builder.
+import { DEFAULT_LEAGUE_SLUG } from "@/config/leagues";
+import { matchupHref } from "@/lib/leagues/links";
 import type { PropCategory } from "@/types";
 
 /* PLAYER_PROP_BUTTONS: the buttons inside Player Props, in order. */
@@ -79,17 +82,17 @@ export function parseView(search: Record<string, SearchValue>): MatchupView {
 }
 
 /* viewHref: the address for one view of one game. */
-export function viewHref(gameId: string, view: MatchupView): string {
-  const base = `/matchup/${encodeURIComponent(gameId)}`;
+export function viewHref(gameId: string, view: MatchupView, league: string = DEFAULT_LEAGUE_SLUG): string {
+  // matchupHref (lib/leagues/links.ts) adds ?league=nba for leagues other than the default.
   switch (view.kind) {
     case "game-lines":
-      return base;
+      return matchupHref(gameId, league);
     case "player-props":
-      return `${base}?props=${view.category}`;
+      return matchupHref(gameId, league, `props=${view.category}`);
     case "quarters":
-      return `${base}?market=quarters&quarter=${view.quarter}`;
+      return matchupHref(gameId, league, `market=quarters&quarter=${view.quarter}`);
     default:
-      return `${base}?market=${view.kind}`;
+      return matchupHref(gameId, league, `market=${view.kind}`);
   }
 }
 

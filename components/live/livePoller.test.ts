@@ -20,7 +20,7 @@ const NOW = Date.parse("2026-10-26T02:00:00Z");
 const hoursAgo = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
 const hoursAhead = (h: number) => new Date(NOW + h * 3_600_000).toISOString();
 
-const watchedGame = (id: string, startsAt: string, status: WatchedGame["status"]): WatchedGame => ({ id, startsAt, status });
+const watchedGame = (id: string, startsAt: string, status: WatchedGame["status"], league = "nfl"): WatchedGame => ({ id, league, startsAt, status });
 
 function liveGame(gameId: string, status: LiveGame["status"], awayScore = 0): LiveGame {
   return {

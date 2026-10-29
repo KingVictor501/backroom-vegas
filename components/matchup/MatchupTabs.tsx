@@ -18,6 +18,8 @@ import Link from "next/link";
 // The Build your own SGP button from Section 8 (components/betslip).
 import StartSgpButton from "@/components/betslip/StartSgpButton";
 // The list of views and their addresses, from lib/matchup/views.ts.
+// hasMoreMarkets (lib/leagues/links.ts): does this league have tabs beyond Game Lines?
+import { hasMoreMarkets } from "@/lib/leagues/links";
 import { MARKET_LINKS, PLAYER_PROP_BUTTONS, QUARTERS, viewHref, type MatchupView } from "@/lib/matchup/views";
 
 /* chip: the small outlined button look, gold when it's the one showing. */
@@ -32,13 +34,15 @@ function chip(active: boolean): string {
   - gameId / gameLabel: the game (for links and the SGP button, like "KC @ SEA")
   - view: which tab is showing
 */
-export default function MatchupTabs({ gameId, gameLabel, view }: { gameId: string; gameLabel: string; view: MatchupView }) {
+export default function MatchupTabs({ gameId, gameLabel, view, league }: { gameId: string; gameLabel: string; view: MatchupView; league: string }) {
+  // Leagues with only Game Lines (the NBA for now) skip the row of other market tabs.
+  const moreMarkets = hasMoreMarkets(league);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         {/* The pill: Odds (always on, since it's the only working view) and Insights (coming soon). */}
         <div className="flex rounded-full border border-line bg-card p-1">
-          <Link href={viewHref(gameId, { kind: "game-lines" })} aria-current="page" className="min-h-10 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-bg">
+          <Link href={viewHref(gameId, { kind: "game-lines" }, league)} aria-current="page" className="min-h-10 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-bg">
             Odds
           </Link>
           <span
@@ -52,13 +56,14 @@ export default function MatchupTabs({ gameId, gameLabel, view }: { gameId: strin
         <StartSgpButton gameId={gameId} gameLabel={gameLabel} look="button" />
       </div>
 
+      {moreMarkets && (
       <nav aria-label="Markets" className="scroll-row -mx-4 px-4 sm:mx-0 sm:px-0">
         <ul className="flex w-max min-w-full flex-nowrap gap-2 pb-1">
           {MARKET_LINKS.map((link) => {
             const active = link.view.kind === view.kind;
             return (
               <li key={link.label} className="shrink-0">
-                <Link href={viewHref(gameId, link.view)} aria-current={active ? "page" : undefined} className={chip(active)}>
+                <Link href={viewHref(gameId, link.view, league)} aria-current={active ? "page" : undefined} className={chip(active)}>
                   {link.label}
                 </Link>
               </li>
@@ -66,6 +71,7 @@ export default function MatchupTabs({ gameId, gameLabel, view }: { gameId: strin
           })}
         </ul>
       </nav>
+      )}
 
       {view.kind === "player-props" && (
         <nav aria-label="Player prop types" className="scroll-row -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -75,7 +81,7 @@ export default function MatchupTabs({ gameId, gameLabel, view }: { gameId: strin
               return (
                 <li key={button.category} className="shrink-0">
                   <Link
-                    href={viewHref(gameId, { kind: "player-props", category: button.category })}
+                    href={viewHref(gameId, { kind: "player-props", category: button.category }, league)}
                     aria-current={active ? "page" : undefined}
                     className={chip(active)}
                   >
@@ -95,7 +101,7 @@ export default function MatchupTabs({ gameId, gameLabel, view }: { gameId: strin
             return (
               <Link
                 key={quarter}
-                href={viewHref(gameId, { kind: "quarters", quarter })}
+                href={viewHref(gameId, { kind: "quarters", quarter }, league)}
                 aria-current={active ? "page" : undefined}
                 className={chip(active)}
               >

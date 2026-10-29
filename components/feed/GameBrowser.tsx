@@ -94,7 +94,7 @@ export default function GameBrowser({
   });
 
   // Live scores for the games shown (refreshed about every 30 seconds, only while one is live and the tab is open).
-  const { live, delayed } = useLiveScores(leagueSlug, shown);
+  const { live, delayed } = useLiveScores(shown);
 
   // Any bet type other than the first (Game Lines) adds a "See ___ props" link to each card.
   const propsLink: PropsLink | null = betType === betTypes[0] ? null : { label: betType, slug: toSlug(betType) };

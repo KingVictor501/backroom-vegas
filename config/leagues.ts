@@ -30,6 +30,11 @@ export type LeagueConfig = {
    */
   readonly bettingEnabled: boolean;
   /**
+   * true = this league has its own team pages and player pages (the /team and /player routes).
+   * false = team and player names are plain text, because those pages only know football so far.
+   */
+  readonly statsPages: boolean;
+  /**
    * A small picture for the tab. It's an emoji for now so we don't need image files.
    * The tab will hide it from screen readers, because the label already says the league name.
    */
@@ -67,6 +72,7 @@ export const LEAGUES = [
     fullName: "National Football League",
     enabled: true,
     bettingEnabled: true,
+    statsPages: true,
     icon: "🏈",
     oddsApiSportKey: "americanfootball_nfl",
     espn: { sport: "football", league: "nfl" },
@@ -78,8 +84,9 @@ export const LEAGUES = [
     label: "NBA",
     fullName: "National Basketball Association",
     enabled: true,
-    // Scores and schedule only for now: no odds, matchup, team, or player pages yet.
-    bettingEnabled: false,
+    // Odds, matchup page, and picks are built. Team and player pages and player props are not yet.
+    bettingEnabled: true,
+    statsPages: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_nba",
     espn: { sport: "basketball", league: "nba" },
@@ -92,6 +99,7 @@ export const LEAGUES = [
     fullName: "National Hockey League",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🏒",
     oddsApiSportKey: "icehockey_nhl",
     espn: { sport: "hockey", league: "nhl" },
@@ -104,6 +112,7 @@ export const LEAGUES = [
     fullName: "Major League Baseball",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "⚾",
     oddsApiSportKey: "baseball_mlb",
     espn: { sport: "baseball", league: "mlb" },
@@ -116,6 +125,7 @@ export const LEAGUES = [
     fullName: "NCAA Football",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🏈",
     oddsApiSportKey: "americanfootball_ncaaf",
     espn: { sport: "football", league: "college-football" },
@@ -128,6 +138,7 @@ export const LEAGUES = [
     fullName: "NCAA Men's Basketball",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_ncaab",
     espn: { sport: "basketball", league: "mens-college-basketball" },
@@ -140,6 +151,7 @@ export const LEAGUES = [
     fullName: "Women's National Basketball Association",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🏀",
     oddsApiSportKey: "basketball_wnba",
     espn: { sport: "basketball", league: "wnba" },
@@ -156,6 +168,7 @@ export const LEAGUES = [
     fullName: "Ultimate Fighting Championship",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🥋",
     oddsApiSportKey: "mma_mixed_martial_arts",
     espn: { sport: "mma", league: "ufc" },
@@ -168,6 +181,7 @@ export const LEAGUES = [
     fullName: "Boxing",
     enabled: false,
     bettingEnabled: false,
+    statsPages: false,
     icon: "🥊",
     oddsApiSportKey: "boxing_boxing",
     espn: { sport: "boxing", league: "boxing" },

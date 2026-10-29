@@ -279,7 +279,8 @@ export const gameSummarySchema = z.object({
           z.object({
             statistics: z.array(
               z.object({
-                name: z.string(),
+                // Football groups are named ("passing", "rushing"); basketball has ONE unnamed group, so name is optional.
+                name: z.string().optional(),
                 keys: z.array(z.string()).optional(),
                 athletes: z.array(
                   z.object({

@@ -28,6 +28,8 @@ import { teamIdLookup } from "@/lib/services/odds/match";
 import { getGameProps, playerLookup } from "@/lib/services/odds/props";
 // The view (tab) types from lib/matchup/views.ts.
 import type { MatchupView } from "@/lib/matchup/views";
+// teamHref and playerHref (null for leagues without those pages), from lib/leagues/links.ts.
+import { playerHref, teamHref } from "@/lib/leagues/links";
 import type { GameWithLines, Market, MarketOutcome, MarketSection, MarketSectionRow, SportsbookId } from "@/types";
 
 /*
@@ -103,12 +105,12 @@ function toSection(market: Market, game: GameWithLines, findPlayer: (name: strin
       const team = teams.find((t) => t.id === participant.id);
       key = `team-${participant.id ?? participant.name}`;
       label = team?.name ?? participant.name;
-      href = team ? `/team/${team.id}` : null;
+      href = team ? teamHref(game.league, team.id) : null;
     } else if (participant.kind === "player") {
       const playerId = participant.id ?? findPlayer(participant.name)?.id ?? null;
       key = `player-${playerId ?? participant.name}`;
       label = participant.name;
-      href = playerId ? `/player/${playerId}` : null;
+      href = playerId ? playerHref(game.league, playerId) : null;
     }
     const row = rows.get(key) ?? { key, label, href, outcomes: [] };
     row.outcomes.push(outcome);

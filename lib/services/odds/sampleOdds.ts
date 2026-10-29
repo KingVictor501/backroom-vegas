@@ -26,6 +26,20 @@ import { UpstreamError } from "@/lib/services/http";
 
 /* The saved files (inside the samples folder). */
 const GAME_LINES_FILE = "B3-odds-game-lines.json";
+
+/*
+  SPORT_GAME_LINES_FILES: leagues that have their OWN saved game-lines file. Any other league uses the
+  NFL file above. (Extra markets like player props only exist for the NFL samples.)
+*/
+const SPORT_GAME_LINES_FILES: Record<string, string> = {
+  basketball_nba: "B3-nba-odds-game-lines.json",
+};
+
+/* sportFile: which saved file answers a request path like "/sports/basketball_nba/odds". */
+function sportFile(requestPath: string): string {
+  const sport = /^\/sports\/([^/]+)\//.exec(requestPath)?.[1] ?? "";
+  return SPORT_GAME_LINES_FILES[sport] ?? GAME_LINES_FILE;
+}
 // B4 only lists market NAMES (no prices), so it is not used here.
 const EXTRA_FILES = ["B5-event-props.json", "B6-event-halves.json"];
 
@@ -97,7 +111,8 @@ export async function getSampleOdds<Schema extends z.ZodType>(
   schema: Schema,
   label: string,
 ): Promise<z.infer<Schema>> {
-  const events = (await readJson(GAME_LINES_FILE)) as SampleEvent[];
+  const file = sportFile(requestPath);
+  const events = (await readJson(file)) as SampleEvent[];
   const match = /\/events\/([^/]+)\/odds$/.exec(requestPath);
 
   let answer: unknown;
@@ -107,7 +122,9 @@ export async function getSampleOdds<Schema extends z.ZodType>(
     const id = decodeURIComponent(match[1]);
     const event = events.find((candidate) => candidate.id === id);
     if (!event) throw new UpstreamError("The Odds API", 404, "that game is not in the saved samples");
-    answer = onlyMarkets(await withExtras(event), (params.markets ?? "").split(",").filter(Boolean));
+    // Extra markets (player props, halves) were only saved for the NFL, so other leagues skip the merge.
+    const full = file === GAME_LINES_FILE ? await withExtras(event) : event;
+    answer = onlyMarkets(full, (params.markets ?? "").split(",").filter(Boolean));
   }
 
   console.info(`[Odds API] ${label}: SAMPLE data (no credits used)`);

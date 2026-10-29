@@ -24,8 +24,8 @@ export const REFRESH_MS = 30_000;
 */
 const SHOULD_HAVE_STARTED_WINDOW_MS = 8 * 60 * 60 * 1000;
 
-/* WatchedGame: what the screen already knows about a game (from the server). */
-export type WatchedGame = { id: string; startsAt: string; status: GameStatus };
+/* WatchedGame: what the screen already knows about a game (from the server), including its league (like "nfl" or "nba"). */
+export type WatchedGame = { id: string; league: string; startsAt: string; status: GameStatus };
 
 /*
   shouldPoll: true if this game could be changing right now: it is live, or it is "scheduled"

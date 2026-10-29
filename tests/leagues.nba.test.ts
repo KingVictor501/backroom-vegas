@@ -1,12 +1,12 @@
 /*
   FILE: tests/leagues.nba.test.ts
-  WHAT IT'S FOR: Automatic tests for the NBA being "scores only" for now. They prove:
-  - the league settings: NFL has betting, NBA is on but scores-only, every other league is still off
-  - the games service never calls The Odds API for the NBA (so it costs no credits) and says "no odds"
-    instead of "odds service failed"
-  - a bet pick for an NBA game is refused (400-style validation error), because picks need odds, matchup and
-    team pages the NBA doesn't have yet
-  - an NBA game card shows both teams and the live score, has no links to football-only pages, and no odds buttons
+  WHAT IT'S FOR: Automatic tests for how leagues are switched on. They prove:
+  - the league settings: NFL has everything, NBA has betting but no team/player pages, every other league is off
+  - a league that is NOT bettable (the NHL here, which is off) never calls The Odds API, so it costs no credits
+    and says "no odds" instead of "odds service failed"; the NFL and NBA do ask The Odds API
+  - a bet pick is accepted for the NFL and NBA, and refused for a league without betting features
+  - a "scores only" game card (used for a league with schedules but no betting) shows teams and the live
+    score, with no links to football-only pages and no odds buttons
   WHO USES IT: Vitest, when you run `npm test`.
   WHY THIS NAME: It tests the NBA scores-only setup. It ends in .ts because it shows nothing on screen.
 */
@@ -34,44 +34,47 @@ const NBA_GAME = {
 } as unknown as GameWithLines;
 
 describe("league settings", () => {
-  it("NFL has betting; NBA is on but scores-only; no other league is on", () => {
+  it("NFL has everything; NBA has betting but no team or player pages; no other league is on", () => {
     const by = Object.fromEntries(LEAGUES.map((league) => [league.slug, league]));
-    expect(by.nfl).toMatchObject({ enabled: true, bettingEnabled: true });
-    expect(by.nba).toMatchObject({ enabled: true, bettingEnabled: false });
+    expect(by.nfl).toMatchObject({ enabled: true, bettingEnabled: true, statsPages: true });
+    expect(by.nba).toMatchObject({ enabled: true, bettingEnabled: true, statsPages: false });
     for (const league of LEAGUES.filter((l) => l.slug !== "nfl" && l.slug !== "nba")) {
       expect(league.enabled, league.slug).toBe(false);
       expect(league.bettingEnabled, league.slug).toBe(false);
+      expect(league.statsPages, league.slug).toBe(false);
     }
   });
 });
 
-describe("games service for a scores-only league", () => {
+describe("games service and The Odds API", () => {
   beforeEach(() => {
     outside.getUpcomingGames.mockReset();
     outside.getLeagueGameLines.mockReset();
     outside.getUpcomingGames.mockResolvedValue({ thisWeek: [{ ...NBA_GAME, lines: undefined }], nextWeek: [] });
   });
 
-  it("does not call The Odds API for the NBA, and says there are no odds (not that the odds service failed)", async () => {
-    const result = await getUpcomingGamesWithLines("nba", "hardrock");
+  it("does not call The Odds API for a league without betting features, and says there are no odds (not that the odds service failed)", async () => {
+    const result = await getUpcomingGamesWithLines("nhl", "hardrock");
     expect(outside.getLeagueGameLines).not.toHaveBeenCalled();
     expect(result.oddsUnavailable).toBe(false);
     expect(result.games).toHaveLength(1);
     expect(result.games[0].lines).toBeNull();
   });
 
-  it("still asks The Odds API for the NFL", async () => {
+  it.each(["nfl", "nba"] as const)("asks The Odds API for the %s", async (league) => {
     outside.getLeagueGameLines.mockResolvedValue([]);
-    await getUpcomingGamesWithLines("nfl", "hardrock");
+    await getUpcomingGamesWithLines(league, "hardrock");
     expect(outside.getLeagueGameLines).toHaveBeenCalledTimes(1);
+    expect(outside.getLeagueGameLines).toHaveBeenCalledWith(league);
   });
 });
 
-describe("picks for a scores-only league", () => {
-  it("accepts an NFL pick and refuses an NBA pick", () => {
+describe("picks and leagues", () => {
+  it("accepts NFL and NBA picks, and refuses a league without betting features", () => {
     expect(betPickRule.safeParse(makePick()).success).toBe(true);
-    const nba = betPickRule.safeParse({ ...makePick(), league: "nba" });
-    expect(nba.success).toBe(false);
+    expect(betPickRule.safeParse({ ...makePick(), league: "nba" }).success).toBe(true);
+    expect(betPickRule.safeParse({ ...makePick(), league: "nhl" }).success).toBe(false);
+    expect(betPickRule.safeParse({ ...makePick(), league: "../x" }).success).toBe(false);
   });
 });
 

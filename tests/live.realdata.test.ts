@@ -5,13 +5,15 @@
   answers; this one proves ESPN's real labels and numbers are read correctly:
   - STATUS_IN_PROGRESS → "Q4 6:14", STATUS_END_PERIOD → "End of Q3", a fresh quarter at 12:00
   - scores and points per quarter, a game that hasn't started shows no score
-  KNOWN GAP (written down so it isn't forgotten): basketball box scores have no group names like
-  "passing", so player stats come back empty (players: null) until NBA player props are built.
+  - basketball box scores have no group names like "passing", and they used to make ESPN's whole game
+    summary get rejected (the NBA matchup page crashed). Now player stats come through as "stats.points" etc.
   WHO USES IT: Vitest, when you run `npm test`.
   WHY THIS NAME: Live scores tested with real data. It ends in .ts because it shows nothing on screen.
 */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { gradePick } from "@/lib/betting/grading";
+import { makePick } from "./support/factories";
 import board from "./fixtures/espn-nba-scoreboard-live.json";
 import summary from "./fixtures/espn-nba-summary-live.json";
 
@@ -48,8 +50,44 @@ describe("live scores with real ESPN answers (NBA, 2026-10-28)", () => {
     expect(game.awayTeamId).toMatch(/^\d+$/);
   });
 
-  it("KNOWN GAP: a basketball box score has no group names, so no player stats yet", async () => {
+  it("reads the basketball box score even though it has no group names", async () => {
     const [game] = await getLiveGames("nba", ["401909881"], true);
-    expect(game.players).toBeNull();
+    expect(game.players).not.toBeNull();
+    const players = Object.values(game.players ?? {});
+    expect(players.length).toBeGreaterThan(5);
+    // Every player has numbers like points and rebounds under the "stats." prefix.
+    const first = players[0];
+    expect(first.name.length).toBeGreaterThan(2);
+    expect(first.stats["stats.points"]).toBeTypeOf("number");
+    expect(first.stats["stats.rebounds"]).toBeTypeOf("number");
+  });
+});
+
+describe("grading NBA picks against the real live score (Heat 111 at Hawks 107, Q4 6:14)", () => {
+  const NOW = Date.parse("2026-10-29T01:00:00Z");
+  /* nbaPick: a pick on that real game, as a Heat (away) or Hawks (home) pick. */
+  const nbaPick = (changes: Parameters<typeof makePick>[0]) => makePick({ league: "nba", gameId: "401909881", gameLabel: "MIA @ ATL", ...changes });
+
+  it("spread: Heat -3 is winning (111 - 3 = 108 > 107); Heat -5 is losing (106 < 107); Hawks +5 is winning", async () => {
+    const [game] = await getLiveGames("nba", ["401909881"], false);
+    const heat = (line: number) => nbaPick({ side: "away", line, participant: { kind: "team", id: game.awayTeamId, name: "Miami Heat" } });
+    const hawks = (line: number) => nbaPick({ side: "home", line, participant: { kind: "team", id: game.homeTeamId, name: "Atlanta Hawks" } });
+    expect(gradePick(heat(-3), game, 4, NOW)).toEqual({ phase: "live", outcome: "win" });
+    expect(gradePick(heat(-5), game, 4, NOW)).toEqual({ phase: "live", outcome: "lose" });
+    expect(gradePick(hawks(5), game, 4, NOW)).toEqual({ phase: "live", outcome: "win" });
+  });
+
+  it("total: 218 points so far, Over 215.5 is winning and Under 215.5 is losing", async () => {
+    const [game] = await getLiveGames("nba", ["401909881"], false);
+    const total = (side: "over" | "under") => nbaPick({ marketKey: "totals", marketLabel: "Total", side, line: 215.5, participant: { kind: "game", id: null, name: "Game" } });
+    expect(gradePick(total("over"), game, 4, NOW).outcome).toBe("win");
+    expect(gradePick(total("under"), game, 4, NOW).outcome).toBe("lose");
+  });
+
+  it("moneyline: the Heat (ahead) are winning and the Hawks are losing", async () => {
+    const [game] = await getLiveGames("nba", ["401909881"], false);
+    const ml = (side: "home" | "away") => nbaPick({ marketKey: "h2h", marketLabel: "Winner", side, line: null });
+    expect(gradePick(ml("away"), game, 4, NOW).outcome).toBe("win");
+    expect(gradePick(ml("home"), game, 4, NOW).outcome).toBe("lose");
   });
 });

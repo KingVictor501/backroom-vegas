@@ -55,6 +55,21 @@ afterEach(async () => {
   await rm(folder, { recursive: true, force: true });
 });
 
+describe("a league with its own saved file", () => {
+  it("the NBA reads its own game-lines file, not the NFL one", async () => {
+    await writeFile(path.join(folder, "B3-nba-odds-game-lines.json"), JSON.stringify([game("nba1", [SPREADS])]));
+    const events = await oddsGet("/sports/basketball_nba/odds", { markets: "spreads" }, oddsEventListSchema, "game lines");
+    expect(events.map((event) => event.id)).toEqual(["nba1"]);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("an NBA game is found in its own file, and an NFL game id is not", async () => {
+    await writeFile(path.join(folder, "B3-nba-odds-game-lines.json"), JSON.stringify([game("nba1", [SPREADS])]));
+    await expect(oddsGet("/sports/basketball_nba/events/nba1/odds", { markets: "spreads" }, oddsEventSchema, "event markets")).resolves.toBeDefined();
+    await expect(oddsGet("/sports/basketball_nba/events/g1/odds", { markets: "spreads" }, oddsEventSchema, "event markets")).rejects.toMatchObject({ status: 404 });
+  });
+});
+
 describe("when sample mode turns on", () => {
   it("is on only when SAMPLE_ODDS is exactly true, outside production", () => {
     expect(sampleOddsEnabled()).toBe(true);

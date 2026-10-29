@@ -22,12 +22,11 @@ const MAX_GAMES = 25;
 
 /*
   useLiveScores
-  - league: like "nfl"
-  - watched: the games on screen (the server's copy of each)
+  - watched: the games on screen (the server's copy of each, with its league). A screen can mix leagues,
+    like a bet slip with an NFL pick and an NBA pick: one request is made per league.
   - includeStats: also ask for the box score (needed to grade player props on slips)
 */
 export function useLiveScores(
-  league: string,
   watched: readonly WatchedGame[],
   includeStats = false,
 ): { live: ReadonlyMap<string, LiveGame>; delayed: boolean } {
@@ -38,28 +37,38 @@ export function useLiveScores(
   // so the effect below doesn't restart on every redraw.
   const signature = watched
     .slice(0, MAX_GAMES)
-    .map((game) => `${game.id}|${game.startsAt}|${game.status}`)
+    .map((game) => `${game.id}|${game.league}|${game.startsAt}|${game.status}`)
     .sort()
     .join(",");
 
   useEffect(() => {
     const games: WatchedGame[] = signature
       ? signature.split(",").map((part) => {
-          const [id, startsAt, status] = part.split("|");
-          return { id, startsAt, status: status as GameStatus };
+          const [id, league, startsAt, status] = part.split("|");
+          return { id, league, startsAt, status: status as GameStatus };
         })
       : [];
     const controller = new AbortController();
+
+    // The games grouped by league: { nfl: ["1", "2"], nba: ["3"] }.
+    const byLeague = new Map<string, string[]>();
+    for (const game of games) byLeague.set(game.league, [...(byLeague.get(game.league) ?? []), game.id]);
 
     const stop = startLivePolling({
       games,
       onGames: setLive,
       onDelayed: setDelayed,
       load: async () => {
-        const query = new URLSearchParams({ league, games: games.map((game) => game.id).join(","), stats: String(includeStats) });
-        const response = await fetch(`/api/live?${query}`, { signal: controller.signal, cache: "no-store" });
-        if (!response.ok) throw new Error("Live scores request failed");
-        return ((await response.json()) as LiveScoresResponse).games;
+        // One request per league, at the same time. If any fails, the whole refresh counts as failed ("Scores delayed").
+        const answers = await Promise.all(
+          [...byLeague].map(async ([league, ids]) => {
+            const query = new URLSearchParams({ league, games: ids.join(","), stats: String(includeStats) });
+            const response = await fetch(`/api/live?${query}`, { signal: controller.signal, cache: "no-store" });
+            if (!response.ok) throw new Error("Live scores request failed");
+            return ((await response.json()) as LiveScoresResponse).games;
+          }),
+        );
+        return answers.flat();
       },
     });
 
@@ -67,7 +76,7 @@ export function useLiveScores(
       controller.abort();
       stop();
     };
-  }, [league, signature, includeStats]);
+  }, [signature, includeStats]);
 
   return { live, delayed };
 }
