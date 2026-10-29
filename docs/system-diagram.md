@@ -8,7 +8,12 @@ The Vegas Backroom is **one app** with three parts that talk to each other: what
 flowchart LR
   Browser["<b>FRONTEND</b><br/>Your browser<br/>(the screens you see)"]
   Guard["<b>BACKEND: the guard</b><br/>proxy.ts<br/>checks who you are"]
-  App["<b>BACKEND: the app</b><br/>pages, API routes, forms<br/>(does the work)"]
+  subgraph App["<b>BACKEND: the app</b> (does the work)"]
+    direction TB
+    Pages["Pages<br/>build the screens"]
+    API["API routes<br/>answer data requests"]
+    Forms["Server Actions<br/>handle forms"]
+  end
   DB[("<b>DATABASE</b><br/>MongoDB<br/>users, bet slips,<br/>invite codes")]
   ESPN["<b>OUTSIDE</b><br/>ESPN<br/>scores, stats, news"]
   Odds["<b>OUTSIDE</b><br/>The Odds API<br/>betting odds"]

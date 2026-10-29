@@ -70,6 +70,7 @@ Your browser ──► The Vegas Backroom server (Next.js on Vercel) ──► E
 - **ESPN** (its public, unofficial API; no key): games, scores, team and player stats, injuries, news, and logos. Stats only: the app never reads ESPN's betting lines and never shows old (historical) odds.
 - **The Odds API** (`ODDS_API_KEY`): live game lines and props for Hard Rock Bet (`hardrockbet`), and BetMGM (`betmgm`). Games are matched between ESPN and The Odds API by team names and kickoff time.
 - **Saving credits:** answers are cached (saved for a while) on the server. Game lines for every game cost 3 credits per refresh and are saved for 6 hours. Props, halves, and the other tabs only load when someone opens them. Live scores come from ESPN, not The Odds API, so they cost no credits.
+- **Shared API helpers:** the browser's bet slip calls all go through `lib/betting/slipRequests.ts`; the server's calls to outside APIs go through `lib/services/http.ts`; and the server's calls to its own API go through `lib/api/ownApi.ts`. See [`docs/component-tree.md`](docs/component-tree.md).
 - **Schema checks:** every outside answer is checked with zod before it's used, so an unexpected change shows a friendly message instead of crashing.
 
 ---

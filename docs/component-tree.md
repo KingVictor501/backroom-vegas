@@ -21,6 +21,11 @@ The folder structure mirrors the tree: `app/` holds the pages (server components
   - `useLiveScores` → `/api/live`
   - `SearchBar` → `/api/search`
   - `NewsWidget` (`components/feed/NewsWidget.tsx`) → `/api/news`
+- **Shared API helpers** (so no page writes its own request code for these):
+  - **Browser → our API, for bet slips:** `lib/betting/slipRequests.ts`. It sends the request, turns a failed answer into a `SlipRequestError` with the server's friendly message, and is used by every slip component.
+  - **Server → our own API:** `lib/api/ownApi.ts` (`getFromOwnApi`). It adds the user's cookie and uses `APP_URL`, and is used by the Bet Slips list page.
+  - **Server → outside APIs:** `lib/services/http.ts` (the shared fetch that checks every answer with zod and turns failures into friendly errors), with `lib/services/espn/client.ts` and `lib/services/odds/client.ts` building the ESPN and Odds API addresses.
+  - Search, the News widget, and live scores make their own small `fetch` calls to our API (each with its own loading and error handling); they are not routed through a shared helper yet.
 - **Forms use Server Actions** (`app/actions/*.ts`): invite, sign up, log in, log out, settings, and the three profile forms.
 - `components/matchup/AutoRefresh.tsx` calls `router.refresh()`, which re-runs the server-rendered stats section; it makes no API call of its own.
 

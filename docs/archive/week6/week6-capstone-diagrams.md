@@ -1,4 +1,7 @@
-# The Vegas Backroom: data model
+# The Vegas Backroom: data model (Week 6, archived)
+
+> **ARCHIVED (Week 6).** This is the old Week 6 data model and data-sources picture. It is kept for history only and is **out of date** (it has no invite codes, login lockout, wagers, payouts, or copied slips). For the current versions, see [`docs/data-model.md`](../../data-model.md) and [`docs/system-diagram.md`](../../system-diagram.md).
+
 
 How the app's data is organized: what's **stored in MongoDB** (users and bet
 slips), how those records connect, and where the **sports data** comes from.
