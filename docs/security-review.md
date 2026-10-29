@@ -108,7 +108,7 @@ I name these honestly. None is a known way to read or change someone else's data
 **Data and outside services**
 - **ESPN's API is unofficial** and not meant for commercial use. It can change or disappear without warning. The app validates every ESPN answer with zod and shows a friendly message if it fails, but I cannot promise it keeps working.
 - **The Odds API free plan has a request limit.** The app caches results (6 hours for odds) and Preview uses practice odds so it does not spend credits, but real odds can run out. An upgrade is planned.
-- **The Parlay API** needs a signed agreement before its data can be shown publicly. The app does not fetch any data from it; only a name label exists in `config/sportsbooks.ts`. It must stay unused until that agreement exists.
+- **The Parlay API** is not used yet. It needs a signed agreement before its data can be shown publicly. The app does not fetch any data from it today; only a name label exists in `config/sportsbooks.ts`. The plan is to start using it **after grading, for my own personal, non-commercial use only**. Before turning it on I will read its terms to confirm they allow personal use, keep its key on the server only (like `ODDS_API_KEY`), and not show its data to the public until any required agreement is signed.
 - **Caesars** had no odds in The Odds API and was removed.
 
 **Accounts and login**
