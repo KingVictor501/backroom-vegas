@@ -84,9 +84,9 @@ export const LEAGUES = [
     label: "NBA",
     fullName: "National Basketball Association",
     enabled: true,
-    // Odds, matchup page, and picks are built. Team and player pages and player props are not yet.
+    // Odds, matchup page, picks, and team and player pages are built. Player props are not yet.
     bettingEnabled: true,
-    statsPages: false,
+    statsPages: true,
     icon: "🏀",
     oddsApiSportKey: "basketball_nba",
     espn: { sport: "basketball", league: "nba" },

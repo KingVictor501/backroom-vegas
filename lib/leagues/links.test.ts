@@ -39,13 +39,16 @@ describe("matchupHref", () => {
 });
 
 describe("team and player links", () => {
-  it("exist for the NFL and are null for the NBA", () => {
+  it("exist for the NFL and NBA and are null for a league without pages", () => {
     expect(hasStatsPages("nfl")).toBe(true);
-    expect(hasStatsPages("nba")).toBe(false);
+    expect(hasStatsPages("nba")).toBe(true);
+    expect(hasStatsPages("nhl")).toBe(false);
     expect(teamHref("nfl", "12")).toBe("/team/12");
     expect(playerHref("nfl", "3139477")).toBe("/player/3139477");
-    expect(teamHref("nba", "12")).toBeNull();
-    expect(playerHref("nba", "3139477")).toBeNull();
+    expect(teamHref("nba", "12")).toBe("/team/12?league=nba");
+    expect(playerHref("nba", "3139477")).toBe("/player/3139477?league=nba");
+    expect(teamHref("nhl", "12")).toBeNull();
+    expect(playerHref("nhl", "3139477")).toBeNull();
     expect(teamHref("not-a-league", "12")).toBeNull();
   });
 });
@@ -81,20 +84,23 @@ describe("components in a league without team and player pages", () => {
   const game = (league: string) =>
     ({ id: "1", league, startsAt: "2026-10-29T00:30:00Z", status: "scheduled", awayScore: null, homeScore: null, venue: null, oddsEventId: null, winProbability: null, lines: null, awayTeam: team("14", "Heat"), homeTeam: team("1", "Hawks") }) as unknown as GameWithLines;
 
-  it("the odds table links team names for the NFL but not for the NBA", () => {
+  it("the odds table links team names for the NFL and NBA but not for a league without team pages", () => {
     const nfl = renderToStaticMarkup(createElement(GameLinesTable, { game: game("nfl"), sportsbook: "hardrock" }));
     const nba = renderToStaticMarkup(createElement(GameLinesTable, { game: game("nba"), sportsbook: "hardrock" }));
+    const none = renderToStaticMarkup(createElement(GameLinesTable, { game: game("nhl"), sportsbook: "hardrock" }));
     expect(nfl).toContain('href="/team/14"');
-    expect(nba).not.toContain("/team/");
-    expect(nba).toContain("Heat");
+    expect(nba).toContain('href="/team/14?league=nba"');
+    expect(none).not.toContain("/team/");
+    expect(none).toContain("Heat");
   });
 
   const injuries: Injury[] = [{ player: { id: "9", name: "Jimmy Butler", position: "SF" }, status: "Questionable", detail: "Knee" } as unknown as Injury];
-  it("injury names link to a player page for the NFL but not for the NBA", () => {
+  it("injury names link to a player page for the NFL and NBA but not for a league without pages", () => {
     expect(renderToStaticMarkup(createElement(InjuryList, { injuries }))).toContain('href="/player/9"');
-    const nba = renderToStaticMarkup(createElement(InjuryList, { injuries, league: "nba" }));
-    expect(nba).not.toContain("/player/");
-    expect(nba).toContain("Jimmy Butler");
+    expect(renderToStaticMarkup(createElement(InjuryList, { injuries, league: "nba" }))).toContain('href="/player/9?league=nba"');
+    const none = renderToStaticMarkup(createElement(InjuryList, { injuries, league: "nhl" }));
+    expect(none).not.toContain("/player/");
+    expect(none).toContain("Jimmy Butler");
   });
 
   it("the matchup tabs show the market row for the NFL and only Odds for the NBA", () => {

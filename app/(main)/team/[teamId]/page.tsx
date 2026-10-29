@@ -20,16 +20,19 @@ import { Suspense } from "react";
 // The team page pieces, from components/team.
 import TeamHeader from "@/components/team/TeamHeader";
 import { InjuriesAndNews, KeyPlayers, RecentGames, SectionSkeleton } from "@/components/team/TeamSections";
-// The league (only NFL for now), from config/leagues.ts.
-import { DEFAULT_LEAGUE_SLUG } from "@/config/leagues";
+// NbaTeamView: the basketball version of the team page. parseStatsLeague reads ?league=; isBasketball picks the view.
+import NbaTeamView from "@/components/basketball/NbaTeamView";
+import { isBasketball, parseStatsLeague } from "@/lib/leagues/links";
+import { getNbaTeamOverview } from "@/lib/services/espn/basketball";
 // requireUser from lib/auth/dal.ts: logged-in users only (checks the account still exists, too).
 import { requireUser } from "@/lib/auth/dal";
 // getTeamOverview from lib/services/espn/teams.ts: the top of the page (null for a fake team ID).
 import { getTeamOverview } from "@/lib/services/espn/teams";
-import type { LeagueSlug } from "@/types";
 
-/* LEAGUE: team addresses don't include the league yet, because only the NFL is on. */
-const LEAGUE = DEFAULT_LEAGUE_SLUG as LeagueSlug;
+/*
+  The league comes from the address's ?league= setting (lib/leagues/links.ts: parseStatsLeague). No setting
+  means the NFL, so every older address works as before. Basketball teams use their own view.
+*/
 
 /* isTeamId: ESPN team IDs are only digits. Anything else can't be a real team. */
 function isTeamId(id: string): boolean {
@@ -38,8 +41,10 @@ function isTeamId(id: string): boolean {
 
 /* generateMetadata: the browser tab title, like "Kansas City Chiefs | The Vegas Backroom". */
 export async function generateMetadata(props: PageProps<"/team/[teamId]">): Promise<Metadata> {
-  const { teamId } = await props.params;
-  const overview = isTeamId(teamId) ? await getTeamOverview(LEAGUE, teamId).catch(() => null) : null;
+  const [{ teamId }, search] = await Promise.all([props.params, props.searchParams]);
+  const league = parseStatsLeague(search.league);
+  if (!league || !isTeamId(teamId)) return { title: "Team" };
+  const overview = isBasketball(league) ? await getNbaTeamOverview(teamId).catch(() => null) : await getTeamOverview(league, teamId).catch(() => null);
   return { title: overview?.team.displayName ?? "Team" };
 }
 
@@ -49,24 +54,32 @@ export async function generateMetadata(props: PageProps<"/team/[teamId]">): Prom
   means a fake team ID gets a real "404 not found" answer.)
 */
 export default async function TeamPage(props: PageProps<"/team/[teamId]">) {
-  const { teamId } = await props.params;
+  const [{ teamId }, search] = await Promise.all([props.params, props.searchParams]);
   await requireUser();
-  if (!isTeamId(teamId)) notFound();
+  // A league that doesn't exist, is off, or has no team pages is "not found" (null = not a valid league).
+  const league = parseStatsLeague(search.league);
+  if (!league || !isTeamId(teamId)) notFound();
 
-  const overview = await getTeamOverview(LEAGUE, teamId);
+  if (isBasketball(league)) {
+    const nbaOverview = await getNbaTeamOverview(teamId);
+    if (!nbaOverview) notFound();
+    return <NbaTeamView overview={nbaOverview} />;
+  }
+
+  const overview = await getTeamOverview(league, teamId);
   if (!overview) notFound();
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <TeamHeader overview={overview} />
       <Suspense fallback={<SectionSkeleton title="Last 5 games" />}>
-        <RecentGames league={LEAGUE} teamId={teamId} />
+        <RecentGames league={league} teamId={teamId} />
       </Suspense>
       <Suspense fallback={<SectionSkeleton title="Key players: last 5 games" />}>
-        <KeyPlayers league={LEAGUE} teamId={teamId} />
+        <KeyPlayers league={league} teamId={teamId} />
       </Suspense>
       <Suspense fallback={<SectionSkeleton title="Injuries and news" />}>
-        <InjuriesAndNews league={LEAGUE} teamId={teamId} />
+        <InjuriesAndNews league={league} teamId={teamId} />
       </Suspense>
     </div>
   );

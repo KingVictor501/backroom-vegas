@@ -16,6 +16,7 @@
 */
 
 export * from "./api";
+export * from "./basketball";
 export * from "./betslip";
 export * from "./game";
 export * from "./league";

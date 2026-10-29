@@ -34,10 +34,10 @@ const NBA_GAME = {
 } as unknown as GameWithLines;
 
 describe("league settings", () => {
-  it("NFL has everything; NBA has betting but no team or player pages; no other league is on", () => {
+  it("NFL has everything; NBA has betting and team and player pages; no other league is on", () => {
     const by = Object.fromEntries(LEAGUES.map((league) => [league.slug, league]));
     expect(by.nfl).toMatchObject({ enabled: true, bettingEnabled: true, statsPages: true });
-    expect(by.nba).toMatchObject({ enabled: true, bettingEnabled: true, statsPages: false });
+    expect(by.nba).toMatchObject({ enabled: true, bettingEnabled: true, statsPages: true });
     for (const league of LEAGUES.filter((l) => l.slug !== "nfl" && l.slug !== "nba")) {
       expect(league.enabled, league.slug).toBe(false);
       expect(league.bettingEnabled, league.slug).toBe(false);

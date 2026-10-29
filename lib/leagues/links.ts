@@ -29,14 +29,37 @@ export function hasStatsPages(league: string): boolean {
   return getLeague(league)?.statsPages === true;
 }
 
+/* leagueQuery: "" for the default league (so NFL addresses stay as they were), "?league=nba" otherwise. */
+function leagueQuery(league: string): string {
+  return league === DEFAULT_LEAGUE_SLUG ? "" : `?league=${encodeURIComponent(league)}`;
+}
+
 /* teamHref: the team page, or null when this league has none (null = missing on purpose: show plain text). */
 export function teamHref(league: string, teamId: string): string | null {
-  return hasStatsPages(league) ? `/team/${encodeURIComponent(teamId)}` : null;
+  return hasStatsPages(league) ? `/team/${encodeURIComponent(teamId)}${leagueQuery(league)}` : null;
 }
 
 /* playerHref: the player page, or null when this league has none (null = missing on purpose: show plain text). */
 export function playerHref(league: string, playerId: string): string | null {
-  return hasStatsPages(league) ? `/player/${encodeURIComponent(playerId)}` : null;
+  return hasStatsPages(league) ? `/player/${encodeURIComponent(playerId)}${leagueQuery(league)}` : null;
+}
+
+/*
+  parseStatsLeague: reads the ?league= setting of a team or player address.
+  - missing → the default league (NFL)
+  - a league that is on AND has team and player pages → that league
+  - anything else → null, and the page shows "not found" (null is missing on purpose)
+*/
+export function parseStatsLeague(value: string | string[] | undefined): LeagueSlug | null {
+  const text = (Array.isArray(value) ? value[0] : value) ?? "";
+  if (text === "") return DEFAULT_LEAGUE_SLUG as LeagueSlug;
+  const league = LEAGUES.find((candidate) => candidate.slug === text);
+  return league && league.enabled && league.statsPages ? (league.slug as LeagueSlug) : null;
+}
+
+/* isBasketball: true for leagues whose team and player pages use basketball numbers. */
+export function isBasketball(league: string): boolean {
+  return getLeague(league)?.espn.sport === "basketball";
 }
 
 /*

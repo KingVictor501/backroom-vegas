@@ -42,6 +42,20 @@ export function currentSeasonYear(now: Date = new Date()): number {
 }
 
 /*
+  seasonYearFor: the season number ESPN uses in its season web addresses, for one league.
+  - Football is named for the year it STARTS: the 2026 season runs September 2026 to February 2027
+    (so January and February still count as the year before).
+  - Basketball is named for the year it ENDS: the 2026-27 season is "2027". It starts in October, so
+    October to December belong to the next year's number, and January to September to this year's.
+*/
+export function seasonYearFor(league: LeagueConfig, now: Date = new Date()): number {
+  if (league.espn.sport === "basketball") {
+    return now.getUTCMonth() >= 9 ? now.getUTCFullYear() + 1 : now.getUTCFullYear();
+  }
+  return currentSeasonYear(now);
+}
+
+/*
   isNotFound: true if ESPN said "404 not found", which happens for fake game or
   player IDs. Callers turn this into null (missing on purpose), so pages can show
   "not found" instead of an error.

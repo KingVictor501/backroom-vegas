@@ -24,16 +24,16 @@ import { PlayerGamesTable } from "@/components/stats/StatTable";
 // The player page pieces, from components/player.
 import NextGameCard, { NextGameSkeleton } from "@/components/player/NextGameCard";
 import PlayerHeader from "@/components/player/PlayerHeader";
-// The league (only NFL for now), from config/leagues.ts.
-import { DEFAULT_LEAGUE_SLUG } from "@/config/leagues";
+// NbaPlayerView: the basketball version of this page. parseStatsLeague reads ?league=; isBasketball picks the view.
+import NbaPlayerView from "@/components/basketball/NbaPlayerView";
+import { isBasketball, parseStatsLeague } from "@/lib/leagues/links";
+import { getNbaPlayerDetails } from "@/lib/services/espn/basketball";
 // requireUser from lib/auth/dal.ts: the logged-in user (for their sportsbook).
 import { requireUser } from "@/lib/auth/dal";
 // Everything about the player except props, from lib/services/espn/players.ts.
 import { getPlayer, getPlayerDetails } from "@/lib/services/espn/players";
-import type { LeagueSlug } from "@/types";
 
-/* LEAGUE: player addresses don't include the league yet, because only the NFL is on. */
-const LEAGUE = DEFAULT_LEAGUE_SLUG as LeagueSlug;
+/* The league comes from the address's ?league= setting. No setting means the NFL, so older addresses still work. */
 
 /* isPlayerId: ESPN player IDs are only digits. Anything else can't be a real player. */
 function isPlayerId(id: string): boolean {
@@ -42,17 +42,29 @@ function isPlayerId(id: string): boolean {
 
 /* generateMetadata: the browser tab title, like "Patrick Mahomes | The Vegas Backroom". */
 export async function generateMetadata(props: PageProps<"/player/[playerId]">): Promise<Metadata> {
-  const { playerId } = await props.params;
-  const player = isPlayerId(playerId) ? await getPlayer(LEAGUE, playerId).catch(() => null) : null;
-  return { title: player?.name ?? "Player" };
+  const [{ playerId }, search] = await Promise.all([props.params, props.searchParams]);
+  const league = parseStatsLeague(search.league);
+  if (!league || !isPlayerId(playerId)) return { title: "Player" };
+  const name = isBasketball(league)
+    ? (await getNbaPlayerDetails(playerId).catch(() => null))?.player.name
+    : (await getPlayer(league, playerId).catch(() => null))?.name;
+  return { title: name ?? "Player" };
 }
 
 /* PlayerPage: runs on the server. */
 export default async function PlayerPage(props: PageProps<"/player/[playerId]">) {
-  const { playerId } = await props.params;
-  if (!isPlayerId(playerId)) notFound();
+  const [{ playerId }, search] = await Promise.all([props.params, props.searchParams]);
+  // A league that doesn't exist, is off, or has no player pages is "not found" (null = not a valid league).
+  const league = parseStatsLeague(search.league);
+  if (!league || !isPlayerId(playerId)) notFound();
 
-  const [user, details] = await Promise.all([requireUser(), getPlayerDetails(LEAGUE, playerId)]);
+  if (isBasketball(league)) {
+    const [, nbaDetails] = await Promise.all([requireUser(), getNbaPlayerDetails(playerId)]);
+    if (!nbaDetails) notFound();
+    return <NbaPlayerView details={nbaDetails} />;
+  }
+
+  const [user, details] = await Promise.all([requireUser(), getPlayerDetails(league, playerId)]);
   if (!details) notFound();
   const { player, seasonStats, recentGames, last5Average, last10Average, nextGameId, news } = details;
 
@@ -95,7 +107,7 @@ export default async function PlayerPage(props: PageProps<"/player/[playerId]">)
 
       {/* The next game and its live props go last on the page. */}
       <Suspense fallback={<NextGameSkeleton />}>
-        <NextGameCard league={LEAGUE} player={player} nextGameId={nextGameId} sportsbook={user.preferredSportsbook} />
+        <NextGameCard league={league} player={player} nextGameId={nextGameId} sportsbook={user.preferredSportsbook} />
       </Suspense>
     </div>
   );
