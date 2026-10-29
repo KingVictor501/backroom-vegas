@@ -18,6 +18,7 @@ import { fetchJson, UpstreamError } from "@/lib/services/http";
 // Our sportsbook IDs and each one's Odds API name, from config/sportsbooks.ts.
 // Sample odds mode (dev only): saved answers instead of real requests, from lib/services/odds/sampleOdds.ts.
 import { getSampleOdds, sampleOddsEnabled } from "./sampleOdds";
+import { dummyOddsEnabled } from "./dummyOdds";
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 import { SPORTSBOOK_IDS, type SportsbookId } from "@/types";
 
@@ -57,6 +58,8 @@ export async function oddsGet<Schema extends z.ZodType>(
 ): Promise<z.infer<Schema>> {
   // Sample odds mode: answer from saved files, so no credits are used. Never on in production builds.
   if (sampleOddsEnabled()) return getSampleOdds(path, params, schema, label);
+  // Practice odds mode (Preview site): never spend credits, whatever asked. Callers show their "odds unavailable" message.
+  if (dummyOddsEnabled()) throw new UpstreamError("The Odds API", null, "practice odds mode is on, so real odds are not requested");
 
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) {

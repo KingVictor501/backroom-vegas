@@ -20,6 +20,7 @@ import { getUpcomingGamesWithLines, type UpcomingGamesResult } from "@/lib/servi
 import { UpstreamError } from "@/lib/services/http";
 import type { LeagueSlug, User } from "@/types";
 // The browser part that filters and shows the games.
+import PracticeOddsNotice from "@/components/PracticeOddsNotice";
 import GameBrowser from "./GameBrowser";
 
 /*
@@ -42,16 +43,19 @@ export default async function LeagueGames({ league, user }: { league: LeagueConf
   }
 
   return (
-    <GameBrowser
-      leagueSlug={league.slug}
-      leagueLabel={league.label}
-      betTypes={league.betTypes}
-      games={data.games}
-      thisWeekGameIds={data.thisWeekGameIds}
-      sportsbook={user.preferredSportsbook}
-      sportsbookName={SPORTSBOOKS[user.preferredSportsbook].name}
-      oddsUnavailable={data.oddsUnavailable}
-      scoresOnly={!league.bettingEnabled}
-    />
+    <div className="space-y-4">
+      {league.bettingEnabled && <PracticeOddsNotice />}
+      <GameBrowser
+        leagueSlug={league.slug}
+        leagueLabel={league.label}
+        betTypes={league.betTypes}
+        games={data.games}
+        thisWeekGameIds={data.thisWeekGameIds}
+        sportsbook={user.preferredSportsbook}
+        sportsbookName={SPORTSBOOKS[user.preferredSportsbook].name}
+        oddsUnavailable={data.oddsUnavailable}
+        scoresOnly={!league.bettingEnabled}
+      />
+    </div>
   );
 }

@@ -29,6 +29,7 @@ import MarketSections from "@/components/matchup/MarketSections";
 import { MatchupInjuries, MatchupStories, SectionSkeleton } from "@/components/matchup/MatchupNews";
 import MatchupHeader from "@/components/matchup/MatchupHeader";
 import MatchupTabs from "@/components/matchup/MatchupTabs";
+import PracticeOddsNotice from "@/components/PracticeOddsNotice";
 import GameStats, { GameStatsSkeleton } from "@/components/matchup/GameStats";
 import WinProbability from "@/components/matchup/WinProbability";
 // The sportsbook names, from the config folder.
@@ -136,6 +137,8 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
     <div className="mx-auto max-w-3xl space-y-5">
       <MatchupHeader game={game} />
       <MatchupTabs gameId={game.id} gameLabel={label} view={view} league={league} />
+
+      <PracticeOddsNotice />
 
       <p className="text-xs text-muted">
         Odds from <span className="font-semibold text-text">{bookName}</span> ·{" "}

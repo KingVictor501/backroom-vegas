@@ -12,6 +12,9 @@
 import "server-only";
 import { cached, CACHE_SECONDS } from "@/lib/services/cache";
 import { requireLeague } from "@/lib/services/espn/client";
+// Practice odds for the Preview site (no credits), from lib/services/odds/dummyOdds.ts; the ESPN schedule they are built on.
+import { getUpcomingGames } from "@/lib/services/espn/games";
+import { dummyGameLines, dummyOddsEnabled } from "./dummyOdds";
 import { UpstreamError } from "@/lib/services/http";
 import { oddsGet, toSportsbookId } from "./client";
 import { toMarket, type NameLookup } from "./markets";
@@ -20,14 +23,19 @@ import type { GameLines, LeagueSlug, Market, MarketOutcome, SportsbookId } from 
 
 /*
   getLeagueGameLines: spread, total, and winner for every upcoming game, from all
-  three books at once. Costs 3 credits, and is saved for 60 minutes, so at most
-  about 72 credits a day even if the Feed is busy all day.
+  three books at once. Costs 3 credits, and is saved for 6 hours, so at most
+  about 12 credits a day per league even if the Feed is busy all day.
 */
 export const getLeagueGameLines = cached(
   "odds-league-game-lines",
   CACHE_SECONDS.oddsGameLines,
   async (leagueSlug: LeagueSlug): Promise<OddsEvent[]> => {
     const league = requireLeague(leagueSlug);
+    // Preview site with DUMMY_ODDS=true: made-up odds for ESPN's real games, so no credits are used.
+    if (dummyOddsEnabled()) {
+      const upcoming = await getUpcomingGames(leagueSlug);
+      return dummyGameLines([...upcoming.thisWeek, ...upcoming.nextWeek]);
+    }
     return oddsGet(
       `/sports/${league.oddsApiSportKey}/odds`,
       { markets: "h2h,spreads,totals" },
@@ -48,6 +56,8 @@ export const getEventOdds = cached(
   CACHE_SECONDS.oddsEventMarkets,
   async (leagueSlug: LeagueSlug, oddsEventId: string, marketKeys: string[]): Promise<OddsEvent | null> => {
     const league = requireLeague(leagueSlug);
+    // Practice odds don't include props or halves: null means "the book doesn't offer this" (missing on purpose).
+    if (dummyOddsEnabled()) return null;
     try {
       return await oddsGet(
         `/sports/${league.oddsApiSportKey}/events/${encodeURIComponent(oddsEventId)}/odds`,

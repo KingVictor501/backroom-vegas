@@ -21,10 +21,10 @@ import { unstable_cache } from "next/cache";
   Odds API call costs credits from your free monthly 500.
 */
 export const CACHE_SECONDS = {
-  /** Game lines (spread, total, winner) for all games: 3 credits per refresh. 60 minutes. */
-  oddsGameLines: 60 * 60,
-  /** Props or halves for ONE game and ONE category: 1-5 credits per refresh. 60 minutes. */
-  oddsEventMarkets: 60 * 60,
+  /** Game lines (spread, total, winner) for all games: 3 credits per refresh. 6 hours. */
+  oddsGameLines: 6 * 60 * 60,
+  /** Props or halves for ONE game and ONE category: 1-5 credits per refresh. 6 hours. */
+  oddsEventMarkets: 6 * 60 * 60,
   /** ESPN games and scores. These change on game day, so 5 minutes. */
   espnScoreboard: 5 * 60,
   /** ESPN live scores (the scoreboard, refreshed by the browser about every 30 seconds). 15 seconds. */
