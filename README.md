@@ -13,7 +13,9 @@ and **Same Game Parlay (SGP)**.
 
 The app starts with an **invite code** page, so you need a code before you can sign up (logging in does not need one).
 
-- **Grader invite code:** `PASTE-THE-GRADER-CODE-HERE` (replace this text with the real code before submitting; it is created in the live database, see `docs/qa-checklist.md`)
+- **Grader invite code:**
+  `BRV-7E5B-K5CD`
+
 - Then **sign up** with any email that has a common ending, like .com, .org, or .edu (no verification email is sent), and a password with at least 8 characters, a letter, and a number.
 - Please use a throwaway email. Deleting your account (Profile page) removes your data.
 
@@ -28,19 +30,19 @@ Tailwind CSS, and MongoDB Atlas, and hosted on Vercel.
 
 ## What the app does
 
-| Page | What you can do |
-|---|---|
-| **Invite** (`/invite`) | The first page a new visitor sees. Enter an invite code to reach sign up. |
-| **Sign up / Log in** | Email and password only (no email verification). Emails must end in a common ending (.com, .org, .net, .edu, .gov, .mil, .io, .us, country endings like .uk or .ca, and a few more; the list is `EMAIL_ENDINGS` in `lib/auth/validation.ts`), which also catches typos like `.con`. You stay logged in for 7 days. Every page needs you to be logged in. |
-| **Feed** (`/`) | Search teams and players; league tabs (NFL and NBA work, the others say "Coming soon"); bet-type buttons; this week's and next week's games with **Spread / Total / Winner** odds buttons; filters (All, Today, This Week); and an **NFL news** box. |
-| **League** (`/league/nfl`) | Every upcoming NFL matchup, soonest first. |
-| **Matchup** (`/matchup/<id>`) | Both teams, records, date and time, an Odds / Insights switch (Insights is "coming soon"), **Build your own SGP**, and tabs: Game Lines (+ each team's chance of winning and both teams' injury reports), Player Props, Team Props, Halves, Quarters, D/ST, and Game Specials. Plus news about the matchup. |
-| **Team** (`/team/<id>`) | Record, standing, season stats, last 5 games with stats, the remaining schedule (collapsible, closed at first), key players' last 5 games (collapsible), injuries, and team news. NBA teams: add `?league=nba`. |
-| **Player** (`/player/<id>`) | Photo, position, team, injury status, season stats, last 10 games with averages, news, and the next game's live props. |
-| **Bet Slips** (`/betslips`) | All your slips with search and a type filter; **New slip**; each slip's page to rename it, remove picks, set a pretend **wager** and see the **estimated payout**, **copy** it, set it as your active slip, or delete it. |
-| **Profile** (`/profile`) | Change your email, change your password, or delete your account. Each needs your current password. |
-| **Settings** (`/settings`) | Pick your sportsbook (the odds everywhere switch to it); log out. |
-| **Privacy and Terms** (`/privacy`, `/terms`) | Template pages (not legal advice), linked from the footer with the responsible-gambling help line. |
+| Page                                         | What you can do                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Invite** (`/invite`)                       | The first page a new visitor sees. Enter an invite code to reach sign up.                                                                                                                                                                                                                                                                                |
+| **Sign up / Log in**                         | Email and password only (no email verification). Emails must end in a common ending (.com, .org, .net, .edu, .gov, .mil, .io, .us, country endings like .uk or .ca, and a few more; the list is `EMAIL_ENDINGS` in `lib/auth/validation.ts`), which also catches typos like `.con`. You stay logged in for 7 days. Every page needs you to be logged in. |
+| **Feed** (`/`)                               | Search teams and players; league tabs (NFL and NBA work, the others say "Coming soon"); bet-type buttons; this week's and next week's games with **Spread / Total / Winner** odds buttons; filters (All, Today, This Week); and an **NFL news** box.                                                                                                     |
+| **League** (`/league/nfl`)                   | Every upcoming NFL matchup, soonest first.                                                                                                                                                                                                                                                                                                               |
+| **Matchup** (`/matchup/<id>`)                | Both teams, records, date and time, an Odds / Insights switch (Insights is "coming soon"), **Build your own SGP**, and tabs: Game Lines (+ each team's chance of winning and both teams' injury reports), Player Props, Team Props, Halves, Quarters, D/ST, and Game Specials. Plus news about the matchup.                                              |
+| **Team** (`/team/<id>`)                      | Record, standing, season stats, last 5 games with stats, the remaining schedule (collapsible, closed at first), key players' last 5 games (collapsible), injuries, and team news. NBA teams: add `?league=nba`.                                                                                                                                          |
+| **Player** (`/player/<id>`)                  | Photo, position, team, injury status, season stats, last 10 games with averages, news, and the next game's live props.                                                                                                                                                                                                                                   |
+| **Bet Slips** (`/betslips`)                  | All your slips with search and a type filter; **New slip**; each slip's page to rename it, remove picks, set a pretend **wager** and see the **estimated payout**, **copy** it, set it as your active slip, or delete it.                                                                                                                                |
+| **Profile** (`/profile`)                     | Change your email, change your password, or delete your account. Each needs your current password.                                                                                                                                                                                                                                                       |
+| **Settings** (`/settings`)                   | Pick your sportsbook (the odds everywhere switch to it); log out.                                                                                                                                                                                                                                                                                        |
+| **Privacy and Terms** (`/privacy`, `/terms`) | Template pages (not legal advice), linked from the footer with the responsible-gambling help line.                                                                                                                                                                                                                                                       |
 
 **Bet slip rules.** Your first tap on any odds starts a slip. Tapping a gold
 (selected) price again removes it. Picks that can't go together (both sides of
@@ -92,31 +94,31 @@ openssl rand -base64 48
 
 Other commands:
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Runs the app at http://localhost:3000 |
-| `npm test` | Runs all 639 automatic tests (Vitest) on a throwaway in-memory database |
-| `npm run typecheck` | Checks every TypeScript type |
-| `npm run lint` | Checks the code style and React rules |
-| `npm run build` | Builds the app the way Vercel does |
-| `npm run invite:create -- --db <name>` | Makes an invite code in the database you name (see the script's help for uses and expiry) |
-| `npm run invite:check -- --db <name>` | Checks an invite code without printing it (read-only) |
+| Command                                               | What it does                                                                                                     |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                                         | Runs the app at http://localhost:3000                                                                            |
+| `npm test`                                            | Runs all 639 automatic tests (Vitest) on a throwaway in-memory database                                          |
+| `npm run typecheck`                                   | Checks every TypeScript type                                                                                     |
+| `npm run lint`                                        | Checks the code style and React rules                                                                            |
+| `npm run build`                                       | Builds the app the way Vercel does                                                                               |
+| `npm run invite:create -- --db <name>`                | Makes an invite code in the database you name (see the script's help for uses and expiry)                        |
+| `npm run invite:check -- --db <name>`                 | Checks an invite code without printing it (read-only)                                                            |
 | `npm run pentest -- --base <address> --db <name>-dev` | Runs the 101 attack checks from `docs/penetration-test.md` against a running copy of the app (dev database only) |
 
 ### Environment variables
 
 These go in `.env.local` on your computer (never committed to GitHub; `.gitignore` blocks it) and in **Vercel → Project → Settings → Environment Variables** for the live site. `.env.example` lists the names with no real values.
 
-| Name | What it's for |
-|---|---|
-| `MONGODB_URI` | Your MongoDB Atlas connection string |
-| `MONGODB_DB` | The database name. `backroom-vegas` for the live site (Vercel **Production** only), `backroom-vegas-dev` for Preview and your computer. If it is missing outside the live site, the app refuses to start instead of guessing. |
-| `AUTH_SECRET` | A long random secret (32+ characters) that signs the login cookie |
-| `APP_URL` | The app's own address (`http://localhost:3000` locally, your live URL on Vercel) |
-| `ALLOWED_ORIGINS` | The websites allowed to call the API from a browser (CORS), comma-separated. Your own address. Never `*`. |
-| `ODDS_API_KEY` | Your The Odds API key |
-| `SAMPLE_ODDS` | Optional, `true` on your computer only: uses saved sample odds so no credits are spent |
-| `DUMMY_ODDS` | Optional, `true` in Vercel **Preview** only: shows clearly labeled practice odds. The live site ignores it. |
+| Name              | What it's for                                                                                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`     | Your MongoDB Atlas connection string                                                                                                                                                                                          |
+| `MONGODB_DB`      | The database name. `backroom-vegas` for the live site (Vercel **Production** only), `backroom-vegas-dev` for Preview and your computer. If it is missing outside the live site, the app refuses to start instead of guessing. |
+| `AUTH_SECRET`     | A long random secret (32+ characters) that signs the login cookie                                                                                                                                                             |
+| `APP_URL`         | The app's own address (`http://localhost:3000` locally, your live URL on Vercel)                                                                                                                                              |
+| `ALLOWED_ORIGINS` | The websites allowed to call the API from a browser (CORS), comma-separated. Your own address. Never `*`.                                                                                                                     |
+| `ODDS_API_KEY`    | Your The Odds API key                                                                                                                                                                                                         |
+| `SAMPLE_ODDS`     | Optional, `true` on your computer only: uses saved sample odds so no credits are spent                                                                                                                                        |
+| `DUMMY_ODDS`      | Optional, `true` in Vercel **Preview** only: shows clearly labeled practice odds. The live site ignores it.                                                                                                                   |
 
 None of these start with `NEXT_PUBLIC_`, so Next.js never sends them to the browser.
 
@@ -150,17 +152,17 @@ The tests never touch `backroom-vegas-dev` or the live database.
 
 ### Documentation (the `docs` folder)
 
-| Document | What it covers |
-|---|---|
-| [`docs/value-statement.md`](docs/value-statement.md) | What the app does, who it's for, the problem, and the value |
-| [`docs/system-diagram.md`](docs/system-diagram.md) | How the browser, guard, app, database, and outside APIs connect |
-| [`docs/data-model.md`](docs/data-model.md) | Every database collection, field, and relationship |
-| [`docs/api-design.md`](docs/api-design.md) | Every API route and Server Action: method, address, body, response, and whether login is needed |
-| [`docs/component-tree.md`](docs/component-tree.md) | The page and component hierarchy, where state lives, and where data is fetched |
-| [`docs/security-audit.md`](docs/security-audit.md) | The pre-ship security checklist, checked against the code |
-| [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results |
-| [`docs/security-review.md`](docs/security-review.md) | What I checked, what I tried to break, what I found and fixed, and the risks that remain |
-| [`docs/qa-checklist.md`](docs/qa-checklist.md) | The manual walk-through of the whole app on a phone and a computer |
+| Document                                               | What it covers                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| [`docs/value-statement.md`](docs/value-statement.md)   | What the app does, who it's for, the problem, and the value                                     |
+| [`docs/system-diagram.md`](docs/system-diagram.md)     | How the browser, guard, app, database, and outside APIs connect                                 |
+| [`docs/data-model.md`](docs/data-model.md)             | Every database collection, field, and relationship                                              |
+| [`docs/api-design.md`](docs/api-design.md)             | Every API route and Server Action: method, address, body, response, and whether login is needed |
+| [`docs/component-tree.md`](docs/component-tree.md)     | The page and component hierarchy, where state lives, and where data is fetched                  |
+| [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                       |
+| [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                 |
+| [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain        |
+| [`docs/qa-checklist.md`](docs/qa-checklist.md)         | The manual walk-through of the whole app on a phone and a computer                              |
 
 ---
 
@@ -168,14 +170,14 @@ The tests never touch `backroom-vegas-dev` or the live database.
 
 In the `postman/` folder. Drag each file onto the Postman window to import it.
 
-| File | What it tests |
-|---|---|
-| `external-apis.postman_collection.json` | The outside APIs the app uses: The Odds API (events, game lines, markets, props, halves) and ESPN (scoreboard, teams, rosters, injuries, news, game summaries, players). Uses an `{{odds_api_key}}` variable you set in your own Postman environment. |
-| `internal-routes.postman_collection.json` | The app's own API routes: games, one game, props, teams, injuries, news, search, and players. Includes "not found", "bad input", "logged out", and CORS tests. |
-| `betslips.postman_collection.json` | The bet slip API: create, list, get, rename, change picks, and delete, plus conflict and SGP checks and the active slip. Each request checks its own result (see the Test Results tab). |
-| `login-lockout.postman_collection.json` | The login lockout: 5 wrong passwords, then `429` for 15 minutes even with the right password. Use `login-lockout.postman_environment.json`. |
-| `penetration-test.postman_collection.json` | The five attacks (no token, tampered token, another user's data, bad input, oversized requests). Fill `emailA`, `emailB`, and `password` with two throwaway dev accounts. Never run it against the live site. |
-| `internal-local.postman_environment.json` | The settings the two internal collections use: `baseUrl` and an **empty** `session_cookie`. |
+| File                                       | What it tests                                                                                                                                                                                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `external-apis.postman_collection.json`    | The outside APIs the app uses: The Odds API (events, game lines, markets, props, halves) and ESPN (scoreboard, teams, rosters, injuries, news, game summaries, players). Uses an `{{odds_api_key}}` variable you set in your own Postman environment. |
+| `internal-routes.postman_collection.json`  | The app's own API routes: games, one game, props, teams, injuries, news, search, and players. Includes "not found", "bad input", "logged out", and CORS tests.                                                                                        |
+| `betslips.postman_collection.json`         | The bet slip API: create, list, get, rename, change picks, and delete, plus conflict and SGP checks and the active slip. Each request checks its own result (see the Test Results tab).                                                               |
+| `login-lockout.postman_collection.json`    | The login lockout: 5 wrong passwords, then `429` for 15 minutes even with the right password. Use `login-lockout.postman_environment.json`.                                                                                                           |
+| `penetration-test.postman_collection.json` | The five attacks (no token, tampered token, another user's data, bad input, oversized requests). Fill `emailA`, `emailB`, and `password` with two throwaway dev accounts. Never run it against the live site.                                         |
+| `internal-local.postman_environment.json`  | The settings the two internal collections use: `baseUrl` and an **empty** `session_cookie`.                                                                                                                                                           |
 
 **Staying logged in for the internal collections:** log in to the app in your
 browser, open DevTools → Application (Chrome) or Storage (Safari) → Cookies →
@@ -189,10 +191,10 @@ environment (in the Current value column only). Never commit or share it.
 Login, sign up, log out, and the Settings sportsbook picker use **Server Actions**:
 functions that run only on the server but are called straight from a form.
 
-| Action | File | What it does |
-|---|---|---|
-| `signup`, `login`, `logout` | `app/actions/auth.ts` | Checks the form with zod, hashes passwords with bcrypt, and sets or clears the 7-day login cookie |
-| `saveSportsbook` | `app/actions/settings.ts` | Checks the choice (only Hard Rock Bet or BetMGM), saves it to *your* account (your ID comes from your login cookie, never from the form), then refreshes the page |
+| Action                      | File                      | What it does                                                                                                                                                      |
+| --------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signup`, `login`, `logout` | `app/actions/auth.ts`     | Checks the form with zod, hashes passwords with bcrypt, and sets or clears the 7-day login cookie                                                                 |
+| `saveSportsbook`            | `app/actions/settings.ts` | Checks the choice (only Hard Rock Bet or BetMGM), saves it to _your_ account (your ID comes from your login cookie, never from the form), then refreshes the page |
 
 The forms use React's `useActionState` to show "Logging in…" or "Saving…" and
 the server's error messages. They also work with JavaScript turned off.
@@ -205,14 +207,14 @@ The **NFL news** box at the bottom of the Feed loads in the browser from
 `/api/news`, so it has four different looks. Under the box there's a
 **"For testing"** row of links, or you can type these addresses:
 
-| Look | How to see it |
-|---|---|
-| **Loading** (gray cards) | `/?news=slow`: the API waits 3 seconds before answering. Or the real way: in **Chrome** DevTools → **Network** → throttling menu → **Slow 4G** (or 3G), then reload. |
-| **Error** (message + Retry) | `/?news=bad-url`: the box asks for an address that doesn't exist. **Retry** asks again. |
-| **Empty** | `/?news=empty`: the API answers with no stories. |
-| **News** | `/`: picture, headline, short summary, and a link to the story on ESPN. |
+| Look                        | How to see it                                                                                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Loading** (gray cards)    | `/?news=slow`: the API waits 3 seconds before answering. Or the real way: in **Chrome** DevTools → **Network** → throttling menu → **Slow 4G** (or 3G), then reload. |
+| **Error** (message + Retry) | `/?news=bad-url`: the box asks for an address that doesn't exist. **Retry** asks again.                                                                              |
+| **Empty**                   | `/?news=empty`: the API answers with no stories.                                                                                                                     |
+| **News**                    | `/`: picture, headline, short summary, and a link to the story on ESPN.                                                                                              |
 
-These test switches only change what *that visitor* sees; they never change
+These test switches only change what _that visitor_ sees; they never change
 any data. Screenshots of all four looks are in `docs/week6-capstone-news-widget-screenshots/`.
 
 ---
@@ -229,7 +231,7 @@ Here's how none of it can ever run as code:
 
 1. **No raw HTML, ever.** The code never uses `dangerouslySetInnerHTML` (the
    React feature that inserts raw HTML), `innerHTML`, or `eval`. React shows
-   every piece of text *as text*: if a headline contained `<script>`, you'd
+   every piece of text _as text_: if a headline contained `<script>`, you'd
    just see the letters `<script>` on screen.
 2. **News is turned into plain text on the server.** ESPN stories can contain
    HTML, so every headline and summary goes through `toPlainText()`
@@ -314,22 +316,23 @@ This app was built with an AI coding assistant (Claude Code). These are the
 times an AI tool or an example it worked from would have done something
 unsafe, and what was done instead:
 
-| What was suggested or considered | Why it was unsafe | What we did instead |
-|---|---|---|
-| The Next.js docs' CORS example uses `Access-Control-Allow-Origin: *` | Any website could call the API from a visitor's browser | An allowlist (`ALLOWED_ORIGINS`) that never accepts `*` |
-| Letting the Bet Slips page call its own API using the address from the incoming request (the `Host` header) | A faked `Host` could make the server send a user's login cookie to another website | The address always comes from `APP_URL` in the settings |
-| An early code comment claimed TypeScript would stop the password hash from being sent to the browser | TypeScript types don't exist when the app runs, so they can't stop anything | `toUser()` copies only safe fields, and the database never loads the password hash unless asked (`select: false`) |
-| Allowing pictures from any website through Next.js's image resizer | Strangers could use our server to fetch and resize any picture | Only ESPN's `a.espncdn.com/i/...` is allowed; news pictures load straight from ESPN |
-| Showing ESPN news as it arrives (it can contain HTML) | HTML from another site could run in our pages (XSS) | All news is turned into plain text on the server; no `dangerouslySetInnerHTML` |
-| Logging full Odds API request addresses while debugging | The address includes the API key, which would end up in logs | The app logs only the number of credits left, never the address |
-| Two pages (team page, New Slip) relied only on the page guard's cookie check | A valid cookie for a deleted account would still pass | Both pages also check the account still exists (`requireUser`) |
-| A news link from ESPN would have been used as-is | A `javascript:` link would run code when tapped | Only `https://` links are kept |
-| The first after-login redirect guard only blocked `//` and `/\` at the start | A hidden tab or line break (`/%09/evil.com`) slipped through, and the browser turned it into `//evil.com`: an open redirect to a fake site | The guard refuses all hidden characters and backslashes and checks the final address stays on this site, with tests |
-| The public database health check (`/api/health/db`) answered "Check MONGODB_URI and MongoDB Atlas Network Access" when the database was down | It told any stranger which database the app uses and the name of a secret setting | It now says only "The database isn't available right now."; the details go to the server log |
-| The ESPN address builder trusted that callers had checked IDs | If a future page forgot to check, an ID like `..` could make the server fetch a different ESPN address (path traversal) | Every address is checked for `.`, `..`, and hidden slashes before it's used, with tests |
-| `process.env.MONGODB_DB ?? "backroom-vegas"`: if the database name setting was missing, quietly use the live database | A forgotten setting on a Preview or on a laptop would point testing and tests at real users' data | Only Vercel's production environment may fall back; anywhere else a missing name is an error, with a test |
-| News pictures allowed from any `https` website (the first `isSafeImage`) | A story could make visitors' browsers load a picture from any server (tracking, or content we never chose) | Only `*.espncdn.com` pictures are shown, matching the Content-Security-Policy |
-| Logging whole error objects when ESPN or the Odds API failed (`console.error("...", error)`) | An error object can carry the request address (with the API key) or a connection string into the logs | Seven places now use `logServerError`, which prints one cleaned-up line and hides connection strings |
+| What was suggested or considered                                                                                                             | Why it was unsafe                                                                                                                          | What we did instead                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| The Next.js docs' CORS example uses `Access-Control-Allow-Origin: *`                                                                         | Any website could call the API from a visitor's browser                                                                                    | An allowlist (`ALLOWED_ORIGINS`) that never accepts `*`                                                             |
+| Letting the Bet Slips page call its own API using the address from the incoming request (the `Host` header)                                  | A faked `Host` could make the server send a user's login cookie to another website                                                         | The address always comes from `APP_URL` in the settings                                                             |
+| An early code comment claimed TypeScript would stop the password hash from being sent to the browser                                         | TypeScript types don't exist when the app runs, so they can't stop anything                                                                | `toUser()` copies only safe fields, and the database never loads the password hash unless asked (`select: false`)   |
+| Allowing pictures from any website through Next.js's image resizer                                                                           | Strangers could use our server to fetch and resize any picture                                                                             | Only ESPN's `a.espncdn.com/i/...` is allowed; news pictures load straight from ESPN                                 |
+| Showing ESPN news as it arrives (it can contain HTML)                                                                                        | HTML from another site could run in our pages (XSS)                                                                                        | All news is turned into plain text on the server; no `dangerouslySetInnerHTML`                                      |
+| Logging full Odds API request addresses while debugging                                                                                      | The address includes the API key, which would end up in logs                                                                               | The app logs only the number of credits left, never the address                                                     |
+| Two pages (team page, New Slip) relied only on the page guard's cookie check                                                                 | A valid cookie for a deleted account would still pass                                                                                      | Both pages also check the account still exists (`requireUser`)                                                      |
+| A news link from ESPN would have been used as-is                                                                                             | A `javascript:` link would run code when tapped                                                                                            | Only `https://` links are kept                                                                                      |
+| The first after-login redirect guard only blocked `//` and `/\` at the start                                                                 | A hidden tab or line break (`/%09/evil.com`) slipped through, and the browser turned it into `//evil.com`: an open redirect to a fake site | The guard refuses all hidden characters and backslashes and checks the final address stays on this site, with tests |
+| The public database health check (`/api/health/db`) answered "Check MONGODB_URI and MongoDB Atlas Network Access" when the database was down | It told any stranger which database the app uses and the name of a secret setting                                                          | It now says only "The database isn't available right now."; the details go to the server log                        |
+| The ESPN address builder trusted that callers had checked IDs                                                                                | If a future page forgot to check, an ID like `..` could make the server fetch a different ESPN address (path traversal)                    | Every address is checked for `.`, `..`, and hidden slashes before it's used, with tests                             |
+| `process.env.MONGODB_DB ?? "backroom-vegas"`: if the database name setting was missing, quietly use the live database                        | A forgotten setting on a Preview or on a laptop would point testing and tests at real users' data                                          | Only Vercel's production environment may fall back; anywhere else a missing name is an error, with a test           |
+| News pictures allowed from any `https` website (the first `isSafeImage`)                                                                     | A story could make visitors' browsers load a picture from any server (tracking, or content we never chose)                                 | Only `*.espncdn.com` pictures are shown, matching the Content-Security-Policy                                       |
+| Logging whole error objects when ESPN or the Odds API failed (`console.error("...", error)`)                                                 | An error object can carry the request address (with the API key) or a connection string into the logs                                      | Seven places now use `logServerError`, which prints one cleaned-up line and hides connection strings                |
+
 <!-- Add any other time an AI tool suggested something unsafe that you rejected: -->
 
 ---
