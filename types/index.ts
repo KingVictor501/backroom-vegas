@@ -19,6 +19,7 @@ export * from "./api";
 export * from "./basketball";
 export * from "./betslip";
 export * from "./game";
+export * from "./gameStats";
 export * from "./league";
 export * from "./live";
 export * from "./news";

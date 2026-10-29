@@ -277,8 +277,12 @@ export const gameSummarySchema = z.object({
       players: z
         .array(
           z.object({
+            // Which team these players are on (used by the matchup page's stats tables).
+            team: z.object({ id: z.string() }).optional(),
             statistics: z.array(
               z.object({
+                // The column headings, like ["C/ATT", "YDS"], in the same order as each player's numbers.
+                labels: z.array(z.string()).optional(),
                 // Football groups are named ("passing", "rushing"); basketball has ONE unnamed group, so name is optional.
                 name: z.string().optional(),
                 keys: z.array(z.string()).optional(),

@@ -29,6 +29,7 @@ import MarketSections from "@/components/matchup/MarketSections";
 import { MatchupInjuries, MatchupStories, SectionSkeleton } from "@/components/matchup/MatchupNews";
 import MatchupHeader from "@/components/matchup/MatchupHeader";
 import MatchupTabs from "@/components/matchup/MatchupTabs";
+import GameStats, { GameStatsSkeleton } from "@/components/matchup/GameStats";
 import WinProbability from "@/components/matchup/WinProbability";
 // The sportsbook names, from the config folder.
 // parseMatchupLeague (reads ?league=) and hasMoreMarkets (does the league have tabs beyond Game Lines?).
@@ -126,6 +127,10 @@ export default async function MatchupPage(props: PageProps<"/matchup/[gameId]">)
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <MatchupHeader game={game} />
+      {/* Live stats while the game is on, final stats when it's over (nothing before it starts). It loads in after the odds. */}
+      <Suspense fallback={<GameStatsSkeleton />}>
+        <GameStats game={game} />
+      </Suspense>
       <MatchupTabs gameId={game.id} gameLabel={label} view={view} league={league} />
 
       <p className="text-xs text-muted">
