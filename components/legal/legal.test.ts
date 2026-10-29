@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import PrivacyPage from "@/app/(legal)/privacy/page";
 import TermsPage from "@/app/(legal)/terms/page";
+import LegalLayout from "@/app/(legal)/layout";
 import SiteFooter from "@/components/SiteFooter";
 
 const footer = renderToStaticMarkup(createElement(SiteFooter));
@@ -54,5 +55,16 @@ describe("legal pages", () => {
     const html = renderToStaticMarkup(createElement(PrivacyPage));
     expect(html).toContain("hashed");
     expect(html).toContain("Deleting your account");
+  });
+});
+
+describe("legal layout", () => {
+  it("has a Back to login breadcrumb, the page, and the footer", () => {
+    const html = renderToStaticMarkup(createElement(LegalLayout as never, null, createElement("p", null, "page body")));
+    expect(html).toContain('aria-label="Breadcrumb"');
+    expect(html).toContain('href="/login"');
+    expect(html).toContain("Back to login");
+    expect(html).toContain("page body");
+    expect(html).toContain("Privacy Policy");
   });
 });

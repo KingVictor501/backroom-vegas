@@ -14,9 +14,13 @@ import SiteFooter from "@/components/SiteFooter";
 export default function LegalLayout({ children }: LayoutProps<"/">) {
   return (
     <main className="mx-auto min-h-[calc(100vh-var(--notice-h))] max-w-3xl px-4 py-8 sm:px-6">
-      <Link href="/" className="font-display text-2xl text-gold">
-        The Vegas Backroom
-      </Link>
+      {/* Breadcrumb: a way back. Someone who is already logged in is sent on to the Feed by proxy.ts. */}
+      <nav aria-label="Breadcrumb" className="mb-3 text-sm">
+        <Link href="/login" className="font-semibold text-gold underline-offset-4 hover:underline">
+          ← Back to login
+        </Link>
+      </nav>
+      <p className="font-display text-2xl text-gold">The Vegas Backroom</p>
       <div className="mt-6 space-y-5">{children}</div>
       <SiteFooter />
     </main>
