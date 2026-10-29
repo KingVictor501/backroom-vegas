@@ -1,6 +1,6 @@
 /*
   FILE: components/matchup/GameStats.tsx
-  WHAT IT'S FOR: The "Live stats" (game is on) or "Final stats" (game is over) section of the matchup page, for
+  WHAT IT'S FOR: The "Live stats" (game is on) or "Final stats" (game is over) collapsible section of the matchup page, for
   both football and basketball: the two teams' numbers side by side, then each team's player tables.
   It has all four states: loading (the skeleton the page shows while it loads), error ("stats aren't available
   right now"), empty (a game with no numbers yet), and data. A game that hasn't started shows nothing here.
@@ -16,15 +16,22 @@ import { playerHref } from "@/lib/leagues/links";
 import { getGameStats } from "@/lib/services/espn/gameStats";
 import type { Game } from "@/types";
 
-/* StatsShell: the box and heading around the section. */
+/*
+  StatsShell: the box and heading around the section. It is a collapsible box (the browser's built-in <details>),
+  open at first; tap the heading to close or open it. It works with a keyboard (Tab, then Enter or Space) and
+  with JavaScript off. The 30-second refresh keeps whatever you chose.
+*/
 function StatsShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby="game-stats" className="rounded-2xl border border-line bg-card p-4">
-      <h2 id="game-stats" className="font-display text-lg text-text">
-        {title}
-      </h2>
-      <div className="mt-3 space-y-5">{children}</div>
-    </section>
+    <details open className="group rounded-2xl border border-line bg-card">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+        <h2 className="font-display text-lg text-text">{title}</h2>
+        <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="currentColor">
+          <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
+        </svg>
+      </summary>
+      <div className="space-y-5 px-4 pb-4">{children}</div>
+    </details>
   );
 }
 
