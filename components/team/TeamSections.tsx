@@ -3,6 +3,8 @@
   WHAT IT'S FOR: The parts of the team page that load IN AFTER the top:
   - RecentGames: the last 5 games (date, opponent, final score, win or loss)
     with the team's stats from each game
+  - UpcomingSchedule: the games the team still has to play (one collapsible
+    section that starts closed), under the last 5 games
   - KeyPlayers: the starting QB, top running backs, and top receivers, each
     with their last 5 games and an average row at the bottom (one collapsible
     section that starts closed)
@@ -20,10 +22,15 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 // shortDate ("Oct 18") from lib/format/gameTime.ts.
-import { shortDate } from "@/lib/format/gameTime";
+// gameDayLabel + gameTimeLabel ('Sun, Nov 2' and '4:25 PM ET'), from the same file.
+import { gameDayLabel, gameTimeLabel, shortDate } from "@/lib/format/gameTime";
 // The team's injuries and news, from lib/services/espn.
 import { getTeamInjuries } from "@/lib/services/espn/injuries";
 import { getNews } from "@/lib/services/espn/news";
+// The team's remaining games, from lib/services/espn/schedule.ts.
+import { getTeamUpcomingGames } from "@/lib/services/espn/schedule";
+// Links to team and matchup pages that keep the right league (?league=nba), from lib/leagues/links.ts.
+import { matchupHref, teamHref } from "@/lib/leagues/links";
 // The last 5 games with stats and the key players, from lib/services/teamPage.ts.
 import { GAME_STATS, getTeamKeyPlayers, getTeamRecentGames } from "@/lib/services/teamPage";
 // The "Collapse" button for the bottom of an open section, from components/CollapseButton.tsx.
@@ -128,6 +135,82 @@ export async function RecentGames({ league, teamId }: TeamSectionProps) {
         </TableBox>
       )}
     </Card>
+  );
+}
+
+/*
+  UpcomingSchedule: the games the team still has to play, soonest first, in one collapsible box that starts CLOSED.
+  Same <details> pattern as KeyPlayers: works with a keyboard (Tab, then Enter or Space) and with JavaScript off.
+  Four looks: loading (the page's <Suspense> skeleton), error ("aren't available"), empty (no games left), and the list.
+  Used by both the NFL team page and the NBA team page.
+*/
+export async function UpcomingSchedule({ league, teamId }: TeamSectionProps) {
+  const games = await getTeamUpcomingGames(league, teamId).catch(() => null);
+  const title = games === null || games.length === 0 ? "Remaining schedule" : `Remaining schedule (${games.length} ${games.length === 1 ? "game" : "games"})`;
+  return (
+    <details className="group rounded-2xl border border-line bg-card">
+      {/* summary: the heading you tap. The arrow turns when the section is open. */}
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+        <h2 id="remaining-schedule" className="text-xl text-text">
+          {title}
+        </h2>
+        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-money transition-transform group-open:rotate-180" fill="currentColor">
+          <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
+        </svg>
+      </summary>
+      <div className="px-5 pb-5">
+        {games === null ? (
+          <Unavailable what="The schedule" />
+        ) : games.length === 0 ? (
+          <p className="text-sm text-muted">No games left on the schedule.</p>
+        ) : (
+          <>
+            <TableBox label="Remaining schedule">
+              <thead>
+                <tr className="border-b border-line">
+                  <th scope="col" className={th}>Date</th>
+                  <th scope="col" className={th}>Time</th>
+                  <th scope="col" className={th}>Opponent</th>
+                  <th scope="col" className={th}>Where</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {games.map((game) => {
+                  const opponentHref = teamHref(league, game.opponent.id);
+                  return (
+                    <tr key={game.gameId}>
+                      <td className={`${td} text-muted`}>{gameDayLabel(game.startsAt)}</td>
+                      <td className={td}>
+                        <Link href={matchupHref(game.gameId, league)} className="hover:text-gold">
+                          {game.status === "in-progress" ? "Live now" : game.status === "postponed" ? "Postponed" : gameTimeLabel(game.startsAt)}
+                        </Link>
+                      </td>
+                      <td className={td}>
+                        <span className="flex items-center gap-2">
+                          <span className="text-muted">{game.isHome ? "vs" : "@"}</span>
+                          {game.opponent.logoUrl && <Image src={game.opponent.logoUrl} alt="" width={20} height={20} className="size-5" />}
+                          {opponentHref ? (
+                            <Link href={opponentHref} className="font-medium hover:text-gold">
+                              {game.opponent.abbreviation}
+                            </Link>
+                          ) : (
+                            <span className="font-medium">{game.opponent.abbreviation}</span>
+                          )}
+                        </span>
+                      </td>
+                      <td className={`${td} text-muted`}>{game.venue ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </TableBox>
+            <div className="mt-5">
+              <CollapseButton label="Collapse remaining schedule" />
+            </div>
+          </>
+        )}
+      </div>
+    </details>
   );
 }
 

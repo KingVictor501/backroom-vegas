@@ -81,6 +81,24 @@ export type TeamGameResult = {
 };
 
 /*
+  TeamUpcomingGame: one game still to come (or in progress) in the "Remaining schedule" box on the team page.
+*/
+export type TeamUpcomingGame = {
+  /** The game's ID, so the row can link to that game's matchup page. */
+  gameId: string;
+  /** When the game starts, as date-time text (ISO format). */
+  startsAt: string;
+  /** Who they play. */
+  opponent: TeamSummary;
+  /** true if this team is at home. */
+  isHome: boolean;
+  /** "scheduled", "in-progress" (being played now), or "postponed". */
+  status: "scheduled" | "in-progress" | "postponed";
+  /** The stadium or arena name, or null when ESPN doesn't list one (missing on purpose: the row just leaves it out). */
+  venue: string | null;
+};
+
+/*
   StatValue: one stat with its label, like "Passing Yards: 287".
   Used for lists of stats where the exact set depends on what the API gives us.
 */

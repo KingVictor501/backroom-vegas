@@ -16,7 +16,8 @@ import { Suspense, type ReactNode } from "react";
 import InjuryList from "@/components/InjuryList";
 import NewsList from "@/components/NewsList";
 import { num, TableBox, td, th } from "@/components/stats/StatTable";
-import { SectionSkeleton } from "@/components/team/TeamSections";
+// SectionSkeleton + UpcomingSchedule (the closed "Remaining schedule" box), shared with the NFL team page.
+import { SectionSkeleton, UpcomingSchedule } from "@/components/team/TeamSections";
 import { shortDate } from "@/lib/format/gameTime";
 import { matchupHref, playerHref, teamHref } from "@/lib/leagues/links";
 import { getNbaKeyPlayers, getNbaTeamResults } from "@/lib/services/espn/basketball";
@@ -220,6 +221,10 @@ export default function NbaTeamView({ overview }: { overview: NbaTeamOverview })
       <NbaTeamHeader overview={overview} />
       <Suspense fallback={<SectionSkeleton title="Last 5 games" />}>
         <RecentResults teamId={teamId} />
+      </Suspense>
+      {/* Under the last 5 games, closed until tapped (same box as the NFL team page). */}
+      <Suspense fallback={<SectionSkeleton title="Remaining schedule" />}>
+        <UpcomingSchedule league="nba" teamId={teamId} />
       </Suspense>
       <Suspense fallback={<SectionSkeleton title="Key players" />}>
         <KeyPlayers teamId={teamId} />

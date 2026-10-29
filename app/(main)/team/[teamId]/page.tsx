@@ -19,7 +19,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 // The team page pieces, from components/team.
 import TeamHeader from "@/components/team/TeamHeader";
-import { InjuriesAndNews, KeyPlayers, RecentGames, SectionSkeleton } from "@/components/team/TeamSections";
+import { InjuriesAndNews, KeyPlayers, RecentGames, SectionSkeleton, UpcomingSchedule } from "@/components/team/TeamSections";
 // NbaTeamView: the basketball version of the team page. parseStatsLeague reads ?league=; isBasketball picks the view.
 import NbaTeamView from "@/components/basketball/NbaTeamView";
 import { isBasketball, parseStatsLeague } from "@/lib/leagues/links";
@@ -74,6 +74,10 @@ export default async function TeamPage(props: PageProps<"/team/[teamId]">) {
       <TeamHeader overview={overview} />
       <Suspense fallback={<SectionSkeleton title="Last 5 games" />}>
         <RecentGames league={league} teamId={teamId} />
+      </Suspense>
+      {/* Under the last 5 games, closed until tapped. */}
+      <Suspense fallback={<SectionSkeleton title="Remaining schedule" />}>
+        <UpcomingSchedule league={league} teamId={teamId} />
       </Suspense>
       <Suspense fallback={<SectionSkeleton title="Key players: last 5 games" />}>
         <KeyPlayers league={league} teamId={teamId} />
