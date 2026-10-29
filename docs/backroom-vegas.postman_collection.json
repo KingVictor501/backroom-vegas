@@ -1,0 +1,652 @@
+{
+  "info": {
+    "name": "The Vegas Backroom API",
+    "description": "Every API route. Run 'Login' first (Postman keeps the bv_session cookie). Server Actions (forms) are not in here; see docs/api-design.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "email",
+      "value": "throwaway@example.com"
+    },
+    {
+      "key": "password",
+      "value": "ChangeMe123"
+    },
+    {
+      "key": "slipId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (sets cookie)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Run this first. Use a throwaway account on the dev database."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Database health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health",
+                "db"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bet slips",
+      "item": [
+        {
+          "name": "List my slips",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create slip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman test slip\",\n  \"picks\": [\n    {\n      \"id\": \"401873022:spreads:KC\",\n      \"gameId\": \"401873022\",\n      \"league\": \"nfl\",\n      \"gameLabel\": \"KC @ SEA\",\n      \"gameStartsAt\": \"2026-10-26T00:20:00.000Z\",\n      \"marketKey\": \"spreads\",\n      \"marketCategory\": \"game-lines\",\n      \"marketLabel\": \"Spread\",\n      \"period\": \"full-game\",\n      \"participant\": {\n        \"kind\": \"team\",\n        \"id\": \"12\",\n        \"name\": \"Kansas City Chiefs\"\n      },\n      \"side\": \"away\",\n      \"line\": -2.5,\n      \"odds\": -110,\n      \"sportsbook\": \"hardrock\",\n      \"label\": \"Chiefs -2.5\",\n      \"addedAt\": \"2026-10-25T12:00:00.000Z\"\n    }\n  ],\n  \"wager\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('slipId', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get slip",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/{{slipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "{{slipId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rename slip",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/{{slipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "{{slipId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman renamed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Change wager",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/{{slipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "{{slipId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wager\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Copy slip",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/{{slipId}}/copy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "{{slipId}}",
+                "copy"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get active slip",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "active"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Set active slip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "active"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slipId\": \"{{slipId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Clear active slip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "active"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slipId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete slip",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/betslips/{{slipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "betslips",
+                "{{slipId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sports data",
+      "item": [
+        {
+          "name": "Games (NFL)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/games?league=nfl",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "games"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Games (NBA)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/games?league=nba",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "games"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nba"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "One game",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/games/401873022?league=nfl",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "games",
+                "401873022"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Game props",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/games/401873022/props?league=nfl&category=passing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "games",
+                "401873022",
+                "props"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                },
+                {
+                  "key": "category",
+                  "value": "passing"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Live scores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live?league=nba&games=401909881&stats=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nba"
+                },
+                {
+                  "key": "games",
+                  "value": "401909881"
+                },
+                {
+                  "key": "stats",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Teams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/teams?league=nfl",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teams"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "One team",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/teams/12?league=nfl",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "teams",
+                "12"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "One player",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/players/3139477?league=nfl",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "players",
+                "3139477"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Injuries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/injuries?league=nfl&team=12",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "injuries"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                },
+                {
+                  "key": "team",
+                  "value": "12"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "News",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/news?league=nfl&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "news"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search?league=nfl&q=mahomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "league",
+                  "value": "nfl"
+                },
+                {
+                  "key": "q",
+                  "value": "mahomes"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
