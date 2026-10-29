@@ -15,6 +15,8 @@ import { TableBox, td, th } from "@/components/stats/StatTable";
 import { playerHref } from "@/lib/leagues/links";
 import { getGameStats } from "@/lib/services/espn/gameStats";
 import type { Game } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /*
   StatsShell: the box and heading around the section. It is a collapsible box (the browser's built-in <details>),
@@ -55,7 +57,7 @@ export function GameStatsSkeleton() {
 /* GameStats: runs on the server. */
 export default async function GameStats({ game }: { game: Game }) {
   const stats = await getGameStats(game.league, game.id).catch((error: unknown) => {
-    console.error("Game stats unavailable:", error);
+    logServerError("Game stats unavailable:", error);
     return null;
   });
 

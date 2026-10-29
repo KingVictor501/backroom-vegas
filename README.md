@@ -184,11 +184,16 @@ Here's how none of it can ever run as code:
    `rel="noopener noreferrer"`, so ESPN's page can't control ours.
 4. **User input is checked on the server.** Every form and API request is
    checked with zod (type, length, and allowed values) before it's used. For
-   example, slip names are 1–50 characters and sportsbooks must be one of three.
+   example, slip names are 1–50 characters and sportsbooks must be one of the two we support.
 5. **Safety headers on every answer.** `X-Content-Type-Options: nosniff` (a
    file can't be passed off as a script), `X-Frame-Options: DENY` (other sites
-   can't frame our pages to trick clicks), `Referrer-Policy`, and
-   `Permissions-Policy` (no camera, microphone, or location).
+   can't frame our pages to trick clicks), `Strict-Transport-Security` (https
+   only), `Referrer-Policy`, and `Permissions-Policy` (no camera, microphone, or
+   location). Every page also gets a **Content-Security-Policy** (built in
+   `lib/security/csp.ts`, sent by `proxy.ts`): scripts must carry a fresh secret
+   code (a "nonce") made for that page view, pictures may only come from us and
+   ESPN, and the browser may only talk to our own site, so an injected script
+   would be refused.
 
 ### Other protections
 
@@ -231,11 +236,8 @@ Here's how none of it can ever run as code:
 
 ### Known limits
 
-- **No login rate limiting.** Someone could try many passwords in a row. A real
-  product should limit attempts per account and per IP address (for example
-  with a service like Upstash).
-- **No Content-Security-Policy header.** It would add another layer against
-  XSS, but Next.js needs extra setup for it. Left out for now.
+- **The CSP allows `style="..."` attributes** (`style-src-attr 'unsafe-inline'`),
+  because React writes one for the "Chance of winning" bar. Scripts are strict.
 - **ESPN's API is unofficial** and not meant for commercial use, which is fine
   for a non-commercial school project. It can change without warning, and the
   app checks every answer with zod for that reason.

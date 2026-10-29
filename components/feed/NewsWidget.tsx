@@ -52,9 +52,19 @@ function newsUrl(mode: NewsTestMode): string {
   return `/api/news?limit=${HOW_MANY}${demo}`;
 }
 
-/* isSafeImage: only show pictures from regular https web addresses. */
+/*
+  isSafeImage: only show pictures from ESPN's picture servers (https, ending in .espncdn.com). This matches the
+  Content-Security-Policy (lib/security/csp.ts), which would block any other picture host anyway. A story whose
+  picture is somewhere else just shows the gray placeholder.
+*/
 function isSafeImage(url: string | null): url is string {
-  return url !== null && url.startsWith("https://");
+  if (url === null) return false;
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === "https:" && (hostname === "espncdn.com" || hostname.endsWith(".espncdn.com"));
+  } catch {
+    return false; // not a real web address (missing on purpose: show the placeholder)
+  }
 }
 
 /* NewsWidget: mode comes from the Feed's address (?news=...). */

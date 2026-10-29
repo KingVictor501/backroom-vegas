@@ -18,6 +18,8 @@ import { gameSummarySchema, scoreboardSchema } from "./schemas";
 import { overallRecord, toGame, toIsoTime, toTeamSummary, competitorScore, toGameStatus } from "./mappers";
 // The shared types (Section 2).
 import type { Game, LeagueSlug, StatValue } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /*
   getWeekGames: this week's games for a league, soonest first.
@@ -72,7 +74,7 @@ export const getUpcomingGames = cached(
         const thisWeekIds = new Set(thisWeek.map((game) => game.id));
         nextWeek = toGames(next.events).filter((game) => !thisWeekIds.has(game.id));
       } catch (error) {
-        console.error("Next week's games unavailable:", error);
+        logServerError("Next week's games unavailable:", error);
       }
     }
     return { thisWeek, nextWeek };

@@ -37,7 +37,13 @@ const globalForMongoose = globalThis as typeof globalThis & {
 export async function connectToDatabase(): Promise<typeof mongoose> {
   // Both values come from .env.local while you're building (and from Vercel's dashboard once the site is live).
   const uri = process.env.MONGODB_URI;
-  const dbName = process.env.MONGODB_DB ?? "backroom-vegas";
+  // MONGODB_DB picks WHICH database (backroom-vegas = live, backroom-vegas-dev = preview and local).
+  // Only the live site (Vercel's "production" environment) may fall back to the live name when it is missing.
+  // Anywhere else a missing name is an error, so a forgotten setting can never quietly point testing at live data.
+  const dbName = process.env.MONGODB_DB ?? (process.env.VERCEL_ENV === "production" ? "backroom-vegas" : undefined);
+  if (!dbName) {
+    throw new Error("MONGODB_DB is missing. Set it to backroom-vegas-dev in .env.local (and in Vercel's Preview environment).");
+  }
 
   if (!uri) {
     throw new Error(

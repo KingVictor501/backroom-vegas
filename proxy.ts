@@ -30,6 +30,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { INVITE_COOKIE_NAME, readInviteToken, readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/token";
 // The CORS allowlist from lib/api/cors.ts (read from ALLOWED_ORIGINS in .env.local / Vercel).
 import { corsHeaders, isAllowedOrigin } from "@/lib/api/cors";
+// The Content-Security-Policy text and the per-page-view nonce, from lib/security/csp.ts.
+import { buildCsp, makeNonce } from "@/lib/security/csp";
 
 /** Pages only for visitors who are NOT logged in (a logged-in visitor is sent to the Feed). */
 const LOGGED_OUT_ONLY_PATHS = ["/login", "/signup", "/invite"];
@@ -77,12 +79,11 @@ function handleApiCors(request: NextRequest): NextResponse {
 }
 
 /*
-  proxy: decides whether to let the request through or send the visitor elsewhere.
+  guardPage: decides whether to let a page request through or send the visitor elsewhere.
+  `next` makes the "let it through" answer (it carries the Content-Security-Policy, see proxy below).
 */
-export async function proxy(request: NextRequest) {
+async function guardPage(request: NextRequest, next: () => NextResponse): Promise<NextResponse> {
   const { pathname, search } = request.nextUrl;
-
-  if (pathname.startsWith("/api/")) return handleApiCors(request);
 
   const session = await readSessionToken(
     request.cookies.get(SESSION_COOKIE_NAME)?.value,
@@ -96,16 +97,16 @@ export async function proxy(request: NextRequest) {
 
   if (!session) {
     // The invite page and the login page are always open to logged-out visitors.
-    if (pathname === INVITE_PATH || pathname === "/login") return NextResponse.next();
+    if (pathname === INVITE_PATH || pathname === "/login") return next();
 
     // The Privacy Policy and Terms of Use are public: people read them before they sign up.
-    if (PUBLIC_PATHS.includes(pathname)) return NextResponse.next();
+    if (PUBLIC_PATHS.includes(pathname)) return next();
 
     // Sign up is the ONE page that needs an invite. No valid invite cookie → enter a code first
     // (keeping ?next=, so they still end up in the right place afterwards).
     if (pathname === "/signup") {
       const invite = await readInviteToken(request.cookies.get(INVITE_COOKIE_NAME)?.value);
-      if (invite) return NextResponse.next();
+      if (invite) return next();
       const inviteUrl = new URL(INVITE_PATH, request.url);
       const wanted = request.nextUrl.searchParams.get("next");
       if (wanted) inviteUrl.searchParams.set("next", wanted);
@@ -118,7 +119,30 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return next();
+}
+
+/*
+  proxy: the entry point Next.js calls.
+  - API routes: only the CORS rules (their answers are JSON, not pages, so a CSP adds nothing).
+  - Pages: first make this page view's CSP (with a fresh nonce), then run the login and invite checks.
+    Every page that is allowed through gets the CSP header, and Next.js is told the nonce through the request
+    headers so it can stamp it on its own scripts. Redirects don't need one.
+*/
+export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api/")) return handleApiCors(request);
+
+  const nonce = makeNonce();
+  const csp = buildCsp(nonce, process.env.NODE_ENV === "development");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  return guardPage(request, () => {
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("Content-Security-Policy", csp);
+    return response;
+  });
 }
 
 /*

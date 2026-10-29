@@ -33,6 +33,8 @@ import type {
   NbaTeamResult,
   NewsArticle,
 } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /* ---------- what we read from ESPN (only the parts we use) ---------- */
 
@@ -130,7 +132,7 @@ export const getNbaTeamOverview = cached(
         teamSeasonStatsSchema,
         "nba team season stats",
       ).catch((error: unknown) => {
-        console.error("NBA team season stats unavailable:", error);
+        logServerError("NBA team season stats unavailable:", error);
         return null;
       }),
     ]);
@@ -334,11 +336,11 @@ export const getNbaPlayerDetails = cached(
     const [teams, overview, log, injuryStatus] = await Promise.all([
       getTeams(NBA),
       espnGet(espnUrl("web", league, `athletes/${id}/overview`), nbaOverviewSchema, "nba athlete overview").catch((error: unknown) => {
-        console.error("NBA player overview unavailable:", error);
+        logServerError("NBA player overview unavailable:", error);
         return null;
       }),
       espnGet(espnUrl("web", league, `athletes/${id}/gamelog`), nbaGameLogSchema, "nba athlete game log").catch((error: unknown) => {
-        console.error("NBA player game log unavailable:", error);
+        logServerError("NBA player game log unavailable:", error);
         return null;
       }),
       getPlayerInjuryStatus(NBA, playerId).catch(() => null),

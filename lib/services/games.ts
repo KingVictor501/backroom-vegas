@@ -20,6 +20,8 @@ import { getLeagueGameLines, toGameLines } from "@/lib/services/odds/lines";
 import { findOddsEvent, teamIdLookup } from "@/lib/services/odds/match";
 import type { OddsEvent } from "@/lib/services/odds/schemas";
 import type { Game, GameWithLines, LeagueSlug, SportsbookId } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /*
   safeGameLines: the league's game lines, or null if The Odds API failed
@@ -32,7 +34,7 @@ async function safeGameLines(leagueSlug: LeagueSlug): Promise<OddsEvent[] | null
   try {
     return await getLeagueGameLines(leagueSlug);
   } catch (error) {
-    console.error("Odds unavailable:", error);
+    logServerError("Odds unavailable:", error);
     return null;
   }
 }

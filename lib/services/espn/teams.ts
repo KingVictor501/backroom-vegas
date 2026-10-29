@@ -20,6 +20,8 @@ import type {
   TeamSeasonStats,
   TeamSummary,
 } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /*
   getTeams: every team in the league, A to Z. Saved for 24 hours.
@@ -91,7 +93,7 @@ export const getTeamOverview = cached(
         teamSeasonStatsSchema,
         "team season stats",
       ).catch((error: unknown) => {
-        console.error("Team season stats unavailable:", error);
+        logServerError("Team season stats unavailable:", error);
         return null;
       }),
     ]);

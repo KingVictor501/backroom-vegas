@@ -11,6 +11,7 @@
 */
 
 import type { Metadata } from "next";
+import { connection } from "next/server";
 // next/font downloads the fonts when the app is built and serves them from our own
 // site, so the text doesn't jump around while fonts load and the browser never contacts Google.
 import { Inter, Playfair_Display } from "next/font/google";
@@ -56,7 +57,11 @@ export const metadata: Metadata = {
   RootLayout: the outer frame. "children" is whatever page the user is on.
   LayoutProps is a type Next.js creates automatically, so we don't have to describe "children" ourselves.
 */
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // connection(): wait for a real visit before building any page. A page built ahead of time (at build) can't get this
+  // visit's Content-Security-Policy nonce (made in proxy.ts), so its scripts would be blocked, including the 404 screen.
+  // Every page here is already per-visit or per-user, so this costs nothing real. (Next.js docs: Content Security Policy.)
+  await connection();
   return (
     // lang="en" tells screen readers to read the page in English.
     <html

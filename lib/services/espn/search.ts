@@ -13,6 +13,8 @@ import { espnGet, requireLeague } from "./client";
 import { playerSearchSchema } from "./schemas";
 import { getTeams } from "./teams";
 import type { LeagueSlug, SearchResult } from "@/types";
+// logServerError (lib/logging/safeLog.ts): logs a short cleaned-up line, never connection strings or whole error objects.
+import { logServerError } from "@/lib/logging/safeLog";
 
 /* The ESPN search address (a different "common" API from the others). */
 const SEARCH_URL = "https://site.web.api.espn.com/apis/common/v3/search";
@@ -71,7 +73,7 @@ export async function search(leagueSlug: LeagueSlug, query: string): Promise<Sea
   try {
     playerResults = await searchPlayers(leagueSlug, text);
   } catch (error) {
-    console.error("Player search unavailable:", error);
+    logServerError("Player search unavailable:", error);
   }
   return [...teamResults, ...playerResults];
 }
