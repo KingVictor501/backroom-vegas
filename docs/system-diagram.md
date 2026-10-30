@@ -90,3 +90,34 @@ In words:
 - **Sign up:** enter an invite code → the code is checked and an invite ticket is saved in your browser → sign up form → the code is checked again and one use is counted as your account is created → you get a login ticket.
 - **Log in:** email and password → the app checks for too many wrong tries (5 wrong passwords means a 15-minute wait) → the password is compared safely → you get a login ticket.
 - **Live scores:** while a game is on, your browser asks our app for scores about every 30 seconds, and our app asks ESPN (and remembers the answer for 15 seconds).
+
+## Where it runs (deployment)
+
+The code lives on GitHub and Vercel builds and publishes it. There is **one app** and **two environments**, each with its own database.
+
+```mermaid
+flowchart LR
+  Dev["<b>You</b><br/>write code<br/>and push it"]
+  GH["<b>GitHub</b><br/>KingVictor501/<br/>backroom-vegas"]
+  subgraph Vercel["<b>VERCEL</b> (builds and hosts the one app)"]
+    direction TB
+    Prod["<b>Production</b><br/>backroom-vegas.vercel.app<br/>built from <b>main</b>"]
+    Prev["<b>Preview</b><br/>a link for the <b>week-7</b> branch<br/>practice odds"]
+  end
+  LiveDB[("<b>MongoDB Atlas</b><br/>backroom-vegas<br/>real accounts")]
+  DevDB[("<b>MongoDB Atlas</b><br/>backroom-vegas-dev<br/>test accounts")]
+
+  Dev -->|"git push"| GH
+  GH -->|"push to main: builds automatically"| Prod
+  GH -->|"push to week-7: builds automatically"| Prev
+  Prod -->|"MONGODB_DB = backroom-vegas"| LiveDB
+  Prev -->|"MONGODB_DB = backroom-vegas-dev"| DevDB
+```
+
+- **One address serves everything.** The screens, API routes and forms are the same project, so there is no separate backend to point at. The app's own address is set in `APP_URL`, and `ALLOWED_ORIGINS` lists the only website allowed to use the API.
+- **Each environment has its own settings** in Vercel (database name, keys, `APP_URL`, `ALLOWED_ORIGINS`). Production and Preview are set separately, and the code refuses to guess a database name outside Production.
+- **Secrets never live in the code.** They are Vercel environment variables, and `.env.local` on the laptop is not in git.
+
+**Proof that pushing to `main` deploys automatically:** commit `b688853` ("add NBA Sunday to Saturday week") was pushed to `main` on 2026-10-30 at 12:41 PM ET. GitHub's status for that commit then shows **Vercel: success, "Deployment has completed"** at 12:42 PM ET, with nothing deployed by hand. The same check is on the `week-7` branch for the same commit.
+
+You can repeat it: `gh api repos/KingVictor501/backroom-vegas/commits/main/status`.

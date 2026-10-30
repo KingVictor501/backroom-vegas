@@ -160,6 +160,7 @@ The tests never touch `backroom-vegas-dev` or the live database.
 | [`docs/data-model.md`](docs/data-model.md)             | Every database collection, field, and relationship                                              |
 | [`docs/api-design.md`](docs/api-design.md)             | Every API route and Server Action: method, address, body, response, and whether login is needed |
 | [`docs/component-tree.md`](docs/component-tree.md)     | The page and component hierarchy, where state lives, and where data is fetched                  |
+| [`docs/decisions.md`](docs/decisions.md)               | The choices I made and the reasons for them, with the trade-off of each      |
 | [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                       |
 | [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                 |
 | [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain        |

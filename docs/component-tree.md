@@ -9,7 +9,7 @@ The folder structure mirrors the tree: `app/` holds the pages (server components
 | Logged-in user | The `bv_session` cookie, read on the server (`lib/auth/dal.ts`) | The server decides; the browser never holds the user's identity |
 | The active bet slip, pending conflict popup, delete popup, toast | `components/betslip/BetSlipProvider.tsx` (React context, client). It is handed the saved slip by the server layout, so the slip bar is there with no flicker | Every page's odds buttons, the slip bar, the desktop panel, and the slip page share one slip |
 | Live scores | `components/live/useLiveScores.ts` (client hook; timing rules in `livePoller.ts`). Used by `GameBrowser`, `MatchupHeader`, and `SlipDetail` | Only needs to live in the screen showing the games |
-| Search text, date filter, bet-type filter on the Feed | `useState` inside `components/feed/GameBrowser.tsx` | Filters the already-loaded list instantly |
+| Search text, date filter (This Week / Today), bet-type filter, the "Show live games" tick box (off at first), and the current page on the Feed | `useState` inside `components/feed/GameBrowser.tsx` | Filters the already-loaded list instantly. Changing the search, filter or tick box goes back to page 1 |
 | Everything else (games, odds, stats, slips lists) | Not kept in browser state. Server components load it per request, with short server-side caches | Pages stay fast and work with JavaScript off |
 
 ## Where API calls happen
@@ -76,6 +76,8 @@ app/error.tsx, app/(main)/error.tsx, app/(main)/loading.tsx, app/not-found.tsx  
 Route-level versions too: error.tsx for betslips, betslips/[id], matchup, player, team; loading.tsx for betslips/[id], matchup, player;
 not-found.tsx for betslips/[id], matchup, player, team
 ```
+
+**The Feed's cards:** `GameBrowser` keeps only this league's week (from `weekEndsOn` in `config/leagues.ts`, using `isThisFeedWeek` in `lib/format/gameTime.ts`), hides live games until the tick box is ticked, orders the rest with `lib/feed/paging.ts` (live first, then soonest start), and shows 3 rows per page (3 cards on a phone, 6 on a tablet or wider; `useColumns` reads the screen width) with a page indicator under the cards. Live scores are only requested for the cards on the page being shown. For the NBA, `lib/services/espn/games.ts` asks ESPN for each remaining day of the week, because ESPN's plain scoreboard returns only today.
 
 **Shared pieces:** `components/ErrorMessage.tsx` (loud red errors), `ErrorScreen`, `NotFoundCard`, `InjuryList`, `NewsList`, `PracticeOddsNotice`, `SiteNotice`, `CollapseButton`, `stats/StatTable` (the stat tables on team, player, and matchup pages), `auth/AuthField` (the labeled input every form uses), `nav/NavIcons`, `live/ScoresDelayed`, and `live/PickGradeBadge`.
 
