@@ -49,6 +49,12 @@ export type LeagueConfig = {
    * site.api.espn.com/apis/site/v2/sports/football/nfl/...
    */
   readonly espn: { readonly sport: string; readonly league: string };
+  /**
+   * The last day of this league's "week" on the Feed, as a day number: 0 = Sunday, 1 = Monday ... 6 = Saturday.
+   * The Feed's This Week list runs from now to the end of that day (Eastern time). The NFL week ends Monday
+   * night (1); the other leagues run Sunday to Saturday (6).
+   */
+  readonly weekEndsOn: number;
   /** The small outlined bet-type buttons under the league tabs on the Feed. */
   readonly betTypes: readonly string[];
   /**
@@ -76,6 +82,7 @@ export const LEAGUES = [
     icon: "🏈",
     oddsApiSportKey: "americanfootball_nfl",
     espn: { sport: "football", league: "nfl" },
+    weekEndsOn: 1, // Monday night ends the week
     betTypes: ["Game Lines", "Passing", "Rushing", "Receiving", "Touchdowns"],
     periods: { short: "Q", regulation: 4 },
   },
@@ -90,6 +97,7 @@ export const LEAGUES = [
     icon: "🏀",
     oddsApiSportKey: "basketball_nba",
     espn: { sport: "basketball", league: "nba" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "Q", regulation: 4 },
   },
@@ -103,6 +111,7 @@ export const LEAGUES = [
     icon: "🏒",
     oddsApiSportKey: "icehockey_nhl",
     espn: { sport: "hockey", league: "nhl" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "P", regulation: 3 },
   },
@@ -116,6 +125,7 @@ export const LEAGUES = [
     icon: "⚾",
     oddsApiSportKey: "baseball_mlb",
     espn: { sport: "baseball", league: "mlb" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "Inn", regulation: 9 },
   },
@@ -129,6 +139,7 @@ export const LEAGUES = [
     icon: "🏈",
     oddsApiSportKey: "americanfootball_ncaaf",
     espn: { sport: "football", league: "college-football" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "Q", regulation: 4 },
   },
@@ -142,6 +153,7 @@ export const LEAGUES = [
     icon: "🏀",
     oddsApiSportKey: "basketball_ncaab",
     espn: { sport: "basketball", league: "mens-college-basketball" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "H", regulation: 2 },
   },
@@ -155,6 +167,7 @@ export const LEAGUES = [
     icon: "🏀",
     oddsApiSportKey: "basketball_wnba",
     espn: { sport: "basketball", league: "wnba" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Game Lines"],
     periods: { short: "Q", regulation: 4 },
   },
@@ -172,6 +185,7 @@ export const LEAGUES = [
     icon: "🥋",
     oddsApiSportKey: "mma_mixed_martial_arts",
     espn: { sport: "mma", league: "ufc" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Fight Lines"],
     periods: null,
   },
@@ -185,6 +199,7 @@ export const LEAGUES = [
     icon: "🥊",
     oddsApiSportKey: "boxing_boxing",
     espn: { sport: "boxing", league: "boxing" },
+    weekEndsOn: 6, // Saturday night ends the week
     betTypes: ["Fight Lines"],
     periods: null,
   },

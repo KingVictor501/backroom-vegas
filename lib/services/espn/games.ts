@@ -12,6 +12,8 @@ import "server-only";
 import type { z } from "zod";
 // CACHE_SECONDS and cached() from lib/services/cache.ts: save results so ESPN isn't asked on every page view.
 import { cached, CACHE_SECONDS } from "@/lib/services/cache";
+// feedWeekDays (lib/format/gameTime.ts): the days left in this league's week, for leagues with no ESPN week number.
+import { feedWeekDays } from "@/lib/format/gameTime";
 // The ESPN helpers and the shapes we expect from ESPN.
 import { espnGet, espnUrl, isNotFound, requireLeague } from "./client";
 import { gameSummarySchema, scoreboardSchema } from "./schemas";
@@ -64,7 +66,34 @@ export const getUpcomingGames = cached(
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
     const current = await espnGet(espnUrl("site", league, "scoreboard"), scoreboardSchema, "scoreboard");
-    const thisWeek = toGames(current.events);
+    let thisWeek = toGames(current.events);
+
+    // A league with no ESPN "week" (like the NBA) only returns TODAY's games. Ask for each of the
+    // other days left in its week, one day at a time (ESPN rejects a date range), and add them.
+    // A day that fails is skipped: the games already loaded still show.
+    if (!current.week) {
+      const [, ...laterDays] = feedWeekDays(new Date(), league.weekEndsOn);
+      const extra = await Promise.all(
+        laterDays.map(async (day) => {
+          try {
+            return await espnGet(espnUrl("site", league, `scoreboard?dates=${day}`), scoreboardSchema, "scoreboard-day");
+          } catch (error) {
+            logServerError("A later day's games are unavailable:", error);
+            return null;
+          }
+        }),
+      );
+      const seen = new Set(thisWeek.map((game) => game.id));
+      for (const day of extra) {
+        for (const game of day ? toGames(day.events) : []) {
+          if (!seen.has(game.id)) {
+            seen.add(game.id);
+            thisWeek.push(game);
+          }
+        }
+      }
+      thisWeek = thisWeek.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+    }
 
     let nextWeek: Game[] = [];
     if (current.week && current.season) {

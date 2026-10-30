@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vitest";
 import {
   gameDayLabel,
+  feedWeekDays,
   gameTimeLabel,
   isThisFeedWeek,
   isToday,
@@ -76,5 +77,65 @@ describe("isThisFeedWeek (a week runs Tuesday through Monday night, Eastern time
   it("uses the Eastern calendar day, so a late game stays on its own day", () => {
     // 11:30 PM ET Monday is already Tuesday in UTC, but it is still Monday in Eastern time.
     expect(isThisFeedWeek("2026-10-27T03:30Z", NOW)).toBe(true);
+  });
+});
+
+describe("isThisFeedWeek for a Sunday-to-Saturday league (weekEndsOn 6, like the NBA)", () => {
+  it("on a Thursday, includes Friday and Saturday but not Sunday", () => {
+    expect(isThisFeedWeek("2026-10-24T23:30Z", NOW, 6)).toBe(true); // Saturday 7:30 PM ET
+    expect(isThisFeedWeek("2026-10-25T23:30Z", NOW, 6)).toBe(false); // Sunday starts the next week
+  });
+
+  it("on a Sunday, a whole new week starts and runs through the next Saturday", () => {
+    const sunday = new Date("2026-10-25T16:00:00Z");
+    expect(isThisFeedWeek("2026-10-26T23:30Z", sunday, 6)).toBe(true); // Monday
+    expect(isThisFeedWeek("2026-10-31T23:30Z", sunday, 6)).toBe(true); // Saturday
+    expect(isThisFeedWeek("2026-11-01T23:30Z", sunday, 6)).toBe(false); // the next Sunday
+  });
+
+  it("on a Saturday, only today counts", () => {
+    const saturday = new Date("2026-10-24T16:00:00Z");
+    expect(isThisFeedWeek("2026-10-25T00:30Z", saturday, 6)).toBe(true); // 8:30 PM ET Saturday
+    expect(isThisFeedWeek("2026-10-25T23:30Z", saturday, 6)).toBe(false);
+  });
+});
+
+describe("feedWeekDays", () => {
+  it("lists each Eastern day from today to the week's last day, in ESPN's form", () => {
+    expect(feedWeekDays(NOW, 6)).toEqual(["20261022", "20261023", "20261024"]); // Thu, Fri, Sat
+    expect(feedWeekDays(NOW, 1)).toEqual([
+      "20261022",
+      "20261023",
+      "20261024",
+      "20261025",
+      "20261026",
+    ]); // Thu to Mon
+  });
+
+  it("is just today on the week's last day, and crosses month ends", () => {
+    expect(feedWeekDays(new Date("2026-10-24T16:00:00Z"), 6)).toEqual([
+      "20261024",
+    ]);
+    expect(feedWeekDays(new Date("2026-10-29T16:00:00Z"), 6)).toEqual([
+      "20261029",
+      "20261030",
+      "20261031",
+    ]);
+    expect(feedWeekDays(new Date("2026-11-01T17:00:00Z"), 6)).toEqual([
+      "20261101",
+      "20261102",
+      "20261103",
+      "20261104",
+      "20261105",
+      "20261106",
+      "20261107",
+    ]);
+  });
+
+  it("uses the Eastern day, even when UTC has already moved on", () => {
+    // 11:30 PM ET Thursday is already Friday in UTC.
+    expect(feedWeekDays(new Date("2026-10-23T03:30:00Z"), 6)[0]).toBe(
+      "20261022",
+    );
   });
 });

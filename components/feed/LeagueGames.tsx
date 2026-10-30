@@ -65,6 +65,7 @@ export default async function LeagueGames({
         leagueSlug={league.slug}
         leagueLabel={league.label}
         betTypes={league.betTypes}
+        weekEndsOn={league.weekEndsOn}
         games={data.games}
         sportsbook={user.preferredSportsbook}
         sportsbookName={SPORTSBOOKS[user.preferredSportsbook].name}

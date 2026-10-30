@@ -85,6 +85,7 @@ function toSlug(label: string): string {
   GameBrowser
   - leagueSlug / leagueLabel: the league shown, like "nfl" / "NFL"
   - betTypes: the bet-type buttons for this league (from config/leagues.ts)
+  - weekEndsOn: the last day of this league's week (from config/leagues.ts), for the This Week list
   - games: every upcoming game, soonest first, already loaded by the server
   - sportsbook / sportsbookName: the user's book (from Settings)
   - oddsUnavailable: true if The Odds API couldn't be reached
@@ -94,6 +95,7 @@ export default function GameBrowser({
   leagueSlug,
   leagueLabel,
   betTypes,
+  weekEndsOn,
   games,
   sportsbook,
   sportsbookName,
@@ -103,6 +105,7 @@ export default function GameBrowser({
   leagueSlug: string;
   leagueLabel: string;
   betTypes: readonly string[];
+  weekEndsOn: number;
   games: GameWithLines[];
   sportsbook: SportsbookId;
   sportsbookName: string;
@@ -120,9 +123,11 @@ export default function GameBrowser({
   const columns = useColumns();
 
   const words = search.trim().toLowerCase();
-  // Only this week's games (Tuesday to Monday night, the same rule for every sport). A game in progress always counts.
+  // Only this week's games (ends on the league's last day, set in config/leagues.ts: Monday night for the NFL, Saturday for the NBA). A game in progress always counts.
   const weekGames = games.filter(
-    (game) => game.status === "in-progress" || isThisFeedWeek(game.startsAt),
+    (game) =>
+      game.status === "in-progress" ||
+      isThisFeedWeek(game.startsAt, new Date(), weekEndsOn),
   );
   const matching = weekGames.filter((game) => {
     if (!showLive && game.status === "in-progress") return false;

@@ -75,21 +75,33 @@ export function isToday(startsAt: string, now: Date = new Date()): boolean {
 }
 
 /*
-  isThisFeedWeek: true if the game starts between now and the end of the current "week", the same rule for every sport.
-  A week runs Tuesday through Monday night (Eastern time), the way NFL weeks do. So on a Thursday the window
-  is Thursday → Monday night, and on a Tuesday it is Tuesday → the next Monday night.
+  isThisFeedWeek: true if the game starts between now and the end of the current "week" for its league.
+  weekEndsOn is the last day of the week (0 = Sunday ... 6 = Saturday, from config/leagues.ts):
+  the NFL's week ends Monday night (1, so a week runs Tuesday to Monday); the NBA and the other leagues end Saturday (6, so Sunday to Saturday).
+  So on a Thursday the NFL window is Thursday → Monday night, and the NBA window is Thursday → Saturday night.
   Days are compared as Eastern calendar dates (like isToday), so there is no clock math to get wrong.
 */
-export function isThisFeedWeek(
-  startsAt: string,
-  now: Date = new Date(),
-): boolean {
-  const today = easternDate(now);
-  // Day of the week of today's Eastern date (0 = Sunday ... 6 = Saturday). The date is read as UTC midnight so the zone can't shift it.
-  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
-  const daysUntilMonday = (1 - weekday + 7) % 7;
-  const daysAway = daysBetween(today, easternDate(new Date(startsAt)));
-  return daysAway >= 0 && daysAway <= daysUntilMonday;
+export function isThisFeedWeek(startsAt: string, now: Date = new Date(), weekEndsOn = 1): boolean {
+  const daysAway = daysBetween(easternDate(now), easternDate(new Date(startsAt)));
+  return daysAway >= 0 && daysAway <= daysLeftInWeek(now, weekEndsOn);
+}
+
+/* daysLeftInWeek: how many days after today (Eastern) until the week's last day. 0 means today is the last day. */
+function daysLeftInWeek(now: Date, weekEndsOn: number): number {
+  // Day of the week of today's Eastern date (0 = Sunday ... 6 = Saturday). Read as UTC midnight so the zone can't shift it.
+  const weekday = new Date(`${easternDate(now)}T00:00:00Z`).getUTCDay();
+  return (weekEndsOn - weekday + 7) % 7;
+}
+
+/*
+  feedWeekDays: every Eastern calendar day from today to the week's last day, written like "20261031"
+  (the form ESPN's scoreboard asks for). Used to ask ESPN for each day's games when it has no "week" to ask for.
+*/
+export function feedWeekDays(now: Date = new Date(), weekEndsOn = 1): string[] {
+  const start = Date.parse(`${easternDate(now)}T00:00:00Z`);
+  return Array.from({ length: daysLeftInWeek(now, weekEndsOn) + 1 }, (_, offset) =>
+    new Date(start + offset * 86_400_000).toISOString().slice(0, 10).replaceAll("-", ""),
+  );
 }
 
 /* shortDate: a game's date, like "Oct 18" (Eastern time). Used in past-game tables. */
