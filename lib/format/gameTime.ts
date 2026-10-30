@@ -18,12 +18,20 @@ const TIME_ZONE = "America/New_York";
 /* easternDate: the calendar date in Eastern time, like "2026-10-25", for comparing days. */
 function easternDate(date: Date): string {
   // "en-CA" writes dates as year-month-day, which is easy to compare.
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 /* daysBetween: how many calendar days from one Eastern date to another (0 = same day). */
 function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+  return Math.round(
+    (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+      86_400_000,
+  );
 }
 
 /*
@@ -38,14 +46,26 @@ export function gameDayLabel(startsAt: string, now: Date = new Date()): string {
   if (days === 0) return "Today";
   if (days === 1) return "Tomorrow";
   if (days > 1 && days < 7) {
-    return new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, weekday: "long" }).format(start);
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: TIME_ZONE,
+      weekday: "long",
+    }).format(start);
   }
-  return new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, weekday: "short", month: "short", day: "numeric" }).format(start);
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(start);
 }
 
 /* gameTimeLabel: the clock time, like "4:25 PM ET". */
 export function gameTimeLabel(startsAt: string): string {
-  const time = new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, hour: "numeric", minute: "2-digit" }).format(new Date(startsAt));
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(startsAt));
   return `${time} ET`;
 }
 
@@ -54,7 +74,29 @@ export function isToday(startsAt: string, now: Date = new Date()): boolean {
   return easternDate(new Date(startsAt)) === easternDate(now);
 }
 
+/*
+  isThisFeedWeek: true if the game starts between now and the end of the current "week", the same rule for every sport.
+  A week runs Tuesday through Monday night (Eastern time), the way NFL weeks do. So on a Thursday the window
+  is Thursday → Monday night, and on a Tuesday it is Tuesday → the next Monday night.
+  Days are compared as Eastern calendar dates (like isToday), so there is no clock math to get wrong.
+*/
+export function isThisFeedWeek(
+  startsAt: string,
+  now: Date = new Date(),
+): boolean {
+  const today = easternDate(now);
+  // Day of the week of today's Eastern date (0 = Sunday ... 6 = Saturday). The date is read as UTC midnight so the zone can't shift it.
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  const daysUntilMonday = (1 - weekday + 7) % 7;
+  const daysAway = daysBetween(today, easternDate(new Date(startsAt)));
+  return daysAway >= 0 && daysAway <= daysUntilMonday;
+}
+
 /* shortDate: a game's date, like "Oct 18" (Eastern time). Used in past-game tables. */
 export function shortDate(startsAt: string): string {
-  return new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric" }).format(new Date(startsAt));
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    month: "short",
+    day: "numeric",
+  }).format(new Date(startsAt));
 }

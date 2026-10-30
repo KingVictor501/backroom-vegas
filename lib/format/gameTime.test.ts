@@ -9,7 +9,12 @@
 */
 
 import { describe, expect, it } from "vitest";
-import { gameDayLabel, gameTimeLabel, isToday } from "./gameTime";
+import {
+  gameDayLabel,
+  gameTimeLabel,
+  isThisFeedWeek,
+  isToday,
+} from "./gameTime";
 
 /* "Now" for these tests: Thursday, Oct 22, 2026, 3:00 PM Eastern. */
 const NOW = new Date("2026-10-22T19:00:00Z");
@@ -39,5 +44,37 @@ describe("game time words (Eastern time)", () => {
 
   it("Today filter leaves out tomorrow's games", () => {
     expect(isToday("2026-10-23T23:00Z", NOW)).toBe(false);
+  });
+});
+
+describe("isThisFeedWeek (a week runs Tuesday through Monday night, Eastern time)", () => {
+  it("on a Thursday, includes everything from today through Monday night", () => {
+    expect(isThisFeedWeek("2026-10-23T00:15Z", NOW)).toBe(true); // Thursday night game, 8:15 PM ET
+    expect(isThisFeedWeek("2026-10-25T17:00Z", NOW)).toBe(true); // Sunday 1:00 PM ET
+    expect(isThisFeedWeek("2026-10-27T00:15Z", NOW)).toBe(true); // Monday night, 8:15 PM ET
+  });
+
+  it("on a Thursday, leaves out last week and the Tuesday after Monday night", () => {
+    expect(isThisFeedWeek("2026-10-21T00:15Z", NOW)).toBe(false); // Tuesday before
+    expect(isThisFeedWeek("2026-10-28T00:15Z", NOW)).toBe(false); // Tuesday 8:15 PM ET, next week
+    expect(isThisFeedWeek("2026-10-30T00:15Z", NOW)).toBe(false); // next Thursday
+  });
+
+  it("on a Tuesday, a new week starts: the window runs to the next Monday night", () => {
+    const tuesday = new Date("2026-10-27T16:00:00Z");
+    expect(isThisFeedWeek("2026-10-30T00:15Z", tuesday)).toBe(true); // Thursday night game
+    expect(isThisFeedWeek("2026-11-03T00:15Z", tuesday)).toBe(true); // Monday night, Nov 2 ET
+    expect(isThisFeedWeek("2026-11-04T00:15Z", tuesday)).toBe(false); // the Tuesday after
+  });
+
+  it("on a Monday, only today counts", () => {
+    const monday = new Date("2026-10-26T15:00:00Z");
+    expect(isThisFeedWeek("2026-10-27T00:15Z", monday)).toBe(true);
+    expect(isThisFeedWeek("2026-10-28T00:15Z", monday)).toBe(false);
+  });
+
+  it("uses the Eastern calendar day, so a late game stays on its own day", () => {
+    // 11:30 PM ET Monday is already Tuesday in UTC, but it is still Monday in Eastern time.
+    expect(isThisFeedWeek("2026-10-27T03:30Z", NOW)).toBe(true);
   });
 });

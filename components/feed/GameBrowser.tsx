@@ -5,7 +5,7 @@
   1. the "Find a team or player" search bar (it also filters the games)
   2. the league tabs
   3. the bet-type buttons (Game Lines, Passing, Rushing, Receiving, Touchdowns)
-  4. the All / Today / This Week filter
+  4. the This Week / Today filter (This Week = now through Monday night)
   5. the game cards (one column on phones, two on tablets and up), 3 rows per page with a page indicator under them.
   Games in progress come first, then upcoming games by soonest start (see lib/feed/paging.ts)
   The games arrive already loaded by the SERVER, so they're in the page even
@@ -20,8 +20,8 @@
 
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
-// isToday from lib/format/gameTime.ts: what "Today" means (Eastern time).
-import { isToday } from "@/lib/format/gameTime";
+// isToday and isThisFeedWeek from lib/format/gameTime.ts: what "Today" and "This Week" mean (Eastern time).
+import { isThisFeedWeek, isToday } from "@/lib/format/gameTime";
 // Live scores: the refresh hook and the "Scores delayed" note, from components/live.
 import ScoresDelayed from "@/components/live/ScoresDelayed";
 import { useLiveScores } from "@/components/live/useLiveScores";
@@ -42,12 +42,11 @@ import GameCard, { type PropsLink } from "./GameCard";
 import LeagueTabs from "./LeagueTabs";
 import SearchBar from "./SearchBar";
 
-/* DateFilter: the three filter buttons. */
-type DateFilter = "all" | "today" | "week";
+/* DateFilter: the two filter buttons. "This Week" is the default and never reaches past Monday night (see isThisFeedWeek). */
+type DateFilter = "week" | "today";
 const DATE_FILTERS: { value: DateFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "today", label: "Today" },
   { value: "week", label: "This Week" },
+  { value: "today", label: "Today" },
 ];
 
 /*
@@ -87,7 +86,6 @@ function toSlug(label: string): string {
   - leagueSlug / leagueLabel: the league shown, like "nfl" / "NFL"
   - betTypes: the bet-type buttons for this league (from config/leagues.ts)
   - games: every upcoming game, soonest first, already loaded by the server
-  - thisWeekGameIds: which of them are this week's (for "This Week")
   - sportsbook / sportsbookName: the user's book (from Settings)
   - oddsUnavailable: true if The Odds API couldn't be reached
   - scoresOnly: true for a league with schedules and live scores but no betting features yet (like the NBA)
@@ -97,7 +95,6 @@ export default function GameBrowser({
   leagueLabel,
   betTypes,
   games,
-  thisWeekGameIds,
   sportsbook,
   sportsbookName,
   oddsUnavailable,
@@ -107,14 +104,13 @@ export default function GameBrowser({
   leagueLabel: string;
   betTypes: readonly string[];
   games: GameWithLines[];
-  thisWeekGameIds: string[];
   sportsbook: SportsbookId;
   sportsbookName: string;
   oddsUnavailable: boolean;
   scoresOnly: boolean;
 }) {
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("week");
   // The first bet type ("Game Lines") is picked when the page opens.
   const [betType, setBetType] = useState(betTypes[0]);
   // Which page of cards is showing. Changing the search or filter goes back to page 1 (see goToFirstPage).
@@ -124,11 +120,13 @@ export default function GameBrowser({
   const columns = useColumns();
 
   const words = search.trim().toLowerCase();
-  const thisWeek = new Set(thisWeekGameIds);
-  const matching = games.filter((game) => {
+  // Only this week's games (Tuesday to Monday night, the same rule for every sport). A game in progress always counts.
+  const weekGames = games.filter(
+    (game) => game.status === "in-progress" || isThisFeedWeek(game.startsAt),
+  );
+  const matching = weekGames.filter((game) => {
     if (!showLive && game.status === "in-progress") return false;
     if (dateFilter === "today" && !isToday(game.startsAt)) return false;
-    if (dateFilter === "week" && !thisWeek.has(game.id)) return false;
     return (
       words === "" ||
       teamMatches(game.awayTeam, words) ||
@@ -163,20 +161,6 @@ export default function GameBrowser({
 
   return (
     <div className="space-y-4">
-      {/* The tick box at the top: live games (in progress) stay hidden until it is checked. */}
-      <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 text-sm font-medium text-text">
-        <input
-          type="checkbox"
-          checked={showLive}
-          onChange={(event) => {
-            setShowLive(event.target.checked);
-            goToFirstPage();
-          }}
-          className="size-5 accent-gold"
-        />
-        Show live games
-      </label>
-
       <SearchBar
         value={search}
         onChange={(value) => {
@@ -260,8 +244,8 @@ export default function GameBrowser({
       {/* The chosen book has no odds on ANY game (a book with no odds in The Odds API, like Caesars did before it was removed), so say so instead of showing only dashes. */}
       {!scoresOnly &&
         !oddsUnavailable &&
-        games.length > 0 &&
-        games.every((game) => game.lines === null) && (
+        weekGames.length > 0 &&
+        weekGames.every((game) => game.lines === null) && (
           <p
             role="status"
             className="rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted"
@@ -288,6 +272,20 @@ export default function GameBrowser({
       )}
 
       <ScoresDelayed show={delayed} />
+
+      {/* The tick box above the cards: live games (in progress) stay hidden until it is checked. */}
+      <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 text-sm font-medium text-text">
+        <input
+          type="checkbox"
+          checked={showLive}
+          onChange={(event) => {
+            setShowLive(event.target.checked);
+            goToFirstPage();
+          }}
+          className="size-5 accent-gold"
+        />
+        Show live games
+      </label>
 
       {/* aria-live: screen readers hear how many games match after each change. */}
       <p aria-live="polite" className="sr-only">
@@ -366,18 +364,18 @@ export default function GameBrowser({
             typo already shows the red "No teams or players match" message in the search bar.
           */}
           <p className="text-sm text-muted">
-            {games.length === 0
+            {weekGames.length === 0
               ? `No upcoming ${leagueLabel} games right now.`
               : words
                 ? `No games match "${search.trim()}". Games are filtered by team name, like "Chiefs" or "KC".`
                 : "No games for this filter."}
           </p>
-          {(words || dateFilter !== "all") && games.length > 0 && (
+          {(words || dateFilter !== "week") && weekGames.length > 0 && (
             <button
               type="button"
               onClick={() => {
                 setSearch("");
-                setDateFilter("all");
+                setDateFilter("week");
               }}
               className="min-h-11 rounded-xl border border-gold px-4 text-sm font-semibold text-gold hover:bg-gold hover:text-bg"
             >

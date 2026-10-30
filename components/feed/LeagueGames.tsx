@@ -15,7 +15,10 @@ import "server-only";
 import type { LeagueConfig } from "@/config/leagues";
 import { SPORTSBOOKS } from "@/config/sportsbooks";
 // getUpcomingGamesWithLines from lib/services/games.ts: ESPN games + The Odds API prices.
-import { getUpcomingGamesWithLines, type UpcomingGamesResult } from "@/lib/services/games";
+import {
+  getUpcomingGamesWithLines,
+  type UpcomingGamesResult,
+} from "@/lib/services/games";
 // UpstreamError from lib/services/http.ts: thrown when ESPN doesn't answer.
 import { UpstreamError } from "@/lib/services/http";
 import type { LeagueSlug, User } from "@/types";
@@ -28,16 +31,29 @@ import GameBrowser from "./GameBrowser";
   - league: which league (must be turned on)
   - user: the logged-in user, for their sportsbook
 */
-export default async function LeagueGames({ league, user }: { league: LeagueConfig; user: User }) {
+export default async function LeagueGames({
+  league,
+  user,
+}: {
+  league: LeagueConfig;
+  user: User;
+}) {
   let data: UpcomingGamesResult;
   try {
-    data = await getUpcomingGamesWithLines(league.slug as LeagueSlug, user.preferredSportsbook);
+    data = await getUpcomingGamesWithLines(
+      league.slug as LeagueSlug,
+      user.preferredSportsbook,
+    );
   } catch (error) {
     if (!(error instanceof UpstreamError)) throw error;
     console.error(error.message);
     return (
-      <p role="alert" className="rounded-2xl border border-danger/50 bg-card p-6 text-sm text-danger">
-        We couldn&apos;t load {league.label} games right now. ESPN isn&apos;t responding. Please try again in a minute.
+      <p
+        role="alert"
+        className="rounded-2xl border border-danger/50 bg-card p-6 text-sm text-danger"
+      >
+        We couldn&apos;t load {league.label} games right now. ESPN isn&apos;t
+        responding. Please try again in a minute.
       </p>
     );
   }
@@ -50,7 +66,6 @@ export default async function LeagueGames({ league, user }: { league: LeagueConf
         leagueLabel={league.label}
         betTypes={league.betTypes}
         games={data.games}
-        thisWeekGameIds={data.thisWeekGameIds}
         sportsbook={user.preferredSportsbook}
         sportsbookName={SPORTSBOOKS[user.preferredSportsbook].name}
         oddsUnavailable={data.oddsUnavailable}
