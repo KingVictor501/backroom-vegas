@@ -40,7 +40,7 @@ A walk through the whole app by hand, on a **computer** and on a **phone**. Auto
 ## 5. Feed (all four looks)
 - [ ] Games appear with Spread / Total / Winner buttons. Team logos load.
 - [ ] League tabs: NFL and NBA work; the others say "Coming soon".
-- [ ] Filters (All, Today, This Week) change the list instantly.
+- [ ] Filters (This Week, Today) change the list instantly. This Week ends Monday night (Eastern). The "Show live games" box sits above the cards and starts unchecked.
 - [ ] News box: normal, then use the "For testing" links: **Slow** (loading look), **Bad URL** (red error with Retry), **Empty**, **Normal**.
 - [ ] Practice odds banner shows on the preview only.
 

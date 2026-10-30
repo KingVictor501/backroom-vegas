@@ -365,7 +365,7 @@ export default function GameBrowser({
           */}
           <p className="text-sm text-muted">
             {weekGames.length === 0
-              ? `No upcoming ${leagueLabel} games right now.`
+              ? `No ${leagueLabel} games left this week.`
               : words
                 ? `No games match "${search.trim()}". Games are filtered by team name, like "Chiefs" or "KC".`
                 : "No games for this filter."}
