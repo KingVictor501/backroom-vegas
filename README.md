@@ -98,7 +98,7 @@ Other commands:
 | Command                                               | What it does                                                                                                     |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `npm run dev`                                         | Runs the app at http://localhost:3000                                                                            |
-| `npm test`                                            | Runs all 639 automatic tests (Vitest) on a throwaway in-memory database                                          |
+| `npm test`                                            | Runs all 661 automatic tests (Vitest) on a throwaway in-memory database                                          |
 | `npm run typecheck`                                   | Checks every TypeScript type                                                                                     |
 | `npm run lint`                                        | Checks the code style and React rules                                                                            |
 | `npm run build`                                       | Builds the app the way Vercel does                                                                               |
@@ -138,12 +138,12 @@ None of these start with `NEXT_PUBLIC_`, so Next.js never sends them to the brow
 - **NBA.** Odds, matchup, team, and player pages work for the NBA as well as the NFL. Matchups also show a collapsible box of live or final game stats.
 - **Product basics.** A "for reference only" notice, a 21+ notice, a responsible-gambling link (1-800-GAMBLER), and template Privacy and Terms pages.
 - **Security hardening.** A Content-Security-Policy, size limits on every request, safe logging, a lockout, and a full audit and penetration test (see below).
-- **Automated tests.** `npm test` runs 639 tests: conflict rules, parlay and payout math, auth, invite codes, lockout, profile, slip CRUD and ownership, live-score grading, and the attack tests.
+- **Automated tests.** `npm test` runs 661 tests: conflict rules, parlay and payout math, auth, invite codes, lockout, profile, slip CRUD and ownership, live-score grading, and the attack tests.
 
 ### How to run the tests
 
 ```bash
-npm test            # all 639 tests, about 15 seconds, on a throwaway in-memory database
+npm test            # all 661 tests, about 15 seconds, on a throwaway in-memory database
 npm run typecheck   # TypeScript
 npm run lint        # code style
 npm run build       # the same build Vercel does
@@ -161,6 +161,7 @@ The tests never touch `backroom-vegas-dev` or the live database.
 | [`docs/api-design.md`](docs/api-design.md)             | Every API route and Server Action: method, address, body, response, and whether login is needed |
 | [`docs/component-tree.md`](docs/component-tree.md)     | The page and component hierarchy, where state lives, and where data is fetched                  |
 | [`docs/decisions.md`](docs/decisions.md)               | The choices I made and the reasons for them, with the trade-off of each      |
+| [`docs/whats-new.md`](docs/whats-new.md)               | Every feature and change added in Week 7, with the files that hold each one |
 | [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                       |
 | [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                 |
 | [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain        |
