@@ -117,6 +117,39 @@ A walk through the whole app by hand, on a **computer** and on a **phone**. Auto
 
 ---
 
+## Postman run (done)
+
+Both Postman collections were run by hand on **2026-10-30** against the app on `http://localhost:3000`, using the `backroom-vegas-dev` database and a throwaway account. Every status matched what was expected.
+
+**Collection 1: The Vegas Backroom API** (`docs/backroom-vegas.postman_collection.json`)
+
+| Check | Expected | Result |
+|---|---|---|
+| Login (sets cookie) | 200 and a user object with no password or hash | 200, no password or hash in the body |
+| Create slip | 201 | 201 |
+| Get slip | 200 | 200 |
+| Rename slip | 200 | 200 |
+| Copy slip | 201 | 201 |
+| Delete slip | 200 | 200 |
+| Get slip again after delete | 404 (it's gone) | 404 |
+| Games (NBA) | 200 | 200 |
+| Logout, then List my slips | 401 | 401 |
+| Log back in, then Get slip with a made-up ID (`aaaaaaaaaaaaaaaaaaaaaaaa`) | 404 | 404 |
+
+**Collection 2: Login lockout** (`postman/login-lockout.postman_collection.json`, 13 requests)
+
+| Folder | Check | Expected | Result |
+|---|---|---|---|
+| 1. Real account | Wrong password #1 to #5 | 401 each | 401 each |
+| 1. Real account | Wrong password #6 | 429 with a `Retry-After` header | 429, `Retry-After: 896` (seconds; about 15 minutes minus a few seconds) |
+| 1. Real account | RIGHT password during the lockout | 429 | 429 |
+| 2. Email with no account | Wrong #1 to #5 | 401 each | 401 each |
+| 2. Email with no account | Wrong #6 | 429 | 429 |
+
+All the built-in checks under Test Results passed. The unknown email locks out exactly like the real one, which shows the lockout does not reveal which emails have accounts. The throwaway account unlocked by itself after 15 minutes.
+
+---
+
 ## Live smoke test (after the merge, on `https://backroom-vegas.vercel.app`)
 - [ ] The invite page shows first.
 - [ ] The **grader invite code** works (and it was made in the **live** `backroom-vegas` database).

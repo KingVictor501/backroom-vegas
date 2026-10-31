@@ -165,7 +165,7 @@ The tests never touch `backroom-vegas-dev` or the live database.
 | [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                       |
 | [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                 |
 | [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain        |
-| [`docs/qa-checklist.md`](docs/qa-checklist.md)         | The manual walk-through of the whole app on a phone and a computer                              |
+| [`docs/qa-checklist.md`](docs/qa-checklist.md)         | The manual walk-through of the whole app on a phone and a computer, plus the recorded Postman run                              |
 
 ---
 
