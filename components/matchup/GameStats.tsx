@@ -28,7 +28,7 @@ function StatsShell({ title, children }: { title: string; children: React.ReactN
     <details className="group rounded-2xl border border-line bg-card">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <h2 className="font-display text-lg text-text">{title}</h2>
-        <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="currentColor">
+        <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-gold transition-transform group-open:rotate-180" fill="currentColor">
           <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
         </svg>
       </summary>

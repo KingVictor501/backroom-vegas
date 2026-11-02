@@ -154,7 +154,7 @@ export async function UpcomingSchedule({ league, teamId }: TeamSectionProps) {
         <h2 id="remaining-schedule" className="text-xl text-text">
           {title}
         </h2>
-        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-money transition-transform group-open:rotate-180" fill="currentColor">
+        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-gold transition-transform group-open:rotate-180" fill="currentColor">
           <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
         </svg>
       </summary>
@@ -273,8 +273,8 @@ export async function KeyPlayers({ league, teamId }: TeamSectionProps) {
         <h2 id="key-players" className="text-xl text-text">
           Key players: last 5 games
         </h2>
-        {/* The open/close arrow: money green and a bit larger, so it's easy to spot. */}
-        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-money transition-transform group-open:rotate-180" fill="currentColor">
+        {/* The open/close arrow: gold and a bit larger, so it's easy to spot. */}
+        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-gold transition-transform group-open:rotate-180" fill="currentColor">
           <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
         </svg>
       </summary>

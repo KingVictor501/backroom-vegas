@@ -50,7 +50,7 @@ export default function MarketSections({
           {/* summary: the heading you tap. The arrow turns when the section is open. */}
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
             <span className="font-display text-lg text-text">{section.title}</span>
-            <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" fill="currentColor">
+            <svg aria-hidden viewBox="0 0 20 20" className="size-4 shrink-0 text-gold transition-transform group-open:rotate-180" fill="currentColor">
               <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
             </svg>
           </summary>
