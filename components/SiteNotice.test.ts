@@ -30,10 +30,10 @@ describe("SiteNotice", () => {
     expect(renderToStaticMarkup(createElement(SiteNotice))).toBe("");
   });
 
-  it("the real setting contains the maintenance message", async () => {
+  it("the real setting is off right now, so no bar is shown", async () => {
     vi.resetModules();
     vi.doUnmock("@/config/siteNotice");
     const { SITE_NOTICE } = await import("@/config/siteNotice");
-    expect(SITE_NOTICE).toContain("Site maintenance taking place");
+    expect(SITE_NOTICE).toBeNull();
   });
 });

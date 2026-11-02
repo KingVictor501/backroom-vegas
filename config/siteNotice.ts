@@ -12,7 +12,7 @@
 
 /**
  * The notice text, or null for "no notice" (null is missing on purpose: nothing to show,
- * and the page layout makes no room for a bar).
+ * and the page layout makes no room for a bar). It is off right now. To bring it back, use:
+ * "Site maintenance taking place, some data may be missing and you may experience errors."
  */
-export const SITE_NOTICE: string | null =
-  "Site maintenance taking place, some data may be missing and you may experience errors.";
+export const SITE_NOTICE: string | null = null;
