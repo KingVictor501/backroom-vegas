@@ -2,7 +2,7 @@
   FILE: components/matchup/MatchupNews.tsx
   WHAT IT'S FOR: Two parts of the matchup page, each loading on its own:
   - MatchupInjuries: "Injury report", each team's full injury report, side by
-    side on wide screens. On the Game Lines tab it sits right under "Chance of
+    side on wide screens. It is a collapsible box, closed at first. On the Game Lines tab it sits right under "Chance of
     winning"; on the other tabs it's near the bottom.
   - MatchupStories: "Matchup news", stories about THIS game (ESPN tagged them
     with the game, or with just these two teams), like previews and injury
@@ -18,6 +18,8 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 // The shared injury report and news list.
 import InjuryList from "@/components/InjuryList";
+// The "Collapse" button for the bottom of an open section, from components/CollapseButton.tsx.
+import CollapseButton from "@/components/CollapseButton";
 import NewsList from "@/components/NewsList";
 // The team injury reports and the matchup's stories, from lib/services/espn.
 import { getTeamInjuries } from "@/lib/services/espn/injuries";
@@ -70,27 +72,44 @@ export async function MatchupInjuries({ game }: { game: Game }) {
     getTeamInjuries(game.league, game.homeTeam.id).catch(() => null),
   ]);
   return (
-    <Box id="matchup-injuries" title="Injury report">
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        {(
-          [
-            [game.awayTeam, awayInjuries],
-            [game.homeTeam, homeInjuries],
-          ] as const
-        ).map(([team, injuries]) => (
-          <div key={team.id} className="min-w-0">
-            <TeamHeading team={team} />
-            <div className="mt-1">
-              {injuries === null ? (
-                <p className="text-sm text-muted">Injuries aren&apos;t available right now.</p>
-              ) : (
-                <InjuryList injuries={injuries} league={game.league} />
-              )}
+    // A collapsible box (the browser's built-in <details>), closed at first. It works with a keyboard
+    // (Tab, then Enter or Space) and with JavaScript off, the same as the stats and Key players boxes.
+    <details className="group rounded-2xl border border-line bg-card">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+        <h2 id="matchup-injuries" className="text-xl text-text">
+          Injury report
+        </h2>
+        {/* The open/close arrow: it turns when the section is open. */}
+        <svg aria-hidden viewBox="0 0 20 20" className="size-8 shrink-0 text-money transition-transform group-open:rotate-180" fill="currentColor">
+          <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z" />
+        </svg>
+      </summary>
+      <div className="px-5 pb-5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {(
+            [
+              [game.awayTeam, awayInjuries],
+              [game.homeTeam, homeInjuries],
+            ] as const
+          ).map(([team, injuries]) => (
+            <div key={team.id} className="min-w-0">
+              <TeamHeading team={team} />
+              <div className="mt-1">
+                {injuries === null ? (
+                  <p className="text-sm text-muted">Injuries aren&apos;t available right now.</p>
+                ) : (
+                  <InjuryList injuries={injuries} league={game.league} />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        {/* At the bottom of the open section: close it without scrolling back up. */}
+        <div className="mt-5">
+          <CollapseButton label="Collapse injury report" />
+        </div>
       </div>
-    </Box>
+    </details>
   );
 }
 

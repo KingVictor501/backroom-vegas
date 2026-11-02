@@ -6,7 +6,7 @@
   then brings that section's heading back into view and puts the keyboard
   focus on it, so you don't lose your place.
   It only shows while the section is open (it's inside the part that opens and closes).
-  WHO USES IT: components/team/TeamSections.tsx (Key players).
+  WHO USES IT: components/team/TeamSections.tsx (Key players), components/matchup/MatchupNews.tsx (Injury report).
   WHY THIS NAME: It's a button that collapses a section. It ends in .tsx because it shows something on screen.
 */
 
