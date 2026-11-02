@@ -14,7 +14,7 @@ and **Same Game Parlay (SGP)**.
 The app starts with an **invite code** page, so you need a code before you can sign up (logging in does not need one).
 
 - **Grader invite code:**
-  `BRV-7E5B-K5CD`
+  `BRV-M69P-UTYW`
 
 - Then **sign up** with any email that has a common ending, like .com, .org, or .edu (no verification email is sent), and a password with at least 8 characters, a letter, and a number.
 - Please use a throwaway email. Deleting your account (Profile page) removes your data.
@@ -153,19 +153,19 @@ The tests never touch `backroom-vegas-dev` or the live database.
 
 ### Documentation (the `docs` folder)
 
-| Document                                               | What it covers                                                                                  |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| [`docs/value-statement.md`](docs/value-statement.md)   | What the app does, who it's for, the problem, and the value                                     |
-| [`docs/system-diagram.md`](docs/system-diagram.md)     | How the browser, guard, app, database, and outside APIs connect                                 |
-| [`docs/data-model.md`](docs/data-model.md)             | Every database collection, field, and relationship                                              |
-| [`docs/api-design.md`](docs/api-design.md)             | Every API route and Server Action: method, address, body, response, and whether login is needed |
-| [`docs/component-tree.md`](docs/component-tree.md)     | The page and component hierarchy, where state lives, and where data is fetched                  |
-| [`docs/decisions.md`](docs/decisions.md)               | The choices I made and the reasons for them, with the trade-off of each      |
-| [`docs/whats-new.md`](docs/whats-new.md)               | Every feature and change added in Week 7, with the files that hold each one |
-| [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                       |
-| [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                 |
-| [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain        |
-| [`docs/qa-checklist.md`](docs/qa-checklist.md)         | The manual walk-through of the whole app on a phone and a computer, plus the recorded Postman run                              |
+| Document                                               | What it covers                                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| [`docs/value-statement.md`](docs/value-statement.md)   | What the app does, who it's for, the problem, and the value                                       |
+| [`docs/system-diagram.md`](docs/system-diagram.md)     | How the browser, guard, app, database, and outside APIs connect                                   |
+| [`docs/data-model.md`](docs/data-model.md)             | Every database collection, field, and relationship                                                |
+| [`docs/api-design.md`](docs/api-design.md)             | Every API route and Server Action: method, address, body, response, and whether login is needed   |
+| [`docs/component-tree.md`](docs/component-tree.md)     | The page and component hierarchy, where state lives, and where data is fetched                    |
+| [`docs/decisions.md`](docs/decisions.md)               | The choices I made and the reasons for them, with the trade-off of each                           |
+| [`docs/whats-new.md`](docs/whats-new.md)               | Every feature and change added in Week 7, with the files that hold each one                       |
+| [`docs/security-audit.md`](docs/security-audit.md)     | The pre-ship security checklist, checked against the code                                         |
+| [`docs/penetration-test.md`](docs/penetration-test.md) | Five attacks on my own app, with the exact requests and results                                   |
+| [`docs/security-review.md`](docs/security-review.md)   | What I checked, what I tried to break, what I found and fixed, and the risks that remain          |
+| [`docs/qa-checklist.md`](docs/qa-checklist.md)         | The manual walk-through of the whole app on a phone and a computer, plus the recorded Postman run |
 
 ---
 
